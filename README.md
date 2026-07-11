@@ -1,17 +1,40 @@
-# project_atlas
+# Project Atlas
 
-A new Flutter project.
+Piattaforma SaaS multi-tenant per aziende. Stack: Flutter, Material 3, Riverpod, GoRouter, Supabase.
 
-## Getting Started
+## Setup locale
 
-This project is a starting point for a Flutter application.
+1. Clona il repository
+2. Copia il file ambiente:
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+cp .env.example .env
+```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+3. Compila `.env` con le credenziali Supabase del tuo progetto
+4. Installa le dipendenze e avvia l'app:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+flutter pub get
+flutter run -d chrome
+```
+
+## Branch strategy
+
+| Branch | Scopo |
+|--------|-------|
+| `main` | Produzione |
+| `develop` | Integrazione continua |
+| `feature/*` | Sviluppo feature |
+
+Flusso: `feature/*` → `develop` → `main`
+
+Convenzione commit: [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:`, `docs:`).
+
+## Comandi utili
+
+```bash
+flutter analyze
+flutter test
+flutter build web
+```

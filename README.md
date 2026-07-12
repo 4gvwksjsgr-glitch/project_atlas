@@ -34,7 +34,17 @@ Convenzione commit: [Conventional Commits](https://www.conventionalcommits.org/)
 ## Comandi utili
 
 ```bash
+flutter pub get
+flutter gen-l10n
 flutter analyze
 flutter test
 flutter build web
 ```
+
+## Architettura
+
+- **Clean Architecture** + **Feature First**
+- `lib/core/` — infrastruttura (config, router, logging, rete)
+- `lib/shared/` — codice condiviso tra feature (widgets, helpers, extensions, constants)
+- `lib/features/` — moduli di dominio
+

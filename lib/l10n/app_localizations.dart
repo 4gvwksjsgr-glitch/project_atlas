@@ -232,6 +232,60 @@ abstract class AppLocalizations {
   /// **'Inserisci la password'**
   String get passwordRequired;
 
+  /// No description provided for @passwordTooShort.
+  ///
+  /// In it, this message translates to:
+  /// **'La password deve avere almeno 8 caratteri'**
+  String get passwordTooShort;
+
+  /// No description provided for @confirmPasswordLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Conferma password'**
+  String get confirmPasswordLabel;
+
+  /// No description provided for @confirmPasswordRequired.
+  ///
+  /// In it, this message translates to:
+  /// **'Conferma la password'**
+  String get confirmPasswordRequired;
+
+  /// No description provided for @confirmPasswordMismatch.
+  ///
+  /// In it, this message translates to:
+  /// **'Le password non coincidono'**
+  String get confirmPasswordMismatch;
+
+  /// No description provided for @checkEmailTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Controlla la tua email'**
+  String get checkEmailTitle;
+
+  /// No description provided for @checkEmailSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Ti abbiamo inviato un link per confermare l\'account'**
+  String get checkEmailSubtitle;
+
+  /// No description provided for @checkEmailBackToLogin.
+  ///
+  /// In it, this message translates to:
+  /// **'Torna al login'**
+  String get checkEmailBackToLogin;
+
+  /// No description provided for @onboardingCompanyTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Configura la tua azienda'**
+  String get onboardingCompanyTitle;
+
+  /// No description provided for @onboardingCompanyPlaceholder.
+  ///
+  /// In it, this message translates to:
+  /// **'Questa sezione sarà disponibile nella prossima fase'**
+  String get onboardingCompanyPlaceholder;
+
   /// No description provided for @genericError.
   ///
   /// In it, this message translates to:

@@ -44,15 +44,11 @@ class AppLogger {
     StackTrace? stackTrace,
     Map<String, Object?>? context,
   }) {
-    _log(
-      LogLevel.error,
-      message,
-      {
-        ...?context,
-        'error': ?error,
-        'stackTrace': ?stackTrace,
-      },
-    );
+    _log(LogLevel.error, message, {
+      ...?context,
+      'error': ?error,
+      'stackTrace': ?stackTrace,
+    });
   }
 
   void _log(LogLevel level, String message, Map<String, Object?>? context) {

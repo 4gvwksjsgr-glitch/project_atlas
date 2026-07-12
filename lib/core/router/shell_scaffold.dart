@@ -5,10 +5,7 @@ import '../../shared/constants/app_ui_constants.dart';
 
 /// Layout adattivo con [NavigationBar] (mobile) o [NavigationRail] (desktop).
 class ShellScaffold extends StatelessWidget {
-  const ShellScaffold({
-    super.key,
-    required this.navigationShell,
-  });
+  const ShellScaffold({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 

@@ -23,5 +23,14 @@
   "emailRequired": "Inserisci l'email",
   "emailInvalid": "Inserisci un'email valida",
   "passwordRequired": "Inserisci la password",
+  "passwordTooShort": "La password deve avere almeno 8 caratteri",
+  "confirmPasswordLabel": "Conferma password",
+  "confirmPasswordRequired": "Conferma la password",
+  "confirmPasswordMismatch": "Le password non coincidono",
+  "checkEmailTitle": "Controlla la tua email",
+  "checkEmailSubtitle": "Ti abbiamo inviato un link per confermare l'account",
+  "checkEmailBackToLogin": "Torna al login",
+  "onboardingCompanyTitle": "Configura la tua azienda",
+  "onboardingCompanyPlaceholder": "Questa sezione sarà disponibile nella prossima fase",
   "genericError": "Si è verificato un errore. Riprova."
 }

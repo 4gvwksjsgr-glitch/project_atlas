@@ -18,5 +18,7 @@ final class ValidationFailure extends Failure {
 }
 
 final class UnknownFailure extends Failure {
-  const UnknownFailure([super.message = 'Si è verificato un errore imprevisto.']);
+  const UnknownFailure([
+    super.message = 'Si è verificato un errore imprevisto.',
+  ]);
 }

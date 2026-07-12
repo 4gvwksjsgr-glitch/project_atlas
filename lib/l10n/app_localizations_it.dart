@@ -80,5 +80,34 @@ class AppLocalizationsIt extends AppLocalizations {
   String get passwordRequired => 'Inserisci la password';
 
   @override
+  String get passwordTooShort => 'La password deve avere almeno 8 caratteri';
+
+  @override
+  String get confirmPasswordLabel => 'Conferma password';
+
+  @override
+  String get confirmPasswordRequired => 'Conferma la password';
+
+  @override
+  String get confirmPasswordMismatch => 'Le password non coincidono';
+
+  @override
+  String get checkEmailTitle => 'Controlla la tua email';
+
+  @override
+  String get checkEmailSubtitle =>
+      'Ti abbiamo inviato un link per confermare l\'account';
+
+  @override
+  String get checkEmailBackToLogin => 'Torna al login';
+
+  @override
+  String get onboardingCompanyTitle => 'Configura la tua azienda';
+
+  @override
+  String get onboardingCompanyPlaceholder =>
+      'Questa sezione sarà disponibile nella prossima fase';
+
+  @override
   String get genericError => 'Si è verificato un errore. Riprova.';
 }

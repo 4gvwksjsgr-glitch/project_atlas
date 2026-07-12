@@ -9,13 +9,7 @@ void main() {
 
       expect(result.isSuccess, isTrue);
       expect(result.isError, isFalse);
-      expect(
-        result.when(
-          success: (value) => value,
-          error: (_) => -1,
-        ),
-        42,
-      );
+      expect(result.when(success: (value) => value, error: (_) => -1), 42);
     });
 
     test('Error holds failure', () {
@@ -24,10 +18,7 @@ void main() {
       expect(result.isSuccess, isFalse);
       expect(result.isError, isTrue);
       expect(
-        result.when(
-          success: (_) => 'ok',
-          error: (failure) => failure.message,
-        ),
+        result.when(success: (_) => 'ok', error: (failure) => failure.message),
         'Campo obbligatorio',
       );
     });

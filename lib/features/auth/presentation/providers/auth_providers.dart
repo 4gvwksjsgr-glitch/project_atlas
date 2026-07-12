@@ -1,13 +1,47 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Stato di autenticazione stub per Fase 0.
-/// Verrà sostituito con Supabase Auth in Fase 1.
-final authStateProvider = StateProvider<bool>((ref) => false);
+import '../../../../core/di/providers.dart';
+import '../../data/datasource/auth_remote_datasource.dart';
+import '../../data/repositories/auth_repository_impl.dart';
+import '../../domain/repositories/auth_repository.dart';
+import '../../domain/usecases/sign_up.dart';
 
-void signInStub(WidgetRef ref) {
-  ref.read(authStateProvider.notifier).state = true;
+final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
+  return AuthRemoteDataSource(ref.watch(supabaseClientProvider));
+});
+
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  return AuthRepositoryImpl(ref.watch(authRemoteDataSourceProvider));
+});
+
+final signUpUseCaseProvider = Provider<SignUp>((ref) {
+  return SignUp(ref.watch(authRepositoryProvider));
+});
+
+final authSessionProvider = StreamProvider<Session?>((ref) async* {
+  final client = ref.watch(supabaseClientProvider);
+
+  yield client.auth.currentSession;
+
+  await for (final state in client.auth.onAuthStateChange) {
+    yield state.session;
+  }
+});
+
+final isAuthenticatedProvider = Provider<bool>((ref) {
+  final session = ref.watch(authSessionProvider);
+  return session.maybeWhen(
+    data: (value) => value != null,
+    orElse: () => ref.watch(supabaseClientProvider).auth.currentSession != null,
+  );
+});
+
+Future<void> signInStub(WidgetRef ref) {
+  // Login reale verrà implementato in uno step successivo.
+  return Future.value();
 }
 
-void signOutStub(WidgetRef ref) {
-  ref.read(authStateProvider.notifier).state = false;
+Future<void> signOutStub(WidgetRef ref) async {
+  await ref.read(supabaseClientProvider).auth.signOut();
 }

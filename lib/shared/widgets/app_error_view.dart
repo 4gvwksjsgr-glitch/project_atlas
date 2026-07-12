@@ -25,11 +25,7 @@ class AppErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 48,
-              color: theme.colorScheme.error,
-            ),
+            Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
             const SizedBox(height: AppUiConstants.spacingMedium),
             Text(
               message,
@@ -38,10 +34,7 @@ class AppErrorView extends StatelessWidget {
             ),
             if (onRetry != null) ...[
               const SizedBox(height: AppUiConstants.spacingMedium),
-              FilledButton(
-                onPressed: onRetry,
-                child: Text(retryLabel),
-              ),
+              FilledButton(onPressed: onRetry, child: Text(retryLabel)),
             ],
           ],
         ),

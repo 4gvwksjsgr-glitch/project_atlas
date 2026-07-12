@@ -6,9 +6,9 @@ enum CompanyRole {
   employee;
 
   String get label => switch (this) {
-        CompanyRole.owner => 'Proprietario',
-        CompanyRole.admin => 'Amministratore',
-        CompanyRole.manager => 'Manager',
-        CompanyRole.employee => 'Dipendente',
-      };
+    CompanyRole.owner => 'Proprietario',
+    CompanyRole.admin => 'Amministratore',
+    CompanyRole.manager => 'Manager',
+    CompanyRole.employee => 'Dipendente',
+  };
 }

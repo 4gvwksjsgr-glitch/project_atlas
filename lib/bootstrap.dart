@@ -8,14 +8,9 @@ import 'core/network/supabase_client.dart';
 Future<void> bootstrap() async {
   await dotenv.load(fileName: '.env');
 
-  AppLogger.instance.initialize(
-    minLevel: LogLevel.fromString(Env.logLevel),
-  );
+  AppLogger.instance.initialize(minLevel: LogLevel.fromString(Env.logLevel));
 
-  AppLogger.instance.info(
-    'Avvio Project Atlas',
-    context: {'env': Env.appEnv},
-  );
+  AppLogger.instance.info('Avvio Project Atlas', context: {'env': Env.appEnv});
 
   await initializeSupabase();
 }

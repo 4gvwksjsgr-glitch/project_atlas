@@ -39,10 +39,7 @@ class DashboardScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: AppUiConstants.spacingMedium),
-          Text(
-            l10n.dashboardWelcome,
-            style: theme.textTheme.titleLarge,
-          ),
+          Text(l10n.dashboardWelcome, style: theme.textTheme.titleLarge),
           const SizedBox(height: AppUiConstants.spacingSmall),
           Text(
             l10n.dashboardPlaceholder,

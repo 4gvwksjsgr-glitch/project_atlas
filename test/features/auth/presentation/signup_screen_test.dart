@@ -29,6 +29,26 @@ class _DelayedAuthRepository implements AuthRepository {
       ),
     );
   }
+
+  @override
+  Future<Result<AuthUser>> signIn({
+    required String email,
+    required String password,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<Result<void>> signOut() => throw UnimplementedError();
+
+  @override
+  Future<Result<void>> resetPassword({required String email}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Result<void>> updatePassword({required String password}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Result<AuthUser?>> getCurrentSession() => throw UnimplementedError();
 }
 
 void main() {
@@ -63,8 +83,9 @@ void main() {
         ProviderScope(
           overrides: [
             signUpUseCaseProvider.overrideWithValue(SignUp(repository)),
-            authSessionProvider.overrideWith((ref) => Stream.value(null)),
+            authSessionProvider.overrideWithValue(null),
             isAuthenticatedProvider.overrideWithValue(false),
+            isPasswordRecoveryActiveProvider.overrideWithValue(false),
           ],
           child: MaterialApp.router(
             localizationsDelegates: AppLocalizations.localizationsDelegates,

@@ -2,42 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/auth/auth_recovery_bootstrap.dart';
 import '../../../../core/router/route_paths.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/constants/app_ui_constants.dart';
 import '../../../../shared/helpers/validators.dart';
 import '../controllers/auth_controller.dart';
 
-class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+class UpdatePasswordScreen extends ConsumerStatefulWidget {
+  const UpdatePasswordScreen({super.key});
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<UpdatePasswordScreen> createState() =>
+      _UpdatePasswordScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _UpdatePasswordScreenState extends ConsumerState<UpdatePasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final message = AuthRecoveryBootstrap.consumeLinkError();
-      if (message != null && mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(message)));
-      }
-    });
-  }
+  final _confirmPasswordController = TextEditingController();
 
   @override
   void dispose() {
-    _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -52,10 +39,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     await ref
         .read(authControllerProvider.notifier)
-        .signIn(
-          email: _emailController.text,
-          password: _passwordController.text,
-        );
+        .updatePassword(password: _passwordController.text);
   }
 
   void _handleAuthState(
@@ -71,8 +55,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
 
     if (next.actionStatus == AuthActionStatus.success &&
-        next.successAction == AuthSuccessAction.signIn) {
+        next.successAction == AuthSuccessAction.updatePassword) {
+      final l10n = AppLocalizations.of(context);
       ref.read(authControllerProvider.notifier).resetActionState();
+      context.go(RoutePaths.login);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.updatePasswordSuccessMessage)),
+      );
     }
   }
 
@@ -86,6 +75,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ref.listen<AuthControllerState>(authControllerProvider, _handleAuthState);
 
     return Scaffold(
+      appBar: AppBar(title: Text(l10n.updatePasswordTitle)),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppUiConstants.spacingLarge),
@@ -95,41 +85,51 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
             child: Form(
               key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(l10n.loginTitle, style: theme.textTheme.headlineMedium),
+                  Text(
+                    l10n.updatePasswordTitle,
+                    style: theme.textTheme.headlineMedium,
+                  ),
                   const SizedBox(height: AppUiConstants.spacingSmall),
                   Text(
-                    l10n.loginSubtitle,
+                    l10n.updatePasswordSubtitle,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: AppUiConstants.spacingLarge),
                   TextFormField(
-                    controller: _emailController,
-                    decoration: InputDecoration(labelText: l10n.emailLabel),
-                    keyboardType: TextInputType.emailAddress,
+                    controller: _passwordController,
+                    decoration: InputDecoration(labelText: l10n.passwordLabel),
+                    obscureText: true,
                     textInputAction: TextInputAction.next,
                     enabled: !isLoading,
-                    validator: (value) => Validators.email(
+                    onChanged: (_) => _formKey.currentState?.validate(),
+                    validator: (value) => Validators.minLength(
                       value,
-                      emptyMessage: l10n.emailRequired,
-                      invalidMessage: l10n.emailInvalid,
+                      minLength: 8,
+                      emptyMessage: l10n.passwordRequired,
+                      tooShortMessage: l10n.passwordTooShort,
                     ),
                   ),
                   const SizedBox(height: AppUiConstants.spacingMedium),
                   TextFormField(
-                    controller: _passwordController,
-                    decoration: InputDecoration(labelText: l10n.passwordLabel),
+                    controller: _confirmPasswordController,
+                    decoration: InputDecoration(
+                      labelText: l10n.confirmPasswordLabel,
+                    ),
                     obscureText: true,
                     textInputAction: TextInputAction.done,
                     enabled: !isLoading,
                     onFieldSubmitted: (_) => _submit(),
-                    validator: (value) => Validators.requiredField(
+                    validator: (value) => Validators.confirmPassword(
                       value,
-                      message: l10n.passwordRequired,
+                      originalPassword: _passwordController.text,
+                      emptyMessage: l10n.confirmPasswordRequired,
+                      mismatchMessage: l10n.confirmPasswordMismatch,
                     ),
                   ),
                   const SizedBox(height: AppUiConstants.spacingLarge),
@@ -141,20 +141,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : Text(l10n.loginButton),
-                  ),
-                  const SizedBox(height: AppUiConstants.spacingMedium),
-                  TextButton(
-                    onPressed: isLoading
-                        ? null
-                        : () => context.go(RoutePaths.forgotPassword),
-                    child: Text(l10n.goToForgotPassword),
-                  ),
-                  TextButton(
-                    onPressed: isLoading
-                        ? null
-                        : () => context.go(RoutePaths.signup),
-                    child: Text(l10n.goToSignup),
+                        : Text(l10n.updatePasswordButton),
                   ),
                 ],
               ),

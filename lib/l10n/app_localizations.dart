@@ -291,6 +291,36 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Si è verificato un errore. Riprova.'**
   String get genericError;
+
+  /// No description provided for @resetPasswordSuccessMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Se l\'email è registrata, riceverai un link per reimpostare la password.'**
+  String get resetPasswordSuccessMessage;
+
+  /// No description provided for @updatePasswordTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Nuova password'**
+  String get updatePasswordTitle;
+
+  /// No description provided for @updatePasswordSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Scegli una nuova password per il tuo account'**
+  String get updatePasswordSubtitle;
+
+  /// No description provided for @updatePasswordButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiorna password'**
+  String get updatePasswordButton;
+
+  /// No description provided for @updatePasswordSuccessMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Password aggiornata. Accedi con le nuove credenziali.'**
+  String get updatePasswordSuccessMessage;
 }
 
 class _AppLocalizationsDelegate

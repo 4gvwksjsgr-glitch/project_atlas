@@ -110,4 +110,22 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get genericError => 'Si è verificato un errore. Riprova.';
+
+  @override
+  String get resetPasswordSuccessMessage =>
+      'Se l\'email è registrata, riceverai un link per reimpostare la password.';
+
+  @override
+  String get updatePasswordTitle => 'Nuova password';
+
+  @override
+  String get updatePasswordSubtitle =>
+      'Scegli una nuova password per il tuo account';
+
+  @override
+  String get updatePasswordButton => 'Aggiorna password';
+
+  @override
+  String get updatePasswordSuccessMessage =>
+      'Password aggiornata. Accedi con le nuove credenziali.';
 }

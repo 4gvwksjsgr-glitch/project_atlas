@@ -4,19 +4,24 @@ import 'package:project_atlas/core/utils/result.dart';
 import 'package:project_atlas/features/auth/domain/entities/auth_user.dart';
 import 'package:project_atlas/features/auth/domain/entities/sign_up_result.dart';
 import 'package:project_atlas/features/auth/domain/repositories/auth_repository.dart';
+import 'package:project_atlas/features/auth/domain/usecases/sign_in.dart';
+import 'package:project_atlas/features/auth/domain/usecases/sign_out.dart';
 import 'package:project_atlas/features/auth/domain/usecases/sign_up.dart';
+import 'package:project_atlas/features/auth/domain/usecases/update_password.dart';
 import 'package:project_atlas/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:project_atlas/features/auth/presentation/providers/auth_providers.dart';
 
 class _CountingAuthRepository implements AuthRepository {
-  int callCount = 0;
+  int signUpCallCount = 0;
+  int signInCallCount = 0;
+  int updatePasswordCallCount = 0;
 
   @override
   Future<Result<SignUpResult>> signUp({
     required String email,
     required String password,
   }) async {
-    callCount += 1;
+    signUpCallCount += 1;
     await Future<void>.delayed(const Duration(milliseconds: 100));
     return Success(
       const SignUpResult(
@@ -25,6 +30,33 @@ class _CountingAuthRepository implements AuthRepository {
       ),
     );
   }
+
+  @override
+  Future<Result<AuthUser>> signIn({
+    required String email,
+    required String password,
+  }) async {
+    signInCallCount += 1;
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    return const Success(AuthUser(id: 'user-1', email: 'user@example.com'));
+  }
+
+  @override
+  Future<Result<void>> signOut() async => const Success(null);
+
+  @override
+  Future<Result<void>> resetPassword({required String email}) async =>
+      const Success(null);
+
+  @override
+  Future<Result<void>> updatePassword({required String password}) async {
+    updatePasswordCallCount += 1;
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    return const Success(null);
+  }
+
+  @override
+  Future<Result<AuthUser?>> getCurrentSession() async => const Success(null);
 }
 
 void main() {
@@ -51,7 +83,54 @@ void main() {
 
       await Future.wait([firstCall, secondCall]);
 
-      expect(repository.callCount, 1);
+      expect(repository.signUpCallCount, 1);
+    });
+
+    test('ignores duplicate signIn calls while loading', () async {
+      final repository = _CountingAuthRepository();
+      final container = ProviderContainer(
+        overrides: [
+          signInUseCaseProvider.overrideWithValue(SignIn(repository)),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final controller = container.read(authControllerProvider.notifier);
+
+      final firstCall = controller.signIn(
+        email: 'user@example.com',
+        password: 'password123',
+      );
+      final secondCall = controller.signIn(
+        email: 'user@example.com',
+        password: 'password123',
+      );
+
+      await Future.wait([firstCall, secondCall]);
+
+      expect(repository.signInCallCount, 1);
+    });
+
+    test('ignores duplicate updatePassword calls while loading', () async {
+      final repository = _CountingAuthRepository();
+      final container = ProviderContainer(
+        overrides: [
+          updatePasswordUseCaseProvider.overrideWithValue(
+            UpdatePassword(repository),
+          ),
+          signOutUseCaseProvider.overrideWithValue(SignOut(repository)),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final controller = container.read(authControllerProvider.notifier);
+
+      final firstCall = controller.updatePassword(password: 'newpassword123');
+      final secondCall = controller.updatePassword(password: 'newpassword123');
+
+      await Future.wait([firstCall, secondCall]);
+
+      expect(repository.updatePasswordCallCount, 1);
     });
   });
 }

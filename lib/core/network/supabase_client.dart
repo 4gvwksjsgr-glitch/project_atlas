@@ -10,6 +10,10 @@ Future<SupabaseClient> initializeSupabase() async {
   await Supabase.initialize(
     url: Env.supabaseUrl,
     publishableKey: Env.supabaseAnonKey,
+    authOptions: const FlutterAuthClientOptions(
+      // Gestione esplicita del callback PKCE in bootstrap (hash routing).
+      detectSessionInUri: false,
+    ),
   );
 
   return Supabase.instance.client;

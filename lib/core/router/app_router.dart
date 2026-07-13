@@ -8,7 +8,9 @@ import '../../features/auth/presentation/screens/company_onboarding_placeholder_
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/signup_screen.dart';
+import '../../features/auth/presentation/screens/update_password_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'route_guards.dart';
 import 'route_paths.dart';
 import 'shell_scaffold.dart';
 
@@ -16,33 +18,23 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final isAuthenticated = ref.watch(isAuthenticatedProvider);
+  final refreshListenable = ref.watch(goRouterAuthRefreshProvider);
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: RoutePaths.login,
+    refreshListenable: refreshListenable,
     redirect: (context, state) {
-      final location = state.matchedLocation;
-      final isPublicAuthRoute = _isPublicAuthRoute(location);
-      final isProtectedRoute = _isProtectedRoute(location);
+      final isAuthenticated = ref.read(isAuthenticatedProvider);
+      final isPasswordRecoveryActive = ref.read(
+        isPasswordRecoveryActiveProvider,
+      );
 
-      if (!isAuthenticated && isProtectedRoute) {
-        return RoutePaths.login;
-      }
-
-      if (isAuthenticated && _isRestrictedAuthRoute(location)) {
-        return RoutePaths.onboardingCompany;
-      }
-
-      if (isAuthenticated && location == RoutePaths.checkEmail) {
-        return RoutePaths.onboardingCompany;
-      }
-
-      if (!isAuthenticated && !isPublicAuthRoute && !isProtectedRoute) {
-        return RoutePaths.login;
-      }
-
-      return null;
+      return resolveAuthRedirect(
+        location: state.matchedLocation,
+        isAuthenticated: isAuthenticated,
+        isPasswordRecoveryActive: isPasswordRecoveryActive,
+      );
     },
     routes: [
       GoRoute(
@@ -56,6 +48,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RoutePaths.forgotPassword,
         builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.updatePassword,
+        builder: (context, state) => const UpdatePasswordScreen(),
       ),
       GoRoute(
         path: RoutePaths.checkEmail,
@@ -87,21 +83,3 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
-
-bool _isPublicAuthRoute(String location) {
-  return location == RoutePaths.login ||
-      location == RoutePaths.signup ||
-      location == RoutePaths.forgotPassword ||
-      location == RoutePaths.checkEmail;
-}
-
-bool _isRestrictedAuthRoute(String location) {
-  return location == RoutePaths.login ||
-      location == RoutePaths.signup ||
-      location == RoutePaths.forgotPassword;
-}
-
-bool _isProtectedRoute(String location) {
-  return location == RoutePaths.dashboard ||
-      location == RoutePaths.onboardingCompany;
-}

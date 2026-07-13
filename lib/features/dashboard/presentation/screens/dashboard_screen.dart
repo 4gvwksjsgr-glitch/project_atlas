@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../../core/router/route_paths.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/constants/app_ui_constants.dart';
-import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../auth/presentation/controllers/auth_controller.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -14,6 +12,7 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final authState = ref.watch(authControllerProvider);
 
     return Padding(
       padding: const EdgeInsets.all(AppUiConstants.spacingLarge),
@@ -29,10 +28,9 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
               TextButton.icon(
-                onPressed: () {
-                  signOutStub(ref);
-                  context.go(RoutePaths.login);
-                },
+                onPressed: authState.isLoading
+                    ? null
+                    : () => ref.read(authControllerProvider.notifier).signOut(),
                 icon: const Icon(Icons.logout),
                 label: Text(l10n.logoutButton),
               ),

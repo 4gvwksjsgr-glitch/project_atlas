@@ -32,5 +32,10 @@
   "checkEmailBackToLogin": "Torna al login",
   "onboardingCompanyTitle": "Configura la tua azienda",
   "onboardingCompanyPlaceholder": "Questa sezione sarà disponibile nella prossima fase",
-  "genericError": "Si è verificato un errore. Riprova."
+  "genericError": "Si è verificato un errore. Riprova.",
+  "resetPasswordSuccessMessage": "Se l'email è registrata, riceverai un link per reimpostare la password.",
+  "updatePasswordTitle": "Nuova password",
+  "updatePasswordSubtitle": "Scegli una nuova password per il tuo account",
+  "updatePasswordButton": "Aggiorna password",
+  "updatePasswordSuccessMessage": "Password aggiornata. Accedi con le nuove credenziali."
 }

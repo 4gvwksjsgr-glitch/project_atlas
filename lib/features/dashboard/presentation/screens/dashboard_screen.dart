@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/constants/app_ui_constants.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../companies/presentation/providers/company_providers.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -13,6 +14,7 @@ class DashboardScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final authState = ref.watch(authControllerProvider);
+    final companiesAsync = ref.watch(userCompaniesProvider);
 
     return Padding(
       padding: const EdgeInsets.all(AppUiConstants.spacingLarge),
@@ -38,6 +40,27 @@ class DashboardScreen extends ConsumerWidget {
           ),
           const SizedBox(height: AppUiConstants.spacingMedium),
           Text(l10n.dashboardWelcome, style: theme.textTheme.titleLarge),
+          companiesAsync.when(
+            data: (memberships) {
+              if (memberships.isEmpty) {
+                return const SizedBox.shrink();
+              }
+
+              return Padding(
+                padding: const EdgeInsets.only(
+                  top: AppUiConstants.spacingSmall,
+                ),
+                child: Text(
+                  l10n.dashboardCompanyWelcome(memberships.first.company.name),
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              );
+            },
+            loading: () => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
+          ),
           const SizedBox(height: AppUiConstants.spacingSmall),
           Text(
             l10n.dashboardPlaceholder,

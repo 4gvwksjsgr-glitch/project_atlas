@@ -31,7 +31,23 @@
   "checkEmailSubtitle": "Ti abbiamo inviato un link per confermare l'account",
   "checkEmailBackToLogin": "Torna al login",
   "onboardingCompanyTitle": "Configura la tua azienda",
-  "onboardingCompanyPlaceholder": "Questa sezione sarà disponibile nella prossima fase",
+  "onboardingCompanySubtitle": "Crea la prima azienda per iniziare a usare Project Atlas",
+  "companyNameLabel": "Nome azienda",
+  "companyNameRequired": "Inserisci il nome dell'azienda",
+  "companySlugLabel": "Slug",
+  "companySlugHelper": "Identificativo univoco dell'azienda nell'URL",
+  "companySlugRequired": "Inserisci lo slug",
+  "companySlugInvalid": "Formato slug non valido. Usa solo lettere minuscole, numeri e trattini",
+  "createCompanyButton": "Crea azienda",
+  "companiesLoadRetryButton": "Riprova",
+  "dashboardCompanyWelcome": "Azienda: {companyName}",
+  "@dashboardCompanyWelcome": {
+    "placeholders": {
+      "companyName": {
+        "type": "String"
+      }
+    }
+  },
   "genericError": "Si è verificato un errore. Riprova.",
   "resetPasswordSuccessMessage": "Se l'email è registrata, riceverai un link per reimpostare la password.",
   "updatePasswordTitle": "Nuova password",

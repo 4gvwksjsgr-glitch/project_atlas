@@ -73,6 +73,53 @@ void main() {
         isFalse,
       );
     });
+
+    test('callback signup PKCE con code non è recovery', () {
+      expect(
+        SupabaseAuthUriHandler.isPasswordRecoverySession(
+          event: AuthChangeEvent.signedIn,
+          launchUri: Uri.parse(
+            'http://localhost:9000/?code=signup-confirm-code',
+          ),
+        ),
+        isFalse,
+      );
+      expect(
+        SupabaseAuthUriHandler.hasAuthCallbackParams(
+          Uri.parse('http://localhost:9000/?code=signup-confirm-code'),
+        ),
+        isTrue,
+      );
+    });
+
+    test('callback recovery PKCE attiva recovery solo con evento o type', () {
+      expect(
+        SupabaseAuthUriHandler.isPasswordRecoverySession(
+          event: AuthChangeEvent.passwordRecovery,
+          launchUri: Uri.parse('http://localhost:9000/?code=recovery-code'),
+        ),
+        isTrue,
+      );
+      expect(
+        SupabaseAuthUriHandler.isPasswordRecoverySession(
+          response: AuthSessionUrlResponse(
+            session: Session(
+              accessToken: 'token',
+              tokenType: 'bearer',
+              user: User(
+                id: 'user-1',
+                appMetadata: {},
+                userMetadata: {},
+                aud: 'authenticated',
+                createdAt: DateTime.utc(2026).toIso8601String(),
+              ),
+            ),
+            redirectType: 'recovery',
+          ),
+        ),
+        isTrue,
+      );
+    });
   });
 
   group('AuthRecoveryBootstrap', () {

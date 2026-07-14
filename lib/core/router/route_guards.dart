@@ -1,11 +1,13 @@
 import 'auth_redirect_config.dart';
 import 'route_paths.dart';
+import 'user_companies_route_state.dart';
 
 /// Risolve il redirect auth con priorità alla sessione di recovery password.
 String? resolveAuthRedirect({
   required String location,
   required bool isAuthenticated,
   required bool isPasswordRecoveryActive,
+  required UserCompaniesRouteState companiesState,
 }) {
   if (isPasswordRecoveryActive) {
     if (location != RoutePaths.updatePassword) {
@@ -22,11 +24,55 @@ String? resolveAuthRedirect({
     return RoutePaths.login;
   }
 
-  if (isAuthenticated && AuthRedirectConfig.isRestrictedAuthRoute(location)) {
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  return switch (companiesState) {
+    UserCompaniesLoading() => null,
+    UserCompaniesEmpty() => _redirectWithoutCompanies(location),
+    UserCompaniesAvailable() => _redirectWithCompanies(location),
+    UserCompaniesError() => _redirectOnCompaniesError(location),
+  };
+}
+
+String? _redirectWithoutCompanies(String location) {
+  if (location == RoutePaths.dashboard) {
     return RoutePaths.onboardingCompany;
   }
 
-  if (isAuthenticated && location == RoutePaths.checkEmail) {
+  if (AuthRedirectConfig.isRestrictedAuthRoute(location)) {
+    return RoutePaths.onboardingCompany;
+  }
+
+  if (location == RoutePaths.checkEmail) {
+    return RoutePaths.onboardingCompany;
+  }
+
+  return null;
+}
+
+String? _redirectWithCompanies(String location) {
+  if (location == RoutePaths.onboardingCompany) {
+    return RoutePaths.dashboard;
+  }
+
+  if (AuthRedirectConfig.isRestrictedAuthRoute(location)) {
+    return RoutePaths.dashboard;
+  }
+
+  if (location == RoutePaths.checkEmail) {
+    return RoutePaths.dashboard;
+  }
+
+  return null;
+}
+
+String? _redirectOnCompaniesError(String location) {
+  if (location == RoutePaths.login ||
+      location == RoutePaths.dashboard ||
+      AuthRedirectConfig.isRestrictedAuthRoute(location) ||
+      location == RoutePaths.checkEmail) {
     return RoutePaths.onboardingCompany;
   }
 

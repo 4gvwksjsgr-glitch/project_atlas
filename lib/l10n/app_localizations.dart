@@ -280,11 +280,65 @@ abstract class AppLocalizations {
   /// **'Configura la tua azienda'**
   String get onboardingCompanyTitle;
 
-  /// No description provided for @onboardingCompanyPlaceholder.
+  /// No description provided for @onboardingCompanySubtitle.
   ///
   /// In it, this message translates to:
-  /// **'Questa sezione sarà disponibile nella prossima fase'**
-  String get onboardingCompanyPlaceholder;
+  /// **'Crea la prima azienda per iniziare a usare Project Atlas'**
+  String get onboardingCompanySubtitle;
+
+  /// No description provided for @companyNameLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Nome azienda'**
+  String get companyNameLabel;
+
+  /// No description provided for @companyNameRequired.
+  ///
+  /// In it, this message translates to:
+  /// **'Inserisci il nome dell\'azienda'**
+  String get companyNameRequired;
+
+  /// No description provided for @companySlugLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Slug'**
+  String get companySlugLabel;
+
+  /// No description provided for @companySlugHelper.
+  ///
+  /// In it, this message translates to:
+  /// **'Identificativo univoco dell\'azienda nell\'URL'**
+  String get companySlugHelper;
+
+  /// No description provided for @companySlugRequired.
+  ///
+  /// In it, this message translates to:
+  /// **'Inserisci lo slug'**
+  String get companySlugRequired;
+
+  /// No description provided for @companySlugInvalid.
+  ///
+  /// In it, this message translates to:
+  /// **'Formato slug non valido. Usa solo lettere minuscole, numeri e trattini'**
+  String get companySlugInvalid;
+
+  /// No description provided for @createCompanyButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Crea azienda'**
+  String get createCompanyButton;
+
+  /// No description provided for @companiesLoadRetryButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Riprova'**
+  String get companiesLoadRetryButton;
+
+  /// No description provided for @dashboardCompanyWelcome.
+  ///
+  /// In it, this message translates to:
+  /// **'Azienda: {companyName}'**
+  String dashboardCompanyWelcome(String companyName);
 
   /// No description provided for @genericError.
   ///

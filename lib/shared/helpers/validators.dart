@@ -61,4 +61,23 @@ abstract final class Validators {
 
     return null;
   }
+
+  static String? slug(
+    String? value, {
+    required String emptyMessage,
+    required String invalidMessage,
+  }) {
+    if (value == null || value.isBlank) {
+      return emptyMessage;
+    }
+
+    final normalized = value.trim().toLowerCase();
+    final slugPattern = RegExp(r'^[a-z0-9]+(?:-[a-z0-9]+)*$');
+
+    if (!slugPattern.hasMatch(normalized)) {
+      return invalidMessage;
+    }
+
+    return null;
+  }
 }

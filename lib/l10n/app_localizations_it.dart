@@ -105,8 +105,39 @@ class AppLocalizationsIt extends AppLocalizations {
   String get onboardingCompanyTitle => 'Configura la tua azienda';
 
   @override
-  String get onboardingCompanyPlaceholder =>
-      'Questa sezione sarà disponibile nella prossima fase';
+  String get onboardingCompanySubtitle =>
+      'Crea la prima azienda per iniziare a usare Project Atlas';
+
+  @override
+  String get companyNameLabel => 'Nome azienda';
+
+  @override
+  String get companyNameRequired => 'Inserisci il nome dell\'azienda';
+
+  @override
+  String get companySlugLabel => 'Slug';
+
+  @override
+  String get companySlugHelper =>
+      'Identificativo univoco dell\'azienda nell\'URL';
+
+  @override
+  String get companySlugRequired => 'Inserisci lo slug';
+
+  @override
+  String get companySlugInvalid =>
+      'Formato slug non valido. Usa solo lettere minuscole, numeri e trattini';
+
+  @override
+  String get createCompanyButton => 'Crea azienda';
+
+  @override
+  String get companiesLoadRetryButton => 'Riprova';
+
+  @override
+  String dashboardCompanyWelcome(String companyName) {
+    return 'Azienda: $companyName';
+  }
 
   @override
   String get genericError => 'Si è verificato un errore. Riprova.';

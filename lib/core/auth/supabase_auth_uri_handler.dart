@@ -74,18 +74,12 @@ abstract final class SupabaseAuthUriHandler {
     AuthSessionUrlResponse? response,
     AuthChangeEvent? event,
     required Uri launchUri,
-    required bool hadAuthCallbackAtLaunch,
   }) {
     if (isPasswordRecoverySession(
       response: response,
       event: event,
       launchUri: launchUri,
     )) {
-      AuthRecoveryBootstrap.activateRecovery();
-      return;
-    }
-
-    if (hadAuthCallbackAtLaunch) {
       AuthRecoveryBootstrap.activateRecovery();
     }
   }
@@ -122,17 +116,14 @@ abstract final class SupabaseAuthUriHandler {
     final hasCode = code != null && code.isNotEmpty;
 
     if (!hasCode && !_hasParam(launchUri, 'access_token')) {
-      if (hadAuthCallbackAtLaunch && client.auth.currentSession != null) {
-        AuthRecoveryBootstrap.activateRecovery();
-        clearAuthUriParams();
-      }
+      clearAuthUriParams();
       return;
     }
 
     if (hasCode && client.auth.currentSession != null) {
       _activateRecoveryIfNeeded(
+        event: AuthChangeEvent.signedIn,
         launchUri: launchUri,
-        hadAuthCallbackAtLaunch: hadAuthCallbackAtLaunch,
       );
       clearAuthUriParams();
       return;
@@ -149,16 +140,11 @@ abstract final class SupabaseAuthUriHandler {
         response: response,
         event: capturedEvent,
         launchUri: launchUri,
-        hadAuthCallbackAtLaunch: hadAuthCallbackAtLaunch,
       );
       clearAuthUriParams();
     } on AuthException catch (error) {
       if (client.auth.currentSession != null && hadAuthCallbackAtLaunch) {
-        _activateRecoveryIfNeeded(
-          event: capturedEvent,
-          launchUri: launchUri,
-          hadAuthCallbackAtLaunch: hadAuthCallbackAtLaunch,
-        );
+        _activateRecoveryIfNeeded(event: capturedEvent, launchUri: launchUri);
         clearAuthUriParams();
         return;
       }

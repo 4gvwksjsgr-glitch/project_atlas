@@ -3,9 +3,10 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/auth/auth_recovery_bootstrap.dart';
 import '../../../../core/di/providers.dart';
 import '../../../../core/router/go_router_auth_refresh.dart';
-import '../../../../core/auth/auth_recovery_bootstrap.dart';
+import '../../../companies/presentation/providers/company_providers.dart';
 import '../../data/datasource/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -93,7 +94,8 @@ final authStateChangesProvider = StreamProvider<AuthStateSnapshot>((ref) {
     (data) {
       if (data.event == AuthChangeEvent.passwordRecovery) {
         recoveryNotifier.activate();
-      } else if (data.event == AuthChangeEvent.signedOut) {
+      } else if (data.event == AuthChangeEvent.signedIn ||
+          data.event == AuthChangeEvent.signedOut) {
         recoveryNotifier.clear();
       }
 
@@ -143,6 +145,9 @@ final goRouterAuthRefreshProvider = Provider<GoRouterAuthRefresh>((ref) {
     refresh.notifyAuthChanged();
   });
   ref.listen(isPasswordRecoveryActiveProvider, (previous, next) {
+    refresh.notifyAuthChanged();
+  });
+  ref.listen(userCompaniesProvider, (previous, next) {
     refresh.notifyAuthChanged();
   });
 

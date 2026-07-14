@@ -111,6 +111,25 @@ void main() {
       expect(repository.signInCallCount, 1);
     });
 
+    test('signIn azzera recovery stale dopo redirect errato', () async {
+      final repository = _CountingAuthRepository();
+      final container = ProviderContainer(
+        overrides: [
+          signInUseCaseProvider.overrideWithValue(SignIn(repository)),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      container.read(passwordRecoveryActiveProvider.notifier).activate();
+      expect(container.read(isPasswordRecoveryActiveProvider), isTrue);
+
+      await container
+          .read(authControllerProvider.notifier)
+          .signIn(email: 'user@example.com', password: 'password123');
+
+      expect(container.read(isPasswordRecoveryActiveProvider), isFalse);
+    });
+
     test('ignores duplicate updatePassword calls while loading', () async {
       final repository = _CountingAuthRepository();
       final container = ProviderContainer(

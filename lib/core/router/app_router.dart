@@ -4,11 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/screens/check_email_screen.dart';
-import '../../features/auth/presentation/screens/company_onboarding_placeholder_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/signup_screen.dart';
 import '../../features/auth/presentation/screens/update_password_screen.dart';
+import '../../features/companies/presentation/providers/company_providers.dart';
+import '../../features/companies/presentation/screens/company_onboarding_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'route_guards.dart';
 import 'route_paths.dart';
@@ -29,11 +30,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isPasswordRecoveryActive = ref.read(
         isPasswordRecoveryActiveProvider,
       );
+      final companiesState = ref.read(userCompaniesRouteStateProvider);
 
       return resolveAuthRedirect(
         location: state.matchedLocation,
         isAuthenticated: isAuthenticated,
         isPasswordRecoveryActive: isPasswordRecoveryActive,
+        companiesState: companiesState,
       );
     },
     routes: [
@@ -62,7 +65,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RoutePaths.onboardingCompany,
-        builder: (context, state) => const CompanyOnboardingPlaceholderScreen(),
+        builder: (context, state) => const CompanyOnboardingScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {

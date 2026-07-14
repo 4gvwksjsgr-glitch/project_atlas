@@ -107,6 +107,7 @@ class AuthController extends Notifier<AuthControllerState> {
 
     result.when(
       success: (user) {
+        ref.read(passwordRecoveryActiveProvider.notifier).clear();
         state = state.copyWith(
           actionStatus: AuthActionStatus.success,
           successAction: AuthSuccessAction.signIn,

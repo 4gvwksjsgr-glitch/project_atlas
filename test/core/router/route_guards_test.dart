@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:project_atlas/core/router/route_guards.dart';
 import 'package:project_atlas/core/router/route_paths.dart';
+import 'package:project_atlas/core/router/user_companies_route_state.dart';
 
 void main() {
   group('resolveAuthRedirect', () {
@@ -10,6 +11,7 @@ void main() {
           location: RoutePaths.onboardingCompany,
           isAuthenticated: true,
           isPasswordRecoveryActive: true,
+          companiesState: const UserCompaniesEmpty(),
         ),
         RoutePaths.updatePassword,
       );
@@ -21,6 +23,7 @@ void main() {
           location: RoutePaths.updatePassword,
           isAuthenticated: true,
           isPasswordRecoveryActive: true,
+          companiesState: const UserCompaniesEmpty(),
         ),
         isNull,
       );
@@ -32,6 +35,7 @@ void main() {
           location: RoutePaths.login,
           isAuthenticated: true,
           isPasswordRecoveryActive: true,
+          companiesState: const UserCompaniesEmpty(),
         ),
         RoutePaths.updatePassword,
       );
@@ -43,21 +47,119 @@ void main() {
           location: RoutePaths.updatePassword,
           isAuthenticated: false,
           isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesEmpty(),
         ),
         RoutePaths.login,
       );
     });
 
-    test('utente autenticato su login va a onboarding', () {
+    test('login riuscito con loading non reindirizza temporaneamente', () {
       expect(
         resolveAuthRedirect(
           location: RoutePaths.login,
           isAuthenticated: true,
           isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesLoading(),
+        ),
+        isNull,
+      );
+    });
+
+    test('login riuscito con zero aziende reindirizza a onboarding', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.login,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesEmpty(),
         ),
         RoutePaths.onboardingCompany,
       );
     });
+
+    test('login riuscito con almeno un azienda reindirizza a dashboard', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.login,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesAvailable(),
+        ),
+        RoutePaths.dashboard,
+      );
+    });
+
+    test('errore caricamento aziende reindirizza a onboarding da login', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.login,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesError('Errore di rete'),
+        ),
+        RoutePaths.onboardingCompany,
+      );
+    });
+
+    test('errore caricamento aziende non resta bloccato su login', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.login,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesError('Errore di rete'),
+        ),
+        isNot(RoutePaths.login),
+      );
+    });
+
+    test('utente autenticato senza azienda su dashboard va a onboarding', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.dashboard,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesEmpty(),
+        ),
+        RoutePaths.onboardingCompany,
+      );
+    });
+
+    test('utente autenticato con azienda su onboarding va a dashboard', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.onboardingCompany,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesAvailable(),
+        ),
+        RoutePaths.dashboard,
+      );
+    });
+
+    test(
+      'dopo conferma signup autenticato va a onboarding non update password',
+      () {
+        expect(
+          resolveAuthRedirect(
+            location: RoutePaths.login,
+            isAuthenticated: true,
+            isPasswordRecoveryActive: false,
+            companiesState: const UserCompaniesEmpty(),
+          ),
+          RoutePaths.onboardingCompany,
+        );
+        expect(
+          resolveAuthRedirect(
+            location: RoutePaths.login,
+            isAuthenticated: true,
+            isPasswordRecoveryActive: true,
+            companiesState: const UserCompaniesEmpty(),
+          ),
+          RoutePaths.updatePassword,
+        );
+      },
+    );
 
     test('utente non autenticato su dashboard va al login', () {
       expect(
@@ -65,6 +167,7 @@ void main() {
           location: RoutePaths.dashboard,
           isAuthenticated: false,
           isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesEmpty(),
         ),
         RoutePaths.login,
       );

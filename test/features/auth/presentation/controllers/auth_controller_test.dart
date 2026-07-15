@@ -10,6 +10,8 @@ import 'package:project_atlas/features/auth/domain/usecases/sign_up.dart';
 import 'package:project_atlas/features/auth/domain/usecases/update_password.dart';
 import 'package:project_atlas/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:project_atlas/features/auth/presentation/providers/auth_providers.dart';
+import 'package:project_atlas/features/companies/presentation/controllers/active_company_controller.dart';
+import 'package:project_atlas/features/companies/presentation/controllers/active_company_state.dart';
 
 class _CountingAuthRepository implements AuthRepository {
   int signUpCallCount = 0;
@@ -57,6 +59,14 @@ class _CountingAuthRepository implements AuthRepository {
 
   @override
   Future<Result<AuthUser?>> getCurrentSession() async => const Success(null);
+}
+
+class _TestActiveCompanyController extends ActiveCompanyController {
+  @override
+  ActiveCompanyState build() => const ActiveCompanyState(resolved: true);
+
+  @override
+  void clearRuntime() {}
 }
 
 void main() {
@@ -138,6 +148,9 @@ void main() {
             UpdatePassword(repository),
           ),
           signOutUseCaseProvider.overrideWithValue(SignOut(repository)),
+          activeCompanyControllerProvider.overrideWith(
+            _TestActiveCompanyController.new,
+          ),
         ],
       );
       addTearDown(container.dispose);

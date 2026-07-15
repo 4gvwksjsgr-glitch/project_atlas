@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../../core/router/route_paths.dart';
 import '../../../../core/router/user_companies_route_state.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/constants/app_ui_constants.dart';
@@ -84,7 +82,6 @@ class _CompanyOnboardingScreenState
         next.createdCompany != null &&
         previous?.actionStatus != CompanyActionStatus.success) {
       ref.read(companyOnboardingControllerProvider.notifier).resetActionState();
-      context.go(RoutePaths.dashboard);
     }
   }
 

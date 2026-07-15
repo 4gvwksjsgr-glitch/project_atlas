@@ -6,6 +6,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/auth/auth_recovery_bootstrap.dart';
 import '../../../../core/di/providers.dart';
 import '../../../../core/router/go_router_auth_refresh.dart';
+import '../../../companies/domain/entities/active_company_context.dart';
+import '../../../companies/domain/entities/company_membership.dart';
+import '../../../companies/presentation/controllers/active_company_controller.dart';
 import '../../../companies/presentation/providers/company_providers.dart';
 import '../../data/datasource/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
@@ -127,11 +130,8 @@ final authStateChangesProvider = StreamProvider<AuthStateSnapshot>((ref) {
 });
 
 final authSessionProvider = Provider<Session?>((ref) {
-  final authState = ref.watch(authStateChangesProvider);
-  return authState.maybeWhen(
-    data: (snapshot) => snapshot.session,
-    orElse: () => ref.watch(supabaseClientProvider).auth.currentSession,
-  );
+  ref.watch(authStateChangesProvider);
+  return ref.read(supabaseClientProvider).auth.currentSession;
 });
 
 final isAuthenticatedProvider = Provider<bool>((ref) {
@@ -141,14 +141,20 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
 final goRouterAuthRefreshProvider = Provider<GoRouterAuthRefresh>((ref) {
   final refresh = GoRouterAuthRefresh();
 
-  ref.listen(authStateChangesProvider, (previous, next) {
-    refresh.notifyAuthChanged();
+  ref.listen<Session?>(authSessionProvider, (previous, next) {
+    refresh.scheduleRefresh();
   });
-  ref.listen(isPasswordRecoveryActiveProvider, (previous, next) {
-    refresh.notifyAuthChanged();
+  ref.listen<AsyncValue<List<CompanyMembership>>>(userCompaniesProvider, (
+    previous,
+    next,
+  ) {
+    refresh.scheduleRefresh();
   });
-  ref.listen(userCompaniesProvider, (previous, next) {
-    refresh.notifyAuthChanged();
+  ref.listen<bool>(activeCompanyResolvedProvider, (previous, next) {
+    refresh.scheduleRefresh();
+  });
+  ref.listen<ActiveCompanyContext?>(activeCompanyProvider, (previous, next) {
+    refresh.scheduleRefresh();
   });
 
   ref.onDispose(refresh.dispose);

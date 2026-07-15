@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/result.dart';
 import '../../domain/entities/company.dart';
+import '../controllers/active_company_controller.dart';
 import '../providers/company_providers.dart';
 
 enum CompanyActionStatus { idle, loading, success, error }
@@ -67,6 +68,9 @@ class CompanyOnboardingController
           try {
             ref.invalidate(userCompaniesProvider);
             await ref.read(userCompaniesProvider.future);
+            await ref
+                .read(activeCompanyControllerProvider.notifier)
+                .selectByCompanyId(value.id);
             state = state.copyWith(
               actionStatus: CompanyActionStatus.success,
               createdCompany: value,

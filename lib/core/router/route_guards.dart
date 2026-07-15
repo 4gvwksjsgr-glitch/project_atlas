@@ -31,13 +31,15 @@ String? resolveAuthRedirect({
   return switch (companiesState) {
     UserCompaniesLoading() => null,
     UserCompaniesEmpty() => _redirectWithoutCompanies(location),
-    UserCompaniesAvailable() => _redirectWithCompanies(location),
+    UserCompaniesNeedsSelection() => _redirectNeedsSelection(location),
+    UserCompaniesReady() => _redirectWithActiveCompany(location),
     UserCompaniesError() => _redirectOnCompaniesError(location),
   };
 }
 
 String? _redirectWithoutCompanies(String location) {
-  if (location == RoutePaths.dashboard) {
+  if (location == RoutePaths.dashboard ||
+      location == RoutePaths.selectCompany) {
     return RoutePaths.onboardingCompany;
   }
 
@@ -52,7 +54,26 @@ String? _redirectWithoutCompanies(String location) {
   return null;
 }
 
-String? _redirectWithCompanies(String location) {
+String? _redirectNeedsSelection(String location) {
+  if (location == RoutePaths.selectCompany) {
+    return null;
+  }
+
+  if (location == RoutePaths.dashboard ||
+      location == RoutePaths.onboardingCompany ||
+      AuthRedirectConfig.isRestrictedAuthRoute(location) ||
+      location == RoutePaths.checkEmail) {
+    return RoutePaths.selectCompany;
+  }
+
+  return null;
+}
+
+String? _redirectWithActiveCompany(String location) {
+  if (location == RoutePaths.selectCompany) {
+    return null;
+  }
+
   if (location == RoutePaths.onboardingCompany) {
     return RoutePaths.dashboard;
   }
@@ -71,6 +92,7 @@ String? _redirectWithCompanies(String location) {
 String? _redirectOnCompaniesError(String location) {
   if (location == RoutePaths.login ||
       location == RoutePaths.dashboard ||
+      location == RoutePaths.selectCompany ||
       AuthRedirectConfig.isRestrictedAuthRoute(location) ||
       location == RoutePaths.checkEmail) {
     return RoutePaths.onboardingCompany;

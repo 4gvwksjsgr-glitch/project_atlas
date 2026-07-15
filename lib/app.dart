@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/config/app_constants.dart';
 import 'core/di/providers.dart';
 import 'core/theme/app_theme.dart';
+import 'features/companies/presentation/controllers/active_company_resolution_coordinator.dart';
 import 'l10n/app_localizations.dart';
 
 class App extends ConsumerWidget {
@@ -11,6 +12,7 @@ class App extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(activeCompanyResolutionCoordinatorProvider);
     final router = ref.watch(goRouterProvider);
 
     return MaterialApp.router(

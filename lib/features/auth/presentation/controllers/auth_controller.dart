@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/auth_user.dart';
 import '../../domain/entities/sign_up_result.dart';
+import '../../../companies/presentation/controllers/active_company_controller.dart';
 import '../providers/auth_providers.dart';
 
 enum AuthActionStatus { idle, loading, success, error }
@@ -108,6 +109,7 @@ class AuthController extends Notifier<AuthControllerState> {
     result.when(
       success: (user) {
         ref.read(passwordRecoveryActiveProvider.notifier).clear();
+        ref.invalidate(authSessionProvider);
         state = state.copyWith(
           actionStatus: AuthActionStatus.success,
           successAction: AuthSuccessAction.signIn,
@@ -142,6 +144,8 @@ class AuthController extends Notifier<AuthControllerState> {
     result.when(
       success: (_) {
         ref.read(passwordRecoveryActiveProvider.notifier).clear();
+        ref.read(activeCompanyControllerProvider.notifier).clearRuntime();
+        ref.invalidate(authSessionProvider);
         state = const AuthControllerState();
       },
       error: (failure) {
@@ -212,6 +216,8 @@ class AuthController extends Notifier<AuthControllerState> {
 
         signOutResult.when(
           success: (_) {
+            ref.read(activeCompanyControllerProvider.notifier).clearRuntime();
+            ref.invalidate(authSessionProvider);
             state = state.copyWith(
               actionStatus: AuthActionStatus.success,
               successAction: AuthSuccessAction.updatePassword,

@@ -135,6 +135,21 @@ class AppLocalizationsIt extends AppLocalizations {
   String get companiesLoadRetryButton => 'Riprova';
 
   @override
+  String get companySelectorTitle => 'Seleziona azienda';
+
+  @override
+  String get companySelectorSubtitle =>
+      'Scegli l\'azienda con cui vuoi lavorare';
+
+  @override
+  String get companySelectorEmpty => 'Nessuna azienda disponibile';
+
+  @override
+  String dashboardActiveRole(String roleLabel) {
+    return 'Ruolo: $roleLabel';
+  }
+
+  @override
   String dashboardCompanyWelcome(String companyName) {
     return 'Azienda: $companyName';
   }

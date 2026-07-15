@@ -10,6 +10,7 @@ import '../../features/auth/presentation/screens/signup_screen.dart';
 import '../../features/auth/presentation/screens/update_password_screen.dart';
 import '../../features/companies/presentation/providers/company_providers.dart';
 import '../../features/companies/presentation/screens/company_onboarding_screen.dart';
+import '../../features/companies/presentation/screens/company_selector_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'route_guards.dart';
 import 'route_paths.dart';
@@ -66,6 +67,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RoutePaths.onboardingCompany,
         builder: (context, state) => const CompanyOnboardingScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.selectCompany,
+        builder: (context, state) => const CompanySelectorScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {

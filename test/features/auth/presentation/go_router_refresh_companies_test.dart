@@ -12,6 +12,10 @@ void main() {
 
         final container = ProviderContainer(
           overrides: [
+            authStateChangesProvider.overrideWith(
+              (ref) => Stream.value(const AuthStateSnapshot(session: null)),
+            ),
+            authSessionProvider.overrideWithValue(null),
             isAuthenticatedProvider.overrideWithValue(true),
             userCompaniesProvider.overrideWith((ref) async {
               loadCount += 1;
@@ -28,6 +32,7 @@ void main() {
 
         container.read(userCompaniesProvider);
         await Future<void>.delayed(const Duration(milliseconds: 60));
+        await Future<void>.delayed(Duration.zero);
 
         expect(loadCount, 1);
         expect(notifyCount, greaterThan(0));
@@ -37,6 +42,10 @@ void main() {
     test('notifica quando userCompaniesProvider va in errore', () async {
       final container = ProviderContainer(
         overrides: [
+          authStateChangesProvider.overrideWith(
+            (ref) => Stream.value(const AuthStateSnapshot(session: null)),
+          ),
+          authSessionProvider.overrideWithValue(null),
           isAuthenticatedProvider.overrideWithValue(true),
           userCompaniesProvider.overrideWith(
             (ref) async => throw StateError('Errore simulato'),
@@ -55,6 +64,7 @@ void main() {
         // Expected.
       }
       await Future<void>.delayed(const Duration(milliseconds: 20));
+      await Future<void>.delayed(Duration.zero);
 
       expect(notifyCount, greaterThan(0));
     });

@@ -19,6 +19,7 @@ abstract final class AuthRedirectConfig {
   static const protectedRoutes = {
     RoutePaths.dashboard,
     RoutePaths.onboardingCompany,
+    RoutePaths.selectCompany,
   };
 
   static bool isPublicAuthRoute(String location) {

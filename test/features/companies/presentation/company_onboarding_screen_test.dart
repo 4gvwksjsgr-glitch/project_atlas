@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:project_atlas/core/errors/failures.dart';
 import 'package:project_atlas/core/permissions/company_role.dart';
+import 'package:project_atlas/core/router/route_guards.dart';
 import 'package:project_atlas/core/router/route_paths.dart';
 import 'package:project_atlas/core/router/user_companies_route_state.dart';
 import 'package:project_atlas/core/utils/result.dart';
@@ -12,9 +13,13 @@ import 'package:project_atlas/features/companies/domain/entities/company.dart';
 import 'package:project_atlas/features/companies/domain/entities/company_membership.dart';
 import 'package:project_atlas/features/companies/domain/repositories/company_repository.dart';
 import 'package:project_atlas/features/companies/domain/usecases/create_company.dart';
+import 'package:project_atlas/features/companies/presentation/controllers/active_company_resolution_coordinator.dart';
 import 'package:project_atlas/features/companies/presentation/providers/company_providers.dart';
 import 'package:project_atlas/features/companies/presentation/screens/company_onboarding_screen.dart';
 import 'package:project_atlas/l10n/app_localizations.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../../test_helpers/shared_preferences_test_helper.dart';
 
 const _duplicateSlugMessage = 'Questo slug è già in uso. Scegline un altro.';
 
@@ -98,34 +103,97 @@ CompanyMembership _membershipFor(Company company) {
   );
 }
 
+Session _testSession({String userId = 'user-1'}) {
+  return Session(
+    accessToken: 'token',
+    tokenType: 'bearer',
+    user: User(
+      id: userId,
+      appMetadata: {},
+      userMetadata: {},
+      aud: 'authenticated',
+      createdAt: DateTime.utc(2026).toIso8601String(),
+    ),
+  );
+}
+
 Future<void> _pumpOnboardingScreen(
   WidgetTester tester, {
   required List<Override> overrides,
+  bool enableRedirect = false,
 }) async {
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: overrides,
-      child: MaterialApp.router(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        locale: const Locale('it'),
-        routerConfig: GoRouter(
-          routes: [
-            GoRoute(
-              path: RoutePaths.onboardingCompany,
-              builder: (context, state) => const CompanyOnboardingScreen(),
-            ),
-            GoRoute(
-              path: RoutePaths.dashboard,
-              builder: (context, state) =>
-                  const Scaffold(body: Text('Dashboard')),
-            ),
-          ],
-          initialLocation: RoutePaths.onboardingCompany,
+  if (enableRedirect) {
+    late ProviderContainer container;
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container = ProviderContainer(overrides: overrides),
+        child: Consumer(
+          builder: (context, ref, _) {
+            ref.watch(activeCompanyResolutionCoordinatorProvider);
+            final router = GoRouter(
+              initialLocation: RoutePaths.onboardingCompany,
+              refreshListenable: ref.watch(goRouterAuthRefreshProvider),
+              redirect: (context, state) {
+                return resolveAuthRedirect(
+                  location: state.matchedLocation,
+                  isAuthenticated: ref.read(isAuthenticatedProvider),
+                  isPasswordRecoveryActive: ref.read(
+                    isPasswordRecoveryActiveProvider,
+                  ),
+                  companiesState: ref.read(userCompaniesRouteStateProvider),
+                );
+              },
+              routes: [
+                GoRoute(
+                  path: RoutePaths.onboardingCompany,
+                  builder: (context, state) => const CompanyOnboardingScreen(),
+                ),
+                GoRoute(
+                  path: RoutePaths.dashboard,
+                  builder: (context, state) =>
+                      const Scaffold(body: Text('Dashboard')),
+                ),
+              ],
+            );
+
+            return MaterialApp.router(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              locale: const Locale('it'),
+              routerConfig: router,
+            );
+          },
         ),
       ),
-    ),
-  );
+    );
+    addTearDown(container.dispose);
+  } else {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: overrides,
+        child: MaterialApp.router(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('it'),
+          routerConfig: GoRouter(
+            routes: [
+              GoRoute(
+                path: RoutePaths.onboardingCompany,
+                builder: (context, state) => const CompanyOnboardingScreen(),
+              ),
+              GoRoute(
+                path: RoutePaths.dashboard,
+                builder: (context, state) =>
+                    const Scaffold(body: Text('Dashboard')),
+              ),
+            ],
+            initialLocation: RoutePaths.onboardingCompany,
+          ),
+        ),
+      ),
+    );
+  }
   await tester.pumpAndSettle();
 }
 
@@ -136,6 +204,10 @@ Future<void> _fillAndSubmitCompanyForm(WidgetTester tester) async {
 }
 
 void main() {
+  setUp(() async {
+    await setUpMockSharedPreferences();
+  });
+
   group('CompanyOnboardingScreen', () {
     testWidgets(
       'double tap triggers only one createCompany request while loading',
@@ -212,21 +284,28 @@ void main() {
           updatedAt: DateTime.utc(2026, 1, 1),
         );
 
+        var membershipLoadCount = 0;
+
         await _pumpOnboardingScreen(
           tester,
+          enableRedirect: true,
           overrides: [
             createCompanyUseCaseProvider.overrideWithValue(
               CreateCompany(repository),
             ),
-            authSessionProvider.overrideWithValue(null),
+            authSessionProvider.overrideWithValue(_testSession()),
             isAuthenticatedProvider.overrideWithValue(true),
             isPasswordRecoveryActiveProvider.overrideWithValue(false),
-            userCompaniesProvider.overrideWith(
-              (ref) async => [_membershipFor(company)],
-            ),
-            userCompaniesRouteStateProvider.overrideWithValue(
-              const UserCompaniesEmpty(),
-            ),
+            userCompaniesProvider.overrideWith((ref) async {
+              if (!ref.watch(isAuthenticatedProvider)) {
+                return [];
+              }
+              membershipLoadCount += 1;
+              if (membershipLoadCount == 1) {
+                return [];
+              }
+              return [_membershipFor(company)];
+            }),
           ],
         );
 

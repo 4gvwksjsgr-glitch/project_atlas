@@ -77,15 +77,39 @@ void main() {
       );
     });
 
-    test('login riuscito con almeno un azienda reindirizza a dashboard', () {
+    test('login riuscito con azienda attiva reindirizza a dashboard', () {
       expect(
         resolveAuthRedirect(
           location: RoutePaths.login,
           isAuthenticated: true,
           isPasswordRecoveryActive: false,
-          companiesState: const UserCompaniesAvailable(),
+          companiesState: const UserCompaniesReady(),
         ),
         RoutePaths.dashboard,
+      );
+    });
+
+    test('membership multiple senza scelta reindirizza al selector', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.login,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesNeedsSelection(),
+        ),
+        RoutePaths.selectCompany,
+      );
+    });
+
+    test('selector resta visibile finché manca azienda attiva', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.selectCompany,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesNeedsSelection(),
+        ),
+        isNull,
       );
     });
 
@@ -125,15 +149,30 @@ void main() {
       );
     });
 
-    test('utente autenticato con azienda su onboarding va a dashboard', () {
+    test(
+      'utente autenticato con azienda attiva su onboarding va a dashboard',
+      () {
+        expect(
+          resolveAuthRedirect(
+            location: RoutePaths.onboardingCompany,
+            isAuthenticated: true,
+            isPasswordRecoveryActive: false,
+            companiesState: const UserCompaniesReady(),
+          ),
+          RoutePaths.dashboard,
+        );
+      },
+    );
+
+    test('UserCompaniesReady consente apertura volontaria del selector', () {
       expect(
         resolveAuthRedirect(
-          location: RoutePaths.onboardingCompany,
+          location: RoutePaths.selectCompany,
           isAuthenticated: true,
           isPasswordRecoveryActive: false,
-          companiesState: const UserCompaniesAvailable(),
+          companiesState: const UserCompaniesReady(),
         ),
-        RoutePaths.dashboard,
+        isNull,
       );
     });
 

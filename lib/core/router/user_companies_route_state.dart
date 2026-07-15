@@ -11,8 +11,12 @@ final class UserCompaniesEmpty extends UserCompaniesRouteState {
   const UserCompaniesEmpty();
 }
 
-final class UserCompaniesAvailable extends UserCompaniesRouteState {
-  const UserCompaniesAvailable();
+final class UserCompaniesNeedsSelection extends UserCompaniesRouteState {
+  const UserCompaniesNeedsSelection();
+}
+
+final class UserCompaniesReady extends UserCompaniesRouteState {
+  const UserCompaniesReady();
 }
 
 final class UserCompaniesError extends UserCompaniesRouteState {

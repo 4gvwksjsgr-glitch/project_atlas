@@ -2,12 +2,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:project_atlas/core/permissions/company_role.dart';
 import 'package:project_atlas/core/utils/result.dart';
+import 'package:project_atlas/features/auth/presentation/providers/auth_providers.dart';
 import 'package:project_atlas/features/companies/domain/entities/company.dart';
 import 'package:project_atlas/features/companies/domain/entities/company_membership.dart';
 import 'package:project_atlas/features/companies/domain/repositories/company_repository.dart';
 import 'package:project_atlas/features/companies/domain/usecases/create_company.dart';
 import 'package:project_atlas/features/companies/presentation/controllers/company_onboarding_controller.dart';
 import 'package:project_atlas/features/companies/presentation/providers/company_providers.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../../../test_helpers/shared_preferences_test_helper.dart';
 
 class _SuccessCreateCompanyRepository implements CompanyRepository {
   @override
@@ -31,7 +35,25 @@ class _SuccessCreateCompanyRepository implements CompanyRepository {
       throw UnimplementedError();
 }
 
+Session _testSession({String userId = 'user-1'}) {
+  return Session(
+    accessToken: 'token',
+    tokenType: 'bearer',
+    user: User(
+      id: userId,
+      appMetadata: {},
+      userMetadata: {},
+      aud: 'authenticated',
+      createdAt: DateTime.utc(2026).toIso8601String(),
+    ),
+  );
+}
+
 void main() {
+  setUp(() async {
+    await setUpMockSharedPreferences();
+  });
+
   group('CompanyOnboardingController', () {
     test(
       'refresh membership fallito imposta error e non resta in loading',
@@ -80,6 +102,8 @@ void main() {
           createCompanyUseCaseProvider.overrideWithValue(
             CreateCompany(_SuccessCreateCompanyRepository()),
           ),
+          authSessionProvider.overrideWithValue(_testSession()),
+          isAuthenticatedProvider.overrideWithValue(true),
           userCompaniesProvider.overrideWith(
             (ref) async => [
               CompanyMembership(

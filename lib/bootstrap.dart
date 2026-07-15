@@ -5,6 +5,7 @@ import 'core/auth/supabase_auth_uri_handler.dart';
 import 'core/config/env.dart';
 import 'core/logging/app_logger.dart';
 import 'core/network/supabase_client.dart';
+import 'core/storage/app_shared_preferences.dart';
 
 /// Inizializza servizi globali prima dell'avvio dell'app.
 Future<void> bootstrap() async {
@@ -13,6 +14,7 @@ Future<void> bootstrap() async {
       kIsWeb && SupabaseAuthUriHandler.hasAuthCallbackParams(launchUri);
 
   await dotenv.load(fileName: '.env');
+  await initializeAppSharedPreferences();
 
   AppLogger.instance.initialize(minLevel: LogLevel.fromString(Env.logLevel));
 

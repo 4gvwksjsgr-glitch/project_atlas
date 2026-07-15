@@ -40,6 +40,17 @@
   "companySlugInvalid": "Formato slug non valido. Usa solo lettere minuscole, numeri e trattini",
   "createCompanyButton": "Crea azienda",
   "companiesLoadRetryButton": "Riprova",
+  "companySelectorTitle": "Seleziona azienda",
+  "companySelectorSubtitle": "Scegli l'azienda con cui vuoi lavorare",
+  "companySelectorEmpty": "Nessuna azienda disponibile",
+  "dashboardActiveRole": "Ruolo: {roleLabel}",
+  "@dashboardActiveRole": {
+    "placeholders": {
+      "roleLabel": {
+        "type": "String"
+      }
+    }
+  },
   "dashboardCompanyWelcome": "Azienda: {companyName}",
   "@dashboardCompanyWelcome": {
     "placeholders": {

@@ -334,6 +334,30 @@ abstract class AppLocalizations {
   /// **'Riprova'**
   String get companiesLoadRetryButton;
 
+  /// No description provided for @companySelectorTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Seleziona azienda'**
+  String get companySelectorTitle;
+
+  /// No description provided for @companySelectorSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Scegli l\'azienda con cui vuoi lavorare'**
+  String get companySelectorSubtitle;
+
+  /// No description provided for @companySelectorEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna azienda disponibile'**
+  String get companySelectorEmpty;
+
+  /// No description provided for @dashboardActiveRole.
+  ///
+  /// In it, this message translates to:
+  /// **'Ruolo: {roleLabel}'**
+  String dashboardActiveRole(String roleLabel);
+
   /// No description provided for @dashboardCompanyWelcome.
   ///
   /// In it, this message translates to:

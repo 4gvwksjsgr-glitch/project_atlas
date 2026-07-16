@@ -3,7 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import 'exceptions.dart';
 import 'failures.dart';
 
-enum CompanyOperation { createCompany, getUserCompanies }
+enum CompanyOperation { createCompany, getUserCompanies, countCompanyMembers }
 
 abstract final class CompanyErrorMapper {
   static Failure mapException(
@@ -80,6 +80,8 @@ abstract final class CompanyErrorMapper {
         'Creazione azienda non riuscita. Riprova.',
       CompanyOperation.getUserCompanies =>
         'Caricamento aziende non riuscito. Riprova.',
+      CompanyOperation.countCompanyMembers =>
+        'Caricamento membri non riuscito. Riprova.',
     };
   }
 }

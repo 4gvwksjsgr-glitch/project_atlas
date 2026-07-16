@@ -196,11 +196,41 @@ abstract class AppLocalizations {
   /// **'Benvenuto in Project Atlas'**
   String get dashboardWelcome;
 
-  /// No description provided for @dashboardPlaceholder.
+  /// No description provided for @dashboardNoActiveCompany.
   ///
   /// In it, this message translates to:
-  /// **'Le statistiche saranno disponibili nelle prossime fasi'**
-  String get dashboardPlaceholder;
+  /// **'Nessuna azienda attiva. Seleziona un\'azienda per continuare.'**
+  String get dashboardNoActiveCompany;
+
+  /// No description provided for @dashboardMembersTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Membri'**
+  String get dashboardMembersTitle;
+
+  /// No description provided for @dashboardMembersLoading.
+  ///
+  /// In it, this message translates to:
+  /// **'Caricamento membri...'**
+  String get dashboardMembersLoading;
+
+  /// No description provided for @dashboardMembersError.
+  ///
+  /// In it, this message translates to:
+  /// **'Caricamento membri non riuscito. Riprova.'**
+  String get dashboardMembersError;
+
+  /// No description provided for @dashboardMembersRetry.
+  ///
+  /// In it, this message translates to:
+  /// **'Riprova'**
+  String get dashboardMembersRetry;
+
+  /// No description provided for @dashboardMemberCount.
+  ///
+  /// In it, this message translates to:
+  /// **'{count, plural, =0{Nessun membro} =1{1 membro} other{{count} membri}}'**
+  String dashboardMemberCount(int count);
 
   /// No description provided for @logoutButton.
   ///
@@ -363,6 +393,12 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Azienda: {companyName}'**
   String dashboardCompanyWelcome(String companyName);
+
+  /// No description provided for @dashboardCompanySlug.
+  ///
+  /// In it, this message translates to:
+  /// **'Slug: {slug}'**
+  String dashboardCompanySlug(String slug);
 
   /// No description provided for @genericError.
   ///

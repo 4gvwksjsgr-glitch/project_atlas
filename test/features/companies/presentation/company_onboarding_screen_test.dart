@@ -47,6 +47,13 @@ class _DelayedCreateCompanyRepository implements CompanyRepository {
   @override
   Future<Result<List<CompanyMembership>>> getUserCompanies() =>
       throw UnimplementedError();
+
+  @override
+  Future<Result<Company>> updateCompany({
+    required String companyId,
+    required String name,
+    required String slug,
+  }) => throw UnimplementedError();
 }
 
 class _DuplicateSlugRepository implements CompanyRepository {
@@ -65,6 +72,13 @@ class _DuplicateSlugRepository implements CompanyRepository {
   @override
   Future<Result<List<CompanyMembership>>> getUserCompanies() =>
       throw UnimplementedError();
+
+  @override
+  Future<Result<Company>> updateCompany({
+    required String companyId,
+    required String name,
+    required String slug,
+  }) => throw UnimplementedError();
 }
 
 class _SuccessCreateCompanyRepository implements CompanyRepository {
@@ -91,6 +105,13 @@ class _SuccessCreateCompanyRepository implements CompanyRepository {
   @override
   Future<Result<List<CompanyMembership>>> getUserCompanies() =>
       throw UnimplementedError();
+
+  @override
+  Future<Result<Company>> updateCompany({
+    required String companyId,
+    required String name,
+    required String slug,
+  }) => throw UnimplementedError();
 }
 
 CompanyMembership _membershipFor(Company company) {

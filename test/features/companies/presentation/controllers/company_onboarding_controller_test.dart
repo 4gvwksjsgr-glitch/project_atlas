@@ -31,6 +31,13 @@ class _SuccessCreateCompanyRepository implements CompanyRepository {
   }
 
   @override
+  Future<Result<Company>> updateCompany({
+    required String companyId,
+    required String name,
+    required String slug,
+  }) => throw UnimplementedError();
+
+  @override
   Future<Result<List<CompanyMembership>>> getUserCompanies() =>
       throw UnimplementedError();
 }

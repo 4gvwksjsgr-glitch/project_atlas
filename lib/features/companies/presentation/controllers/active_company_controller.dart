@@ -46,6 +46,25 @@ class ActiveCompanyController extends Notifier<ActiveCompanyState> {
     await selectMembership(userId: userId, membership: membership);
   }
 
+  /// Aggiorna nome/slug dell'azienda attiva senza toccare id, membership o ruolo.
+  void applyCompanyProfile({required String name, required String slug}) {
+    final current = state.context;
+    if (current == null) {
+      return;
+    }
+
+    state = ActiveCompanyState(
+      context: ActiveCompanyContext(
+        companyId: current.companyId,
+        companyName: name,
+        companySlug: slug,
+        role: current.role,
+        membershipId: current.membershipId,
+      ),
+      resolved: true,
+    );
+  }
+
   void clearRuntime() {
     state = const ActiveCompanyState(resolved: true);
   }

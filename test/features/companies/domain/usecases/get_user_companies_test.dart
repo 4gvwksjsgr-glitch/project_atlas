@@ -31,6 +31,13 @@ class _CompanyRepositorySpy implements CompanyRepository {
       ),
     ]);
   }
+
+  @override
+  Future<Result<Company>> updateCompany({
+    required String companyId,
+    required String name,
+    required String slug,
+  }) => throw UnimplementedError();
 }
 
 void main() {

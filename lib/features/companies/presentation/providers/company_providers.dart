@@ -15,6 +15,7 @@ import '../../domain/usecases/create_company.dart';
 import '../../domain/usecases/get_user_companies.dart';
 import '../../domain/usecases/resolve_initial_active_company.dart';
 import '../../domain/usecases/select_active_company.dart';
+import '../../domain/usecases/update_company.dart';
 import '../controllers/active_company_controller.dart';
 
 final sharedPreferencesProvider = Provider((ref) {
@@ -62,6 +63,10 @@ final companyRepositoryProvider = Provider<CompanyRepository>((ref) {
 
 final createCompanyUseCaseProvider = Provider<CreateCompany>((ref) {
   return CreateCompany(ref.watch(companyRepositoryProvider));
+});
+
+final updateCompanyUseCaseProvider = Provider<UpdateCompany>((ref) {
+  return UpdateCompany(ref.watch(companyRepositoryProvider));
 });
 
 final getUserCompaniesUseCaseProvider = Provider<GetUserCompanies>((ref) {

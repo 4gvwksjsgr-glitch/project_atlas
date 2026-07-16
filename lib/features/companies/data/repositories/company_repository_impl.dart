@@ -1,4 +1,5 @@
 import '../../../../core/errors/company_error_mapper.dart';
+import '../../../../core/errors/failures.dart';
 import '../../../../core/utils/result.dart';
 import '../../domain/entities/company.dart';
 import '../../domain/entities/company_membership.dart';
@@ -24,6 +25,30 @@ class CompanyRepositoryImpl implements CompanyRepository {
     } on Object catch (error) {
       return Error(
         CompanyErrorMapper.mapException(error, CompanyOperation.createCompany),
+      );
+    }
+  }
+
+  @override
+  Future<Result<Company>> updateCompany({
+    required String companyId,
+    required String name,
+    required String slug,
+  }) async {
+    if (companyId.isEmpty) {
+      return const Error(ValidationFailure('Azienda non valida.'));
+    }
+
+    try {
+      final company = await _remoteDataSource.updateCompany(
+        companyId: companyId,
+        name: name,
+        slug: slug,
+      );
+      return Success(company.toEntity());
+    } on Object catch (error) {
+      return Error(
+        CompanyErrorMapper.mapException(error, CompanyOperation.updateCompany),
       );
     }
   }

@@ -28,5 +28,18 @@ void main() {
       expect(failure, isA<ValidationFailure>());
       expect(failure.message, contains('slug'));
     });
+
+    test('mappa PGRST116 su AuthFailure per update senza riga', () {
+      final failure = CompanyErrorMapper.mapException(
+        const supabase.PostgrestException(
+          message: 'JSON object requested, multiple (or no) rows returned',
+          code: 'PGRST116',
+        ),
+        CompanyOperation.updateCompany,
+      );
+
+      expect(failure, isA<AuthFailure>());
+      expect(failure.message, contains('permessi'));
+    });
   });
 }

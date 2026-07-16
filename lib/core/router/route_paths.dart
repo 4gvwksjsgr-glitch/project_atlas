@@ -8,4 +8,5 @@ abstract final class RoutePaths {
   static const onboardingCompany = '/onboarding/company';
   static const selectCompany = '/onboarding/company/select';
   static const dashboard = '/dashboard';
+  static const settingsCompany = '/settings/company';
 }

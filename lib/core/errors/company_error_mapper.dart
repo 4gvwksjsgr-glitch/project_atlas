@@ -3,7 +3,12 @@ import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import 'exceptions.dart';
 import 'failures.dart';
 
-enum CompanyOperation { createCompany, getUserCompanies, countCompanyMembers }
+enum CompanyOperation {
+  createCompany,
+  getUserCompanies,
+  countCompanyMembers,
+  updateCompany,
+}
 
 abstract final class CompanyErrorMapper {
   static Failure mapException(
@@ -31,7 +36,8 @@ abstract final class CompanyErrorMapper {
   ) {
     final message = error.message.toLowerCase();
     final details = (error.details?.toString() ?? '').toLowerCase();
-    final combined = '$message $details';
+    final hint = (error.hint ?? '').toLowerCase();
+    final combined = '$message $details $hint';
 
     if (combined.contains('not authenticated')) {
       return const AuthFailure('Sessione scaduta. Accedi di nuovo.');
@@ -45,7 +51,9 @@ abstract final class CompanyErrorMapper {
       return const ValidationFailure('Lo slug è obbligatorio.');
     }
 
-    if (combined.contains('invalid slug format')) {
+    if (combined.contains('invalid slug format') ||
+        combined.contains('companies_slug_format') ||
+        (combined.contains('check constraint') && combined.contains('slug'))) {
       return const ValidationFailure(
         'Formato slug non valido. Usa solo lettere minuscole, numeri e trattini.',
       );
@@ -59,6 +67,23 @@ abstract final class CompanyErrorMapper {
       );
     }
 
+    if (error.code == 'PGRST116' ||
+        combined.contains('0 rows') ||
+        combined.contains('cannot coerce') ||
+        combined.contains('json object requested')) {
+      return const AuthFailure(
+        'Non hai i permessi per modificare questa azienda.',
+      );
+    }
+
+    if (combined.contains('permission denied') ||
+        combined.contains('row-level security') ||
+        combined.contains('violates row-level security')) {
+      return const AuthFailure(
+        'Non hai i permessi per modificare questa azienda.',
+      );
+    }
+
     if (combined.contains('infinite recursion detected in policy')) {
       return UnknownFailure(
         'Errore di sicurezza nel caricamento membership: $message',
@@ -67,7 +92,9 @@ abstract final class CompanyErrorMapper {
 
     if (combined.contains('network') ||
         combined.contains('connection') ||
-        combined.contains('timeout')) {
+        combined.contains('timeout') ||
+        combined.contains('failed host lookup') ||
+        combined.contains('socketexception')) {
       return const NetworkFailure();
     }
 
@@ -82,6 +109,8 @@ abstract final class CompanyErrorMapper {
         'Caricamento aziende non riuscito. Riprova.',
       CompanyOperation.countCompanyMembers =>
         'Caricamento membri non riuscito. Riprova.',
+      CompanyOperation.updateCompany =>
+        'Aggiornamento azienda non riuscito. Riprova.',
     };
   }
 }

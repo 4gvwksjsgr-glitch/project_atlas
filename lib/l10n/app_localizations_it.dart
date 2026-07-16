@@ -61,8 +61,33 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dashboardWelcome => 'Benvenuto in Project Atlas';
 
   @override
-  String get dashboardPlaceholder =>
-      'Le statistiche saranno disponibili nelle prossime fasi';
+  String get dashboardNoActiveCompany =>
+      'Nessuna azienda attiva. Seleziona un\'azienda per continuare.';
+
+  @override
+  String get dashboardMembersTitle => 'Membri';
+
+  @override
+  String get dashboardMembersLoading => 'Caricamento membri...';
+
+  @override
+  String get dashboardMembersError =>
+      'Caricamento membri non riuscito. Riprova.';
+
+  @override
+  String get dashboardMembersRetry => 'Riprova';
+
+  @override
+  String dashboardMemberCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count membri',
+      one: '1 membro',
+      zero: 'Nessun membro',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get logoutButton => 'Esci';
@@ -152,6 +177,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String dashboardCompanyWelcome(String companyName) {
     return 'Azienda: $companyName';
+  }
+
+  @override
+  String dashboardCompanySlug(String slug) {
+    return 'Slug: $slug';
   }
 
   @override

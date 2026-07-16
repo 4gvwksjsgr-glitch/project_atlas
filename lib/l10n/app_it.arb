@@ -17,7 +17,19 @@
   "goToForgotPassword": "Password dimenticata?",
   "dashboardTitle": "Dashboard",
   "dashboardWelcome": "Benvenuto in Project Atlas",
-  "dashboardPlaceholder": "Le statistiche saranno disponibili nelle prossime fasi",
+  "dashboardNoActiveCompany": "Nessuna azienda attiva. Seleziona un'azienda per continuare.",
+  "dashboardMembersTitle": "Membri",
+  "dashboardMembersLoading": "Caricamento membri...",
+  "dashboardMembersError": "Caricamento membri non riuscito. Riprova.",
+  "dashboardMembersRetry": "Riprova",
+  "dashboardMemberCount": "{count, plural, =0{Nessun membro} =1{1 membro} other{{count} membri}}",
+  "@dashboardMemberCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "logoutButton": "Esci",
   "navDashboard": "Dashboard",
   "emailRequired": "Inserisci l'email",
@@ -55,6 +67,14 @@
   "@dashboardCompanyWelcome": {
     "placeholders": {
       "companyName": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardCompanySlug": "Slug: {slug}",
+  "@dashboardCompanySlug": {
+    "placeholders": {
+      "slug": {
         "type": "String"
       }
     }

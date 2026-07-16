@@ -5,6 +5,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/constants/app_ui_constants.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../companies/presentation/controllers/active_company_controller.dart';
+import '../widgets/dashboard_members_card.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -40,12 +41,29 @@ class DashboardScreen extends ConsumerWidget {
           ),
           const SizedBox(height: AppUiConstants.spacingMedium),
           Text(l10n.dashboardWelcome, style: theme.textTheme.titleLarge),
-          if (activeCompany != null) ...[
+          if (activeCompany == null) ...[
+            const SizedBox(height: AppUiConstants.spacingMedium),
+            Text(
+              l10n.dashboardNoActiveCompany,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ] else ...[
             Padding(
               padding: const EdgeInsets.only(top: AppUiConstants.spacingSmall),
               child: Text(
                 l10n.dashboardCompanyWelcome(activeCompany.companyName),
                 style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: AppUiConstants.spacingSmall),
+              child: Text(
+                l10n.dashboardCompanySlug(activeCompany.companySlug),
+                style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
@@ -59,36 +77,9 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
             ),
+            const SizedBox(height: AppUiConstants.spacingLarge),
+            DashboardMembersCard(companyId: activeCompany.companyId),
           ],
-          const SizedBox(height: AppUiConstants.spacingSmall),
-          Text(
-            l10n.dashboardPlaceholder,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: AppUiConstants.spacingLarge),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(AppUiConstants.spacingLarge),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.insights_outlined,
-                    color: theme.colorScheme.primary,
-                    size: 32,
-                  ),
-                  const SizedBox(width: AppUiConstants.spacingMedium),
-                  Expanded(
-                    child: Text(
-                      l10n.dashboardPlaceholder,
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
     );

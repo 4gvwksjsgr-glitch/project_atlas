@@ -244,6 +244,48 @@ abstract class AppLocalizations {
   /// **'Dashboard'**
   String get navDashboard;
 
+  /// No description provided for @navSettings.
+  ///
+  /// In it, this message translates to:
+  /// **'Impostazioni'**
+  String get navSettings;
+
+  /// No description provided for @companySettingsTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Impostazioni azienda'**
+  String get companySettingsTitle;
+
+  /// No description provided for @companySettingsSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Visualizza e aggiorna i dati dell\'azienda attiva'**
+  String get companySettingsSubtitle;
+
+  /// No description provided for @companySettingsNoActiveCompany.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna azienda attiva. Seleziona un\'azienda per continuare.'**
+  String get companySettingsNoActiveCompany;
+
+  /// No description provided for @companySettingsReadOnlyMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Non hai i permessi per modificare questa azienda. Contatta un proprietario o un amministratore.'**
+  String get companySettingsReadOnlyMessage;
+
+  /// No description provided for @companySettingsSaveButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Salva modifiche'**
+  String get companySettingsSaveButton;
+
+  /// No description provided for @companySettingsSaveSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Azienda aggiornata correttamente.'**
+  String get companySettingsSaveSuccess;
+
   /// No description provided for @emailRequired.
   ///
   /// In it, this message translates to:

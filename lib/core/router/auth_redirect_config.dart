@@ -18,6 +18,7 @@ abstract final class AuthRedirectConfig {
 
   static const protectedRoutes = {
     RoutePaths.dashboard,
+    RoutePaths.settingsCompany,
     RoutePaths.onboardingCompany,
     RoutePaths.selectCompany,
   };

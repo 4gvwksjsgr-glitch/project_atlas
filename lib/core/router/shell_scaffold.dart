@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../shared/constants/app_ui_constants.dart';
+
 import '../../features/companies/presentation/controllers/active_company_controller.dart';
 import '../../features/companies/presentation/providers/company_providers.dart';
 import '../../features/companies/presentation/widgets/active_company_chip.dart';
+import '../../l10n/app_localizations.dart';
+import '../../shared/constants/app_ui_constants.dart';
 
 /// Layout adattivo con [NavigationBar] (mobile) o [NavigationRail] (desktop).
 class ShellScaffold extends ConsumerWidget {
@@ -21,6 +23,7 @@ class ShellScaffold extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final width = MediaQuery.sizeOf(context).width;
     final useRail = width >= AppUiConstants.shellBreakpoint;
     final activeCompany = ref.watch(activeCompanyProvider);
@@ -48,6 +51,32 @@ class ShellScaffold extends ConsumerWidget {
             ),
           );
 
+    final railDestinations = [
+      NavigationRailDestination(
+        icon: const Icon(Icons.dashboard_outlined),
+        selectedIcon: const Icon(Icons.dashboard),
+        label: Text(l10n.navDashboard),
+      ),
+      NavigationRailDestination(
+        icon: const Icon(Icons.settings_outlined),
+        selectedIcon: const Icon(Icons.settings),
+        label: Text(l10n.navSettings),
+      ),
+    ];
+
+    final barDestinations = [
+      NavigationDestination(
+        icon: const Icon(Icons.dashboard_outlined),
+        selectedIcon: const Icon(Icons.dashboard),
+        label: l10n.navDashboard,
+      ),
+      NavigationDestination(
+        icon: const Icon(Icons.settings_outlined),
+        selectedIcon: const Icon(Icons.settings),
+        label: l10n.navSettings,
+      ),
+    ];
+
     if (useRail) {
       return Scaffold(
         body: Row(
@@ -56,13 +85,7 @@ class ShellScaffold extends ConsumerWidget {
               selectedIndex: navigationShell.currentIndex,
               onDestinationSelected: _onDestinationSelected,
               labelType: NavigationRailLabelType.all,
-              destinations: const [
-                NavigationRailDestination(
-                  icon: Icon(Icons.dashboard_outlined),
-                  selectedIcon: Icon(Icons.dashboard),
-                  label: Text('Dashboard'),
-                ),
-              ],
+              destinations: railDestinations,
             ),
             const VerticalDivider(width: 1),
             Expanded(
@@ -90,13 +113,7 @@ class ShellScaffold extends ConsumerWidget {
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: _onDestinationSelected,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-        ],
+        destinations: barDestinations,
       ),
     );
   }

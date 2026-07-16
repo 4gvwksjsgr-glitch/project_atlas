@@ -11,13 +11,17 @@ import '../../features/auth/presentation/screens/update_password_screen.dart';
 import '../../features/companies/presentation/providers/company_providers.dart';
 import '../../features/companies/presentation/screens/company_onboarding_screen.dart';
 import '../../features/companies/presentation/screens/company_selector_screen.dart';
+import '../../features/companies/presentation/screens/company_settings_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'route_guards.dart';
 import 'route_paths.dart';
 import 'shell_scaffold.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorKey = GlobalKey<NavigatorState>();
+final _dashboardNavigatorKey = GlobalKey<NavigatorState>(
+  debugLabel: 'dashboard',
+);
+final _settingsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'settings');
 
 final routerProvider = Provider<GoRouter>((ref) {
   final refreshListenable = ref.watch(goRouterAuthRefreshProvider);
@@ -78,11 +82,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
         branches: [
           StatefulShellBranch(
-            navigatorKey: _shellNavigatorKey,
+            navigatorKey: _dashboardNavigatorKey,
             routes: [
               GoRoute(
                 path: RoutePaths.dashboard,
                 builder: (context, state) => const DashboardScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _settingsNavigatorKey,
+            routes: [
+              GoRoute(
+                path: RoutePaths.settingsCompany,
+                builder: (context, state) => const CompanySettingsScreen(),
               ),
             ],
           ),

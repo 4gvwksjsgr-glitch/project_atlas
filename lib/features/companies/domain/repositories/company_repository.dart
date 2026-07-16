@@ -8,5 +8,11 @@ abstract interface class CompanyRepository {
     required String slug,
   });
 
+  Future<Result<Company>> updateCompany({
+    required String companyId,
+    required String name,
+    required String slug,
+  });
+
   Future<Result<List<CompanyMembership>>> getUserCompanies();
 }

@@ -51,9 +51,18 @@ final activeCompanyResolutionCoordinatorProvider = Provider<void>((ref) {
 
     next.when(
       loading: () {
+        // Evita di azzerare l'azienda attiva durante un refresh (es. dopo update).
+        final current = ref.read(activeCompanyControllerProvider);
+        if (current.context != null) {
+          return;
+        }
         ref.read(activeCompanyControllerProvider.notifier).markResolving();
       },
       error: (_, _) {
+        final current = ref.read(activeCompanyControllerProvider);
+        if (current.context != null) {
+          return;
+        }
         ref.read(activeCompanyControllerProvider.notifier).markResolving();
       },
       data: (memberships) {

@@ -149,6 +149,45 @@ void main() {
       );
     });
 
+    test('utente autenticato senza azienda su settings va a onboarding', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.settingsCompany,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesEmpty(),
+        ),
+        RoutePaths.onboardingCompany,
+      );
+    });
+
+    test(
+      'membership multiple senza scelta da settings reindirizza al selector',
+      () {
+        expect(
+          resolveAuthRedirect(
+            location: RoutePaths.settingsCompany,
+            isAuthenticated: true,
+            isPasswordRecoveryActive: false,
+            companiesState: const UserCompaniesNeedsSelection(),
+          ),
+          RoutePaths.selectCompany,
+        );
+      },
+    );
+
+    test('UserCompaniesReady lascia accessibile settings company', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.settingsCompany,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesReady(),
+        ),
+        isNull,
+      );
+    });
+
     test(
       'utente autenticato con azienda attiva su onboarding va a dashboard',
       () {

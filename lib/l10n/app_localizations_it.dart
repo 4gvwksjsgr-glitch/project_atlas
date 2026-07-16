@@ -96,6 +96,30 @@ class AppLocalizationsIt extends AppLocalizations {
   String get navDashboard => 'Dashboard';
 
   @override
+  String get navSettings => 'Impostazioni';
+
+  @override
+  String get companySettingsTitle => 'Impostazioni azienda';
+
+  @override
+  String get companySettingsSubtitle =>
+      'Visualizza e aggiorna i dati dell\'azienda attiva';
+
+  @override
+  String get companySettingsNoActiveCompany =>
+      'Nessuna azienda attiva. Seleziona un\'azienda per continuare.';
+
+  @override
+  String get companySettingsReadOnlyMessage =>
+      'Non hai i permessi per modificare questa azienda. Contatta un proprietario o un amministratore.';
+
+  @override
+  String get companySettingsSaveButton => 'Salva modifiche';
+
+  @override
+  String get companySettingsSaveSuccess => 'Azienda aggiornata correttamente.';
+
+  @override
   String get emailRequired => 'Inserisci l\'email';
 
   @override

@@ -244,11 +244,131 @@ abstract class AppLocalizations {
   /// **'Dashboard'**
   String get navDashboard;
 
+  /// No description provided for @navClients.
+  ///
+  /// In it, this message translates to:
+  /// **'Clienti'**
+  String get navClients;
+
   /// No description provided for @navSettings.
   ///
   /// In it, this message translates to:
   /// **'Impostazioni'**
   String get navSettings;
+
+  /// No description provided for @customersTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Clienti'**
+  String get customersTitle;
+
+  /// No description provided for @customersSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Anagrafica clienti dell\'azienda attiva'**
+  String get customersSubtitle;
+
+  /// No description provided for @customersNoActiveCompany.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna azienda attiva. Seleziona un\'azienda per continuare.'**
+  String get customersNoActiveCompany;
+
+  /// No description provided for @customersEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun cliente ancora. Aggiungi il primo cliente per iniziare.'**
+  String get customersEmpty;
+
+  /// No description provided for @customersLoadError.
+  ///
+  /// In it, this message translates to:
+  /// **'Caricamento clienti non riuscito. Riprova.'**
+  String get customersLoadError;
+
+  /// No description provided for @customersRetry.
+  ///
+  /// In it, this message translates to:
+  /// **'Riprova'**
+  String get customersRetry;
+
+  /// No description provided for @customersNewButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Nuovo cliente'**
+  String get customersNewButton;
+
+  /// No description provided for @customerNewTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Nuovo cliente'**
+  String get customerNewTitle;
+
+  /// No description provided for @customerEditTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Modifica cliente'**
+  String get customerEditTitle;
+
+  /// No description provided for @customerNotFound.
+  ///
+  /// In it, this message translates to:
+  /// **'Cliente non trovato.'**
+  String get customerNotFound;
+
+  /// No description provided for @customerReadOnlyMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Non hai i permessi per modificare i clienti. Contatta un proprietario, un amministratore o un manager.'**
+  String get customerReadOnlyMessage;
+
+  /// No description provided for @customerNameLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Nome'**
+  String get customerNameLabel;
+
+  /// No description provided for @customerNameRequired.
+  ///
+  /// In it, this message translates to:
+  /// **'Inserisci il nome del cliente'**
+  String get customerNameRequired;
+
+  /// No description provided for @customerEmailLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Email'**
+  String get customerEmailLabel;
+
+  /// No description provided for @customerPhoneLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Telefono'**
+  String get customerPhoneLabel;
+
+  /// No description provided for @customerNotesLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Note'**
+  String get customerNotesLabel;
+
+  /// No description provided for @customerSaveButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Salva'**
+  String get customerSaveButton;
+
+  /// No description provided for @customerCreateSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Cliente creato correttamente.'**
+  String get customerCreateSuccess;
+
+  /// No description provided for @customerUpdateSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Cliente aggiornato correttamente.'**
+  String get customerUpdateSuccess;
 
   /// No description provided for @companySettingsTitle.
   ///

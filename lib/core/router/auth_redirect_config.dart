@@ -18,6 +18,7 @@ abstract final class AuthRedirectConfig {
 
   static const protectedRoutes = {
     RoutePaths.dashboard,
+    RoutePaths.clients,
     RoutePaths.settingsCompany,
     RoutePaths.onboardingCompany,
     RoutePaths.selectCompany,
@@ -31,7 +32,16 @@ abstract final class AuthRedirectConfig {
     return restrictedAuthRoutes.contains(location);
   }
 
+  /// Dashboard, Clienti (e sottorotte) e Impostazioni.
+  static bool isTenantShellRoute(String location) {
+    return location == RoutePaths.dashboard ||
+        location == RoutePaths.settingsCompany ||
+        location == RoutePaths.clients ||
+        location.startsWith('${RoutePaths.clients}/');
+  }
+
   static bool isProtectedRoute(String location) {
-    return protectedRoutes.contains(location);
+    return protectedRoutes.contains(location) ||
+        location.startsWith('${RoutePaths.clients}/');
   }
 }

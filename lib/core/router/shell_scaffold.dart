@@ -58,6 +58,11 @@ class ShellScaffold extends ConsumerWidget {
         label: Text(l10n.navDashboard),
       ),
       NavigationRailDestination(
+        icon: const Icon(Icons.people_outline),
+        selectedIcon: const Icon(Icons.people),
+        label: Text(l10n.navClients),
+      ),
+      NavigationRailDestination(
         icon: const Icon(Icons.settings_outlined),
         selectedIcon: const Icon(Icons.settings),
         label: Text(l10n.navSettings),
@@ -69,6 +74,11 @@ class ShellScaffold extends ConsumerWidget {
         icon: const Icon(Icons.dashboard_outlined),
         selectedIcon: const Icon(Icons.dashboard),
         label: l10n.navDashboard,
+      ),
+      NavigationDestination(
+        icon: const Icon(Icons.people_outline),
+        selectedIcon: const Icon(Icons.people),
+        label: l10n.navClients,
       ),
       NavigationDestination(
         icon: const Icon(Icons.settings_outlined),

@@ -96,7 +96,70 @@ class AppLocalizationsIt extends AppLocalizations {
   String get navDashboard => 'Dashboard';
 
   @override
+  String get navClients => 'Clienti';
+
+  @override
   String get navSettings => 'Impostazioni';
+
+  @override
+  String get customersTitle => 'Clienti';
+
+  @override
+  String get customersSubtitle => 'Anagrafica clienti dell\'azienda attiva';
+
+  @override
+  String get customersNoActiveCompany =>
+      'Nessuna azienda attiva. Seleziona un\'azienda per continuare.';
+
+  @override
+  String get customersEmpty =>
+      'Nessun cliente ancora. Aggiungi il primo cliente per iniziare.';
+
+  @override
+  String get customersLoadError => 'Caricamento clienti non riuscito. Riprova.';
+
+  @override
+  String get customersRetry => 'Riprova';
+
+  @override
+  String get customersNewButton => 'Nuovo cliente';
+
+  @override
+  String get customerNewTitle => 'Nuovo cliente';
+
+  @override
+  String get customerEditTitle => 'Modifica cliente';
+
+  @override
+  String get customerNotFound => 'Cliente non trovato.';
+
+  @override
+  String get customerReadOnlyMessage =>
+      'Non hai i permessi per modificare i clienti. Contatta un proprietario, un amministratore o un manager.';
+
+  @override
+  String get customerNameLabel => 'Nome';
+
+  @override
+  String get customerNameRequired => 'Inserisci il nome del cliente';
+
+  @override
+  String get customerEmailLabel => 'Email';
+
+  @override
+  String get customerPhoneLabel => 'Telefono';
+
+  @override
+  String get customerNotesLabel => 'Note';
+
+  @override
+  String get customerSaveButton => 'Salva';
+
+  @override
+  String get customerCreateSuccess => 'Cliente creato correttamente.';
+
+  @override
+  String get customerUpdateSuccess => 'Cliente aggiornato correttamente.';
 
   @override
   String get companySettingsTitle => 'Impostazioni azienda';

@@ -20,14 +20,19 @@ import 'package:project_atlas/features/companies/presentation/screens/company_se
 import 'package:project_atlas/features/companies/presentation/screens/company_settings_screen.dart';
 import 'package:project_atlas/features/companies/presentation/widgets/active_company_chip.dart';
 import 'package:project_atlas/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:project_atlas/features/transactions/domain/usecases/get_transactions.dart';
+import 'package:project_atlas/features/transactions/presentation/providers/transaction_providers.dart';
+import 'package:project_atlas/features/transactions/presentation/screens/transactions_screen.dart';
 import 'package:project_atlas/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../test_helpers/empty_transaction_repository.dart';
 import '../../../test_helpers/shared_preferences_test_helper.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _dashboardNavigatorKey = GlobalKey<NavigatorState>();
 final _clientsNavigatorKey = GlobalKey<NavigatorState>();
+final _transactionsNavigatorKey = GlobalKey<NavigatorState>();
 final _settingsNavigatorKey = GlobalKey<NavigatorState>();
 
 CompanyMembership _membership({
@@ -93,6 +98,12 @@ void main() {
                 isAuthenticatedProvider.overrideWithValue(true),
                 isPasswordRecoveryActiveProvider.overrideWithValue(false),
                 userCompaniesProvider.overrideWith((ref) async => memberships),
+                transactionRepositoryProvider.overrideWithValue(
+                  const EmptyTransactionRepository(),
+                ),
+                getTransactionsUseCaseProvider.overrideWithValue(
+                  GetTransactions(const EmptyTransactionRepository()),
+                ),
               ],
             ),
             child: Consumer(
@@ -140,6 +151,16 @@ void main() {
                               path: RoutePaths.clients,
                               builder: (context, state) =>
                                   const CustomersScreen(),
+                            ),
+                          ],
+                        ),
+                        StatefulShellBranch(
+                          navigatorKey: _transactionsNavigatorKey,
+                          routes: [
+                            GoRoute(
+                              path: RoutePaths.transactions,
+                              builder: (context, state) =>
+                                  const TransactionsScreen(),
                             ),
                           ],
                         ),

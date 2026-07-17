@@ -250,6 +250,12 @@ abstract class AppLocalizations {
   /// **'Clienti'**
   String get navClients;
 
+  /// No description provided for @navTransactions.
+  ///
+  /// In it, this message translates to:
+  /// **'Movimenti'**
+  String get navTransactions;
+
   /// No description provided for @navSettings.
   ///
   /// In it, this message translates to:
@@ -369,6 +375,174 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Cliente aggiornato correttamente.'**
   String get customerUpdateSuccess;
+
+  /// No description provided for @transactionsTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Movimenti'**
+  String get transactionsTitle;
+
+  /// No description provided for @transactionsSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Entrate e uscite dell\'azienda attiva'**
+  String get transactionsSubtitle;
+
+  /// No description provided for @transactionsNoActiveCompany.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna azienda attiva. Seleziona un\'azienda per continuare.'**
+  String get transactionsNoActiveCompany;
+
+  /// No description provided for @transactionsEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun movimento ancora. Aggiungi il primo movimento per iniziare.'**
+  String get transactionsEmpty;
+
+  /// No description provided for @transactionsLoadError.
+  ///
+  /// In it, this message translates to:
+  /// **'Caricamento movimenti non riuscito. Riprova.'**
+  String get transactionsLoadError;
+
+  /// No description provided for @transactionsRetry.
+  ///
+  /// In it, this message translates to:
+  /// **'Riprova'**
+  String get transactionsRetry;
+
+  /// No description provided for @transactionsNewButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Nuovo movimento'**
+  String get transactionsNewButton;
+
+  /// No description provided for @transactionNewTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Nuovo movimento'**
+  String get transactionNewTitle;
+
+  /// No description provided for @transactionEditTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Modifica movimento'**
+  String get transactionEditTitle;
+
+  /// No description provided for @transactionNotFound.
+  ///
+  /// In it, this message translates to:
+  /// **'Movimento non trovato.'**
+  String get transactionNotFound;
+
+  /// No description provided for @transactionReadOnlyMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Non hai i permessi per modificare i movimenti. Contatta un proprietario, un amministratore o un manager.'**
+  String get transactionReadOnlyMessage;
+
+  /// No description provided for @transactionKindLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Tipo'**
+  String get transactionKindLabel;
+
+  /// No description provided for @transactionKindIncome.
+  ///
+  /// In it, this message translates to:
+  /// **'Entrata'**
+  String get transactionKindIncome;
+
+  /// No description provided for @transactionKindExpense.
+  ///
+  /// In it, this message translates to:
+  /// **'Uscita'**
+  String get transactionKindExpense;
+
+  /// No description provided for @transactionAmountLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Importo (€)'**
+  String get transactionAmountLabel;
+
+  /// No description provided for @transactionAmountRequired.
+  ///
+  /// In it, this message translates to:
+  /// **'Inserisci l\'importo'**
+  String get transactionAmountRequired;
+
+  /// No description provided for @transactionAmountInvalid.
+  ///
+  /// In it, this message translates to:
+  /// **'Inserisci un importo valido maggiore di zero'**
+  String get transactionAmountInvalid;
+
+  /// No description provided for @transactionDateLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Data movimento'**
+  String get transactionDateLabel;
+
+  /// No description provided for @transactionDescriptionLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Descrizione'**
+  String get transactionDescriptionLabel;
+
+  /// No description provided for @transactionDescriptionRequired.
+  ///
+  /// In it, this message translates to:
+  /// **'Inserisci la descrizione'**
+  String get transactionDescriptionRequired;
+
+  /// No description provided for @transactionNotesLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Note'**
+  String get transactionNotesLabel;
+
+  /// No description provided for @transactionClientLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Cliente'**
+  String get transactionClientLabel;
+
+  /// No description provided for @transactionClientNone.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun cliente'**
+  String get transactionClientNone;
+
+  /// No description provided for @transactionClientsLoading.
+  ///
+  /// In it, this message translates to:
+  /// **'Caricamento clienti...'**
+  String get transactionClientsLoading;
+
+  /// No description provided for @transactionClientsLoadError.
+  ///
+  /// In it, this message translates to:
+  /// **'Clienti non disponibili. Puoi comunque salvare senza cliente.'**
+  String get transactionClientsLoadError;
+
+  /// No description provided for @transactionSaveButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Salva'**
+  String get transactionSaveButton;
+
+  /// No description provided for @transactionCreateSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Movimento creato correttamente.'**
+  String get transactionCreateSuccess;
+
+  /// No description provided for @transactionUpdateSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Movimento aggiornato correttamente.'**
+  String get transactionUpdateSuccess;
 
   /// No description provided for @companySettingsTitle.
   ///

@@ -8,5 +8,9 @@ abstract final class RoutePaths {
   static const onboardingCompany = '/onboarding/company';
   static const selectCompany = '/onboarding/company/select';
   static const dashboard = '/dashboard';
+  static const clients = '/clients';
+  static const customerNew = '/clients/new';
   static const settingsCompany = '/settings/company';
+
+  static String customerEdit(String customerId) => '/clients/$customerId/edit';
 }

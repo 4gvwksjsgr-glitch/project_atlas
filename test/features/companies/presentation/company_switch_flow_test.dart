@@ -9,6 +9,7 @@ import 'package:project_atlas/core/router/shell_scaffold.dart';
 import 'package:project_atlas/core/router/user_companies_route_state.dart';
 import 'package:project_atlas/core/storage/app_shared_preferences.dart';
 import 'package:project_atlas/features/auth/presentation/providers/auth_providers.dart';
+import 'package:project_atlas/features/clients/presentation/screens/customers_screen.dart';
 import 'package:project_atlas/features/companies/data/datasource/active_company_local_datasource.dart';
 import 'package:project_atlas/features/companies/domain/entities/company.dart';
 import 'package:project_atlas/features/companies/domain/entities/company_membership.dart';
@@ -16,6 +17,7 @@ import 'package:project_atlas/features/companies/presentation/controllers/active
 import 'package:project_atlas/features/companies/presentation/controllers/active_company_resolution_coordinator.dart';
 import 'package:project_atlas/features/companies/presentation/providers/company_providers.dart';
 import 'package:project_atlas/features/companies/presentation/screens/company_selector_screen.dart';
+import 'package:project_atlas/features/companies/presentation/screens/company_settings_screen.dart';
 import 'package:project_atlas/features/companies/presentation/widgets/active_company_chip.dart';
 import 'package:project_atlas/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:project_atlas/l10n/app_localizations.dart';
@@ -24,7 +26,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../test_helpers/shared_preferences_test_helper.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorKey = GlobalKey<NavigatorState>();
+final _dashboardNavigatorKey = GlobalKey<NavigatorState>();
+final _clientsNavigatorKey = GlobalKey<NavigatorState>();
+final _settingsNavigatorKey = GlobalKey<NavigatorState>();
 
 CompanyMembership _membership({
   required String companyId,
@@ -120,12 +124,32 @@ void main() {
                       },
                       branches: [
                         StatefulShellBranch(
-                          navigatorKey: _shellNavigatorKey,
+                          navigatorKey: _dashboardNavigatorKey,
                           routes: [
                             GoRoute(
                               path: RoutePaths.dashboard,
                               builder: (context, state) =>
                                   const DashboardScreen(),
+                            ),
+                          ],
+                        ),
+                        StatefulShellBranch(
+                          navigatorKey: _clientsNavigatorKey,
+                          routes: [
+                            GoRoute(
+                              path: RoutePaths.clients,
+                              builder: (context, state) =>
+                                  const CustomersScreen(),
+                            ),
+                          ],
+                        ),
+                        StatefulShellBranch(
+                          navigatorKey: _settingsNavigatorKey,
+                          routes: [
+                            GoRoute(
+                              path: RoutePaths.settingsCompany,
+                              builder: (context, state) =>
+                                  const CompanySettingsScreen(),
                             ),
                           ],
                         ),

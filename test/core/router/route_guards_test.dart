@@ -188,6 +188,54 @@ void main() {
       );
     });
 
+    test('route Clienti protetta senza auth va al login', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.clients,
+          isAuthenticated: false,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesEmpty(),
+        ),
+        RoutePaths.login,
+      );
+    });
+
+    test('route Clienti senza azienda attiva va a onboarding', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.clients,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesEmpty(),
+        ),
+        RoutePaths.onboardingCompany,
+      );
+    });
+
+    test('sottorotta nuovo cliente richiede selezione se manca active', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.customerNew,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesNeedsSelection(),
+        ),
+        RoutePaths.selectCompany,
+      );
+    });
+
+    test('UserCompaniesReady lascia accessibile Clienti', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.clients,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesReady(),
+        ),
+        isNull,
+      );
+    });
+
     test(
       'utente autenticato con azienda attiva su onboarding va a dashboard',
       () {

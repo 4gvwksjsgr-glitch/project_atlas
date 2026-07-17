@@ -38,8 +38,7 @@ String? resolveAuthRedirect({
 }
 
 String? _redirectWithoutCompanies(String location) {
-  if (location == RoutePaths.dashboard ||
-      location == RoutePaths.settingsCompany ||
+  if (AuthRedirectConfig.isTenantShellRoute(location) ||
       location == RoutePaths.selectCompany) {
     return RoutePaths.onboardingCompany;
   }
@@ -60,8 +59,7 @@ String? _redirectNeedsSelection(String location) {
     return null;
   }
 
-  if (location == RoutePaths.dashboard ||
-      location == RoutePaths.settingsCompany ||
+  if (AuthRedirectConfig.isTenantShellRoute(location) ||
       location == RoutePaths.onboardingCompany ||
       AuthRedirectConfig.isRestrictedAuthRoute(location) ||
       location == RoutePaths.checkEmail) {
@@ -93,8 +91,7 @@ String? _redirectWithActiveCompany(String location) {
 
 String? _redirectOnCompaniesError(String location) {
   if (location == RoutePaths.login ||
-      location == RoutePaths.dashboard ||
-      location == RoutePaths.settingsCompany ||
+      AuthRedirectConfig.isTenantShellRoute(location) ||
       location == RoutePaths.selectCompany ||
       AuthRedirectConfig.isRestrictedAuthRoute(location) ||
       location == RoutePaths.checkEmail) {

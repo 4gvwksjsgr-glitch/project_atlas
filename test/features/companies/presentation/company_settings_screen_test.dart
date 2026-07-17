@@ -10,6 +10,7 @@ import 'package:project_atlas/core/router/shell_scaffold.dart';
 import 'package:project_atlas/core/storage/app_shared_preferences.dart';
 import 'package:project_atlas/core/utils/result.dart';
 import 'package:project_atlas/features/auth/presentation/providers/auth_providers.dart';
+import 'package:project_atlas/features/clients/presentation/screens/customers_screen.dart';
 import 'package:project_atlas/features/companies/data/datasource/active_company_local_datasource.dart';
 import 'package:project_atlas/features/companies/domain/entities/company.dart';
 import 'package:project_atlas/features/companies/domain/entities/company_membership.dart';
@@ -29,6 +30,7 @@ import '../../../test_helpers/shared_preferences_test_helper.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _dashboardNavigatorKey = GlobalKey<NavigatorState>();
+final _clientsNavigatorKey = GlobalKey<NavigatorState>();
 final _settingsNavigatorKey = GlobalKey<NavigatorState>();
 
 CompanyMembership _membership({
@@ -193,6 +195,15 @@ Future<(ProviderContainer, GoRouter)> _pumpSettings({
                       GoRoute(
                         path: RoutePaths.dashboard,
                         builder: (context, state) => const DashboardScreen(),
+                      ),
+                    ],
+                  ),
+                  StatefulShellBranch(
+                    navigatorKey: _clientsNavigatorKey,
+                    routes: [
+                      GoRoute(
+                        path: RoutePaths.clients,
+                        builder: (context, state) => const CustomersScreen(),
                       ),
                     ],
                   ),

@@ -236,6 +236,54 @@ void main() {
       );
     });
 
+    test('route Movimenti protetta senza auth va al login', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.transactions,
+          isAuthenticated: false,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesEmpty(),
+        ),
+        RoutePaths.login,
+      );
+    });
+
+    test('route Movimenti senza azienda attiva va a onboarding', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.transactions,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesEmpty(),
+        ),
+        RoutePaths.onboardingCompany,
+      );
+    });
+
+    test('sottorotta nuovo movimento richiede selezione se manca active', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.transactionNew,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesNeedsSelection(),
+        ),
+        RoutePaths.selectCompany,
+      );
+    });
+
+    test('UserCompaniesReady lascia accessibile Movimenti', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.transactions,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesReady(),
+        ),
+        isNull,
+      );
+    });
+
     test(
       'utente autenticato con azienda attiva su onboarding va a dashboard',
       () {

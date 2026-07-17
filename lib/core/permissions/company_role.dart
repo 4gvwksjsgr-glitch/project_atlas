@@ -21,4 +21,10 @@ enum CompanyRole {
       this == CompanyRole.owner ||
       this == CompanyRole.admin ||
       this == CompanyRole.manager;
+
+  /// Owner, admin e manager gestiscono i movimenti di cassa (la RLS resta il gate reale).
+  bool get canManageTransactions =>
+      this == CompanyRole.owner ||
+      this == CompanyRole.admin ||
+      this == CompanyRole.manager;
 }

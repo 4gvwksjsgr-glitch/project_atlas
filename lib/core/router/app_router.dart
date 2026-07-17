@@ -15,6 +15,8 @@ import '../../features/companies/presentation/screens/company_onboarding_screen.
 import '../../features/companies/presentation/screens/company_selector_screen.dart';
 import '../../features/companies/presentation/screens/company_settings_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
+import '../../features/transactions/presentation/screens/transaction_form_screen.dart';
+import '../../features/transactions/presentation/screens/transactions_screen.dart';
 import 'route_guards.dart';
 import 'route_paths.dart';
 import 'shell_scaffold.dart';
@@ -24,6 +26,9 @@ final _dashboardNavigatorKey = GlobalKey<NavigatorState>(
   debugLabel: 'dashboard',
 );
 final _clientsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'clients');
+final _transactionsNavigatorKey = GlobalKey<NavigatorState>(
+  debugLabel: 'transactions',
+);
 final _settingsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'settings');
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -109,6 +114,31 @@ final routerProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) {
                       final customerId = state.pathParameters['customerId'];
                       return CustomerFormScreen(customerId: customerId);
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _transactionsNavigatorKey,
+            routes: [
+              GoRoute(
+                path: RoutePaths.transactions,
+                builder: (context, state) => const TransactionsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    builder: (context, state) => const TransactionFormScreen(),
+                  ),
+                  GoRoute(
+                    path: ':transactionId/edit',
+                    builder: (context, state) {
+                      final transactionId =
+                          state.pathParameters['transactionId'];
+                      return TransactionFormScreen(
+                        transactionId: transactionId,
+                      );
                     },
                   ),
                 ],

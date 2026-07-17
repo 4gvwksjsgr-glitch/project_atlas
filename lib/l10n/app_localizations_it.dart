@@ -99,6 +99,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get navClients => 'Clienti';
 
   @override
+  String get navTransactions => 'Movimenti';
+
+  @override
   String get navSettings => 'Impostazioni';
 
   @override
@@ -160,6 +163,96 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get customerUpdateSuccess => 'Cliente aggiornato correttamente.';
+
+  @override
+  String get transactionsTitle => 'Movimenti';
+
+  @override
+  String get transactionsSubtitle => 'Entrate e uscite dell\'azienda attiva';
+
+  @override
+  String get transactionsNoActiveCompany =>
+      'Nessuna azienda attiva. Seleziona un\'azienda per continuare.';
+
+  @override
+  String get transactionsEmpty =>
+      'Nessun movimento ancora. Aggiungi il primo movimento per iniziare.';
+
+  @override
+  String get transactionsLoadError =>
+      'Caricamento movimenti non riuscito. Riprova.';
+
+  @override
+  String get transactionsRetry => 'Riprova';
+
+  @override
+  String get transactionsNewButton => 'Nuovo movimento';
+
+  @override
+  String get transactionNewTitle => 'Nuovo movimento';
+
+  @override
+  String get transactionEditTitle => 'Modifica movimento';
+
+  @override
+  String get transactionNotFound => 'Movimento non trovato.';
+
+  @override
+  String get transactionReadOnlyMessage =>
+      'Non hai i permessi per modificare i movimenti. Contatta un proprietario, un amministratore o un manager.';
+
+  @override
+  String get transactionKindLabel => 'Tipo';
+
+  @override
+  String get transactionKindIncome => 'Entrata';
+
+  @override
+  String get transactionKindExpense => 'Uscita';
+
+  @override
+  String get transactionAmountLabel => 'Importo (€)';
+
+  @override
+  String get transactionAmountRequired => 'Inserisci l\'importo';
+
+  @override
+  String get transactionAmountInvalid =>
+      'Inserisci un importo valido maggiore di zero';
+
+  @override
+  String get transactionDateLabel => 'Data movimento';
+
+  @override
+  String get transactionDescriptionLabel => 'Descrizione';
+
+  @override
+  String get transactionDescriptionRequired => 'Inserisci la descrizione';
+
+  @override
+  String get transactionNotesLabel => 'Note';
+
+  @override
+  String get transactionClientLabel => 'Cliente';
+
+  @override
+  String get transactionClientNone => 'Nessun cliente';
+
+  @override
+  String get transactionClientsLoading => 'Caricamento clienti...';
+
+  @override
+  String get transactionClientsLoadError =>
+      'Clienti non disponibili. Puoi comunque salvare senza cliente.';
+
+  @override
+  String get transactionSaveButton => 'Salva';
+
+  @override
+  String get transactionCreateSuccess => 'Movimento creato correttamente.';
+
+  @override
+  String get transactionUpdateSuccess => 'Movimento aggiornato correttamente.';
 
   @override
   String get companySettingsTitle => 'Impostazioni azienda';

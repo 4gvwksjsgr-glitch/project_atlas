@@ -5,6 +5,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/constants/app_ui_constants.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../companies/presentation/controllers/active_company_controller.dart';
+import '../widgets/dashboard_cash_card.dart';
 import '../widgets/dashboard_members_card.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -17,7 +18,7 @@ class DashboardScreen extends ConsumerWidget {
     final authState = ref.watch(authControllerProvider);
     final activeCompany = ref.watch(activeCompanyProvider);
 
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(AppUiConstants.spacingLarge),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,6 +79,8 @@ class DashboardScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppUiConstants.spacingLarge),
+            DashboardCashCard(companyId: activeCompany.companyId),
+            const SizedBox(height: AppUiConstants.spacingMedium),
             DashboardMembersCard(companyId: activeCompany.companyId),
           ],
         ],

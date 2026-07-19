@@ -4,6 +4,11 @@ import 'package:project_atlas/core/errors/failures.dart';
 import 'package:project_atlas/core/permissions/company_role.dart';
 import 'package:project_atlas/core/utils/result.dart';
 import 'package:project_atlas/features/companies/presentation/controllers/company_onboarding_controller.dart';
+import 'package:project_atlas/features/dashboard/domain/entities/dashboard_cash_summary.dart';
+import 'package:project_atlas/features/dashboard/domain/repositories/dashboard_cash_repository.dart';
+import 'package:project_atlas/features/dashboard/domain/usecases/get_dashboard_cash_summary.dart';
+import 'package:project_atlas/features/dashboard/domain/value_objects/money_total.dart';
+import 'package:project_atlas/features/dashboard/presentation/providers/dashboard_cash_providers.dart';
 import 'package:project_atlas/features/transactions/domain/entities/cash_transaction.dart';
 import 'package:project_atlas/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:project_atlas/features/transactions/domain/usecases/create_transaction.dart';
@@ -85,6 +90,29 @@ class _Repo implements TransactionRepository {
   }
 }
 
+class _CashRepo implements DashboardCashRepository {
+  final List<String> requestedCompanyIds = [];
+
+  @override
+  Future<Result<DashboardCashSummary>> getCashSummary({
+    required String companyId,
+    required DateTime monthStart,
+    required DateTime nextMonthStart,
+  }) async {
+    requestedCompanyIds.add(companyId);
+    return Success(
+      DashboardCashSummary(
+        totalIncome: MoneyTotal.fromCents(1000),
+        totalExpense: MoneyTotal.zero,
+        movementCount: 1,
+        monthIncome: MoneyTotal.fromCents(1000),
+        monthExpense: MoneyTotal.zero,
+        monthMovementCount: 1,
+      ),
+    );
+  }
+}
+
 void main() {
   group('TransactionFormController', () {
     test('create invalida solo la lista del companyId usato', () async {
@@ -135,6 +163,94 @@ void main() {
       expect(repository.listCompanyIds, contains('company-a'));
       expect(repository.listCompanyIds, isNot(contains('company-b')));
     });
+
+    test(
+      'create/update invalida soltanto il riepilogo economico di quell\'azienda',
+      () async {
+        final repository = _Repo();
+        final cashRepo = _CashRepo();
+        final container = ProviderContainer(
+          overrides: [
+            transactionRepositoryProvider.overrideWithValue(repository),
+            createTransactionUseCaseProvider.overrideWithValue(
+              CreateTransaction(repository),
+            ),
+            updateTransactionUseCaseProvider.overrideWithValue(
+              UpdateTransaction(repository),
+            ),
+            getDashboardCashSummaryUseCaseProvider.overrideWithValue(
+              GetDashboardCashSummary(cashRepo),
+            ),
+            transactionsProvider.overrideWith((ref, companyId) async {
+              final result = await repository.getTransactions(
+                companyId: companyId,
+              );
+              return result.when(
+                success: (value) => value,
+                error: (failure) => throw StateError(failure.message),
+              );
+            }),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final cashSubA = container.listen(
+          dashboardCashSummaryProvider('company-a'),
+          (_, _) {},
+        );
+        final cashSubB = container.listen(
+          dashboardCashSummaryProvider('company-b'),
+          (_, _) {},
+        );
+        addTearDown(cashSubA.close);
+        addTearDown(cashSubB.close);
+
+        await container.read(dashboardCashSummaryProvider('company-a').future);
+        await container.read(dashboardCashSummaryProvider('company-b').future);
+        expect(cashRepo.requestedCompanyIds, ['company-a', 'company-b']);
+
+        const createKey = (companyId: 'company-a', transactionId: 'new');
+        await container
+            .read(transactionFormControllerProvider(createKey).notifier)
+            .save(
+              kind: TransactionKind.income,
+              amount: MoneyAmount.parse('10,00'),
+              occurredOn: DateTime(2026, 7, 17),
+              description: 'Vendita',
+            );
+
+        await container.read(dashboardCashSummaryProvider('company-a').future);
+        expect(
+          cashRepo.requestedCompanyIds.where((id) => id == 'company-a').length,
+          2,
+        );
+        expect(
+          cashRepo.requestedCompanyIds.where((id) => id == 'company-b').length,
+          1,
+        );
+
+        const updateKey = (companyId: 'company-a', transactionId: 'tx-1');
+        await container
+            .read(transactionFormControllerProvider(updateKey).notifier)
+            .save(
+              kind: TransactionKind.expense,
+              amount: MoneyAmount.parse('5,00'),
+              occurredOn: DateTime(2026, 7, 18),
+              description: 'Spesa',
+            );
+
+        await container.read(dashboardCashSummaryProvider('company-a').future);
+        expect(
+          cashRepo.requestedCompanyIds.where((id) => id == 'company-a').length,
+          3,
+        );
+        expect(
+          cashRepo.requestedCompanyIds.where((id) => id == 'company-b').length,
+          1,
+        );
+        expect(repository.updateCount, 1);
+      },
+    );
 
     test('errore conserva stato error senza successo', () async {
       final repository = _Repo(createResult: const Error(NetworkFailure()));

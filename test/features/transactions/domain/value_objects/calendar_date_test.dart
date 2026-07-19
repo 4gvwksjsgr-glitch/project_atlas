@@ -76,4 +76,34 @@ void main() {
       expect(today, CalendarDate.dateOnly(today));
     });
   });
+
+  group('CalendarDate.currentMonthBounds', () {
+    test('dicembre → gennaio dell\'anno successivo', () {
+      final bounds = CalendarDate.currentMonthBounds(DateTime(2026, 12, 15));
+      expect(bounds.monthStart, DateTime(2026, 12, 1));
+      expect(bounds.nextMonthStart, DateTime(2027, 1, 1));
+      expect(CalendarDate.toIsoDate(bounds.monthStart), '2026-12-01');
+      expect(CalendarDate.toIsoDate(bounds.nextMonthStart), '2027-01-01');
+    });
+
+    test('febbraio in anno bisestile', () {
+      final bounds = CalendarDate.currentMonthBounds(DateTime(2024, 2, 29));
+      expect(bounds.monthStart, DateTime(2024, 2, 1));
+      expect(bounds.nextMonthStart, DateTime(2024, 3, 1));
+      expect(CalendarDate.toIsoDate(bounds.monthStart), '2024-02-01');
+      expect(CalendarDate.toIsoDate(bounds.nextMonthStart), '2024-03-01');
+    });
+
+    test('nessuno spostamento di giorno sul primo del mese', () {
+      final bounds = CalendarDate.currentMonthBounds(
+        DateTime(2026, 7, 1, 23, 59),
+      );
+      expect(bounds.monthStart.day, 1);
+      expect(bounds.nextMonthStart.day, 1);
+      expect(bounds.monthStart.isUtc, isFalse);
+      expect(bounds.nextMonthStart.isUtc, isFalse);
+      expect(CalendarDate.toIsoDate(bounds.monthStart), '2026-07-01');
+      expect(CalendarDate.toIsoDate(bounds.nextMonthStart), '2026-08-01');
+    });
+  });
 }

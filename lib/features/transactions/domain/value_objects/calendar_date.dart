@@ -31,4 +31,16 @@ abstract final class CalendarDate {
     }
     return parsed;
   }
+
+  /// Limiti del mese corrente in data locale (senza UTC).
+  ///
+  /// [nextMonthStart] è esclusivo: gestisce dicembre→gennaio e febbraio bisestile.
+  static ({DateTime monthStart, DateTime nextMonthStart}) currentMonthBounds([
+    DateTime? now,
+  ]) {
+    final today = dateOnly(now ?? DateTime.now());
+    final monthStart = DateTime(today.year, today.month, 1);
+    final nextMonthStart = DateTime(today.year, today.month + 1, 1);
+    return (monthStart: monthStart, nextMonthStart: nextMonthStart);
+  }
 }

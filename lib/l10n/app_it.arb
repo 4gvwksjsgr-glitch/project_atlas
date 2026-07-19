@@ -30,6 +30,18 @@
       }
     }
   },
+  "dashboardCashTitle": "Riepilogo economico",
+  "dashboardCashLoading": "Caricamento riepilogo economico...",
+  "dashboardCashError": "Caricamento riepilogo economico non riuscito. Riprova.",
+  "dashboardCashRetry": "Riprova",
+  "dashboardCashEmpty": "Nessun movimento ancora",
+  "dashboardCashTotalSection": "Totale",
+  "dashboardCashMonthSection": "Mese corrente",
+  "dashboardCashIncome": "Entrate",
+  "dashboardCashExpense": "Uscite",
+  "dashboardCashBalance": "Saldo",
+  "dashboardCashMovements": "Movimenti",
+  "dashboardCashSeeTransactions": "Vedi movimenti",
   "logoutButton": "Esci",
   "navDashboard": "Dashboard",
   "navClients": "Clienti",

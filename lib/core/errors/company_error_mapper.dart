@@ -7,6 +7,7 @@ enum CompanyOperation {
   createCompany,
   getUserCompanies,
   countCompanyMembers,
+  getCompanyCashSummary,
   updateCompany,
 }
 
@@ -71,14 +72,25 @@ abstract final class CompanyErrorMapper {
         combined.contains('0 rows') ||
         combined.contains('cannot coerce') ||
         combined.contains('json object requested')) {
+      if (operation == CompanyOperation.getCompanyCashSummary) {
+        return const AuthFailure(
+          'Non hai i permessi per visualizzare il riepilogo economico.',
+        );
+      }
       return const AuthFailure(
         'Non hai i permessi per modificare questa azienda.',
       );
     }
 
-    if (combined.contains('permission denied') ||
+    if (error.code == '42501' ||
+        combined.contains('permission denied') ||
         combined.contains('row-level security') ||
         combined.contains('violates row-level security')) {
+      if (operation == CompanyOperation.getCompanyCashSummary) {
+        return const AuthFailure(
+          'Non hai i permessi per visualizzare il riepilogo economico.',
+        );
+      }
       return const AuthFailure(
         'Non hai i permessi per modificare questa azienda.',
       );
@@ -109,6 +121,8 @@ abstract final class CompanyErrorMapper {
         'Caricamento aziende non riuscito. Riprova.',
       CompanyOperation.countCompanyMembers =>
         'Caricamento membri non riuscito. Riprova.',
+      CompanyOperation.getCompanyCashSummary =>
+        'Caricamento riepilogo economico non riuscito. Riprova.',
       CompanyOperation.updateCompany =>
         'Aggiornamento azienda non riuscito. Riprova.',
     };

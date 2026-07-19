@@ -90,6 +90,43 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get dashboardCashTitle => 'Riepilogo economico';
+
+  @override
+  String get dashboardCashLoading => 'Caricamento riepilogo economico...';
+
+  @override
+  String get dashboardCashError =>
+      'Caricamento riepilogo economico non riuscito. Riprova.';
+
+  @override
+  String get dashboardCashRetry => 'Riprova';
+
+  @override
+  String get dashboardCashEmpty => 'Nessun movimento ancora';
+
+  @override
+  String get dashboardCashTotalSection => 'Totale';
+
+  @override
+  String get dashboardCashMonthSection => 'Mese corrente';
+
+  @override
+  String get dashboardCashIncome => 'Entrate';
+
+  @override
+  String get dashboardCashExpense => 'Uscite';
+
+  @override
+  String get dashboardCashBalance => 'Saldo';
+
+  @override
+  String get dashboardCashMovements => 'Movimenti';
+
+  @override
+  String get dashboardCashSeeTransactions => 'Vedi movimenti';
+
+  @override
   String get logoutButton => 'Esci';
 
   @override

@@ -232,6 +232,78 @@ abstract class AppLocalizations {
   /// **'{count, plural, =0{Nessun membro} =1{1 membro} other{{count} membri}}'**
   String dashboardMemberCount(int count);
 
+  /// No description provided for @dashboardCashTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Riepilogo economico'**
+  String get dashboardCashTitle;
+
+  /// No description provided for @dashboardCashLoading.
+  ///
+  /// In it, this message translates to:
+  /// **'Caricamento riepilogo economico...'**
+  String get dashboardCashLoading;
+
+  /// No description provided for @dashboardCashError.
+  ///
+  /// In it, this message translates to:
+  /// **'Caricamento riepilogo economico non riuscito. Riprova.'**
+  String get dashboardCashError;
+
+  /// No description provided for @dashboardCashRetry.
+  ///
+  /// In it, this message translates to:
+  /// **'Riprova'**
+  String get dashboardCashRetry;
+
+  /// No description provided for @dashboardCashEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun movimento ancora'**
+  String get dashboardCashEmpty;
+
+  /// No description provided for @dashboardCashTotalSection.
+  ///
+  /// In it, this message translates to:
+  /// **'Totale'**
+  String get dashboardCashTotalSection;
+
+  /// No description provided for @dashboardCashMonthSection.
+  ///
+  /// In it, this message translates to:
+  /// **'Mese corrente'**
+  String get dashboardCashMonthSection;
+
+  /// No description provided for @dashboardCashIncome.
+  ///
+  /// In it, this message translates to:
+  /// **'Entrate'**
+  String get dashboardCashIncome;
+
+  /// No description provided for @dashboardCashExpense.
+  ///
+  /// In it, this message translates to:
+  /// **'Uscite'**
+  String get dashboardCashExpense;
+
+  /// No description provided for @dashboardCashBalance.
+  ///
+  /// In it, this message translates to:
+  /// **'Saldo'**
+  String get dashboardCashBalance;
+
+  /// No description provided for @dashboardCashMovements.
+  ///
+  /// In it, this message translates to:
+  /// **'Movimenti'**
+  String get dashboardCashMovements;
+
+  /// No description provided for @dashboardCashSeeTransactions.
+  ///
+  /// In it, this message translates to:
+  /// **'Vedi movimenti'**
+  String get dashboardCashSeeTransactions;
+
   /// No description provided for @logoutButton.
   ///
   /// In it, this message translates to:

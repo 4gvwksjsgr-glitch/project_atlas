@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/result.dart';
 import '../../../companies/presentation/controllers/company_onboarding_controller.dart';
+import '../../../dashboard/presentation/providers/dashboard_cash_providers.dart';
 import '../../domain/entities/cash_transaction.dart';
 import '../../domain/value_objects/money_amount.dart';
 import '../providers/transaction_providers.dart';
@@ -102,6 +103,7 @@ class TransactionFormController
       switch (result) {
         case Success(:final value):
           ref.invalidate(transactionsProvider(arg.companyId));
+          ref.invalidate(dashboardCashSummaryProvider(arg.companyId));
           try {
             await ref.read(transactionsProvider(arg.companyId).future);
           } catch (_) {

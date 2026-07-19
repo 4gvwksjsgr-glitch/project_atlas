@@ -8,9 +8,14 @@ import 'package:project_atlas/features/auth/presentation/controllers/auth_contro
 import 'package:project_atlas/features/companies/domain/entities/active_company_context.dart';
 import 'package:project_atlas/features/companies/presentation/controllers/active_company_controller.dart';
 import 'package:project_atlas/features/companies/presentation/controllers/active_company_state.dart';
+import 'package:project_atlas/features/dashboard/domain/entities/dashboard_cash_summary.dart';
 import 'package:project_atlas/features/dashboard/domain/entities/dashboard_summary.dart';
+import 'package:project_atlas/features/dashboard/domain/repositories/dashboard_cash_repository.dart';
 import 'package:project_atlas/features/dashboard/domain/repositories/dashboard_repository.dart';
+import 'package:project_atlas/features/dashboard/domain/usecases/get_dashboard_cash_summary.dart';
 import 'package:project_atlas/features/dashboard/domain/usecases/get_dashboard_summary.dart';
+import 'package:project_atlas/features/dashboard/domain/value_objects/money_total.dart';
+import 'package:project_atlas/features/dashboard/presentation/providers/dashboard_cash_providers.dart';
 import 'package:project_atlas/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:project_atlas/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:project_atlas/l10n/app_localizations.dart';
@@ -26,6 +31,24 @@ ActiveCompanyContext _context({
     companySlug: slug,
     role: CompanyRole.owner,
     membershipId: 'membership-$companyId',
+  );
+}
+
+DashboardCashSummary _cashSummary({
+  MoneyTotal? totalIncome,
+  MoneyTotal? totalExpense,
+  int movementCount = 2,
+  MoneyTotal? monthIncome,
+  MoneyTotal? monthExpense,
+  int monthMovementCount = 1,
+}) {
+  return DashboardCashSummary(
+    totalIncome: totalIncome ?? MoneyTotal.fromCents(10000),
+    totalExpense: totalExpense ?? MoneyTotal.fromCents(2500),
+    movementCount: movementCount,
+    monthIncome: monthIncome ?? MoneyTotal.fromCents(5000),
+    monthExpense: monthExpense ?? MoneyTotal.fromCents(1000),
+    monthMovementCount: monthMovementCount,
   );
 }
 
@@ -55,7 +78,47 @@ class _FakeDashboardRepository implements DashboardRepository {
   }
 }
 
-class _ToggleFailRepository implements DashboardRepository {
+class _FakeCashRepository implements DashboardCashRepository {
+  _FakeCashRepository({
+    required this.summariesByCompanyId,
+    this.delay = Duration.zero,
+    this.failCompanyIds = const {},
+  });
+
+  final Map<String, DashboardCashSummary> summariesByCompanyId;
+  final Duration delay;
+  final Set<String> failCompanyIds;
+  final List<String> requestedCompanyIds = [];
+  int callCount = 0;
+  bool shouldFail = false;
+
+  @override
+  Future<Result<DashboardCashSummary>> getCashSummary({
+    required String companyId,
+    required DateTime monthStart,
+    required DateTime nextMonthStart,
+  }) async {
+    callCount += 1;
+    requestedCompanyIds.add(companyId);
+    if (delay > Duration.zero) {
+      await Future<void>.delayed(delay);
+    }
+    if (shouldFail || failCompanyIds.contains(companyId)) {
+      return const Error(
+        UnknownFailure(
+          'Caricamento riepilogo economico non riuscito. Riprova.',
+        ),
+      );
+    }
+    final summary = summariesByCompanyId[companyId];
+    if (summary == null) {
+      return const Error(UnknownFailure('Azienda sconosciuta'));
+    }
+    return Success(summary);
+  }
+}
+
+class _ToggleFailMembersRepository implements DashboardRepository {
   bool shouldFail = true;
   int callCount = 0;
 
@@ -88,7 +151,7 @@ class _SwitchableActiveCompany extends ActiveCompanyController {
     return ActiveCompanyState(context: _initial, resolved: true);
   }
 
-  void switchTo(ActiveCompanyContext context) {
+  void switchTo(ActiveCompanyContext? context) {
     state = ActiveCompanyState(context: context, resolved: true);
   }
 }
@@ -111,34 +174,48 @@ void main() {
     );
   }
 
+  List<Override> baseOverrides({
+    required DashboardRepository membersRepo,
+    required DashboardCashRepository cashRepo,
+    required ActiveCompanyContext? company,
+    _SwitchableActiveCompany Function()? companyFactory,
+  }) {
+    return [
+      authControllerProvider.overrideWith(_IdleAuthController.new),
+      activeCompanyControllerProvider.overrideWith(
+        companyFactory ?? () => _SwitchableActiveCompany(company),
+      ),
+      getDashboardSummaryUseCaseProvider.overrideWithValue(
+        GetDashboardSummary(membersRepo),
+      ),
+      getDashboardCashSummaryUseCaseProvider.overrideWithValue(
+        GetDashboardCashSummary(cashRepo),
+      ),
+    ];
+  }
+
   group('DashboardScreen', () {
     testWidgets('mostra loading nella card membri', (tester) async {
-      final repository = _FakeDashboardRepository(
+      final membersRepo = _FakeDashboardRepository(
         countsByCompanyId: {'c1': 2},
         delay: const Duration(milliseconds: 100),
+      );
+      final cashRepo = _FakeCashRepository(
+        summariesByCompanyId: {'c1': _cashSummary()},
       );
 
       await pumpDashboard(
         tester,
-        overrides: [
-          authControllerProvider.overrideWith(_IdleAuthController.new),
-          activeCompanyControllerProvider.overrideWith(
-            () => _SwitchableActiveCompany(
-              _context(companyId: 'c1', name: 'Acme', slug: 'acme'),
-            ),
-          ),
-          getDashboardSummaryUseCaseProvider.overrideWithValue(
-            GetDashboardSummary(repository),
-          ),
-        ],
+        overrides: baseOverrides(
+          membersRepo: membersRepo,
+          cashRepo: cashRepo,
+          company: _context(companyId: 'c1', name: 'Acme', slug: 'acme'),
+        ),
       );
       await tester.pump();
 
       expect(find.textContaining('Azienda: Acme'), findsOneWidget);
-      expect(find.textContaining('Slug: acme'), findsOneWidget);
-      expect(find.textContaining('Ruolo:'), findsOneWidget);
       expect(find.text('Caricamento membri...'), findsOneWidget);
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
       await tester.pump(const Duration(milliseconds: 120));
       expect(find.text('2 membri'), findsOneWidget);
@@ -147,19 +224,13 @@ void main() {
     testWidgets('mostra conteggio membri in data', (tester) async {
       await pumpDashboard(
         tester,
-        overrides: [
-          authControllerProvider.overrideWith(_IdleAuthController.new),
-          activeCompanyControllerProvider.overrideWith(
-            () => _SwitchableActiveCompany(
-              _context(companyId: 'c1', name: 'Acme', slug: 'acme'),
-            ),
+        overrides: baseOverrides(
+          membersRepo: _FakeDashboardRepository(countsByCompanyId: {'c1': 5}),
+          cashRepo: _FakeCashRepository(
+            summariesByCompanyId: {'c1': _cashSummary()},
           ),
-          getDashboardSummaryUseCaseProvider.overrideWithValue(
-            GetDashboardSummary(
-              _FakeDashboardRepository(countsByCompanyId: {'c1': 5}),
-            ),
-          ),
-        ],
+          company: _context(companyId: 'c1', name: 'Acme', slug: 'acme'),
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -167,22 +238,18 @@ void main() {
       expect(find.byIcon(Icons.insights_outlined), findsNothing);
     });
 
-    testWidgets('mostra errore e Riprova', (tester) async {
-      final repository = _ToggleFailRepository();
+    testWidgets('mostra errore e Riprova membri', (tester) async {
+      final repository = _ToggleFailMembersRepository();
 
       await pumpDashboard(
         tester,
-        overrides: [
-          authControllerProvider.overrideWith(_IdleAuthController.new),
-          activeCompanyControllerProvider.overrideWith(
-            () => _SwitchableActiveCompany(
-              _context(companyId: 'c1', name: 'Acme', slug: 'acme'),
-            ),
+        overrides: baseOverrides(
+          membersRepo: repository,
+          cashRepo: _FakeCashRepository(
+            summariesByCompanyId: {'c1': _cashSummary()},
           ),
-          getDashboardSummaryUseCaseProvider.overrideWithValue(
-            GetDashboardSummary(repository),
-          ),
-        ],
+          company: _context(companyId: 'c1', name: 'Acme', slug: 'acme'),
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -190,10 +257,14 @@ void main() {
         find.text('Caricamento membri non riuscito. Riprova.'),
         findsOneWidget,
       );
-      expect(find.text('Riprova'), findsOneWidget);
 
       repository.shouldFail = false;
-      await tester.tap(find.text('Riprova'));
+      final retry = find.descendant(
+        of: find.widgetWithText(Card, 'Membri'),
+        matching: find.widgetWithText(OutlinedButton, 'Riprova'),
+      );
+      await tester.ensureVisible(retry);
+      await tester.tap(retry);
       await tester.pumpAndSettle();
 
       expect(find.text('1 membro'), findsOneWidget);
@@ -203,17 +274,17 @@ void main() {
     testWidgets('stato difensivo senza azienda attiva', (tester) async {
       await pumpDashboard(
         tester,
-        overrides: [
-          authControllerProvider.overrideWith(_IdleAuthController.new),
-          activeCompanyControllerProvider.overrideWith(
-            () => _SwitchableActiveCompany(null),
-          ),
-        ],
+        overrides: baseOverrides(
+          membersRepo: _FakeDashboardRepository(countsByCompanyId: {}),
+          cashRepo: _FakeCashRepository(summariesByCompanyId: {}),
+          company: null,
+        ),
       );
       await tester.pumpAndSettle();
 
       expect(find.textContaining('Nessuna azienda attiva'), findsOneWidget);
       expect(find.text('Membri'), findsNothing);
+      expect(find.text('Riepilogo economico'), findsNothing);
     });
 
     testWidgets(
@@ -223,46 +294,202 @@ void main() {
           countsByCompanyId: {'company-a': 10, 'company-b': 2},
           delay: const Duration(milliseconds: 50),
         );
+        final cashRepo = _FakeCashRepository(
+          summariesByCompanyId: {
+            'company-a': _cashSummary(movementCount: 99),
+            'company-b': _cashSummary(movementCount: 3),
+          },
+          delay: const Duration(milliseconds: 50),
+        );
         late _SwitchableActiveCompany controller;
 
         await pumpDashboard(
           tester,
-          overrides: [
-            authControllerProvider.overrideWith(_IdleAuthController.new),
-            activeCompanyControllerProvider.overrideWith(() {
+          overrides: baseOverrides(
+            membersRepo: repository,
+            cashRepo: cashRepo,
+            company: null,
+            companyFactory: () {
               controller = _SwitchableActiveCompany(
                 _context(companyId: 'company-a', name: 'Alpha', slug: 'alpha'),
               );
               return controller;
-            }),
-            getDashboardSummaryUseCaseProvider.overrideWithValue(
-              GetDashboardSummary(repository),
-            ),
-          ],
+            },
+          ),
         );
         await tester.pumpAndSettle();
 
-        expect(find.textContaining('Azienda: Alpha'), findsOneWidget);
         expect(find.text('10 membri'), findsOneWidget);
-        expect(repository.requestedCompanyIds, ['company-a']);
+        expect(find.text('99'), findsWidgets);
 
         controller.switchTo(
           _context(companyId: 'company-b', name: 'Beta', slug: 'beta'),
         );
         await tester.pump();
 
-        expect(find.textContaining('Azienda: Beta'), findsOneWidget);
-        expect(find.textContaining('Slug: beta'), findsOneWidget);
         expect(find.text('10 membri'), findsNothing);
+        expect(find.text('99'), findsNothing);
         expect(find.text('Caricamento membri...'), findsOneWidget);
+        expect(find.text('Caricamento riepilogo economico...'), findsOneWidget);
 
         await tester.pump(const Duration(milliseconds: 60));
         await tester.pumpAndSettle();
 
         expect(find.text('2 membri'), findsOneWidget);
+        expect(find.text('3'), findsWidgets);
         expect(find.text('10 membri'), findsNothing);
         expect(repository.requestedCompanyIds, ['company-a', 'company-b']);
+        expect(cashRepo.requestedCompanyIds, ['company-a', 'company-b']);
       },
     );
+  });
+
+  group('DashboardCashCard', () {
+    testWidgets('loading, data e empty della sola card economica', (
+      tester,
+    ) async {
+      final cashRepo = _FakeCashRepository(
+        summariesByCompanyId: {
+          'c1': _cashSummary(
+            totalIncome: MoneyTotal.zero,
+            totalExpense: MoneyTotal.zero,
+            movementCount: 0,
+            monthIncome: MoneyTotal.zero,
+            monthExpense: MoneyTotal.zero,
+            monthMovementCount: 0,
+          ),
+        },
+        delay: const Duration(milliseconds: 80),
+      );
+
+      await pumpDashboard(
+        tester,
+        overrides: baseOverrides(
+          membersRepo: _FakeDashboardRepository(
+            countsByCompanyId: {'c1': 1},
+            delay: const Duration(milliseconds: 80),
+          ),
+          cashRepo: cashRepo,
+          company: _context(companyId: 'c1', name: 'Acme', slug: 'acme'),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('Caricamento riepilogo economico...'), findsOneWidget);
+      expect(find.text('Caricamento membri...'), findsOneWidget);
+      expect(find.text('Nessun movimento ancora'), findsNothing);
+
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Riepilogo economico'), findsOneWidget);
+      expect(find.text('Nessun movimento ancora'), findsOneWidget);
+      expect(find.text('0,00 €'), findsWidgets);
+      expect(find.text('Totale'), findsOneWidget);
+      expect(find.text('Mese corrente'), findsOneWidget);
+      expect(find.text('1 membro'), findsOneWidget);
+    });
+
+    testWidgets('errore e retry solo della card economica', (tester) async {
+      final cashRepo = _FakeCashRepository(
+        summariesByCompanyId: {'c1': _cashSummary()},
+      )..shouldFail = true;
+      final membersRepo = _FakeDashboardRepository(
+        countsByCompanyId: {'c1': 4},
+      );
+
+      await pumpDashboard(
+        tester,
+        overrides: baseOverrides(
+          membersRepo: membersRepo,
+          cashRepo: cashRepo,
+          company: _context(companyId: 'c1', name: 'Acme', slug: 'acme'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Caricamento riepilogo economico non riuscito. Riprova.'),
+        findsOneWidget,
+      );
+      expect(find.text('4 membri'), findsOneWidget);
+
+      cashRepo.shouldFail = false;
+      final retry = find.descendant(
+        of: find.widgetWithText(Card, 'Riepilogo economico'),
+        matching: find.widgetWithText(OutlinedButton, 'Riprova'),
+      );
+      await tester.ensureVisible(retry);
+      await tester.tap(retry);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Riepilogo economico'), findsOneWidget);
+      expect(find.text('100,00 €'), findsOneWidget);
+      expect(find.text('4 membri'), findsOneWidget);
+      expect(cashRepo.callCount, 2);
+      expect(membersRepo.requestedCompanyIds, ['c1']);
+    });
+
+    testWidgets('errore economico non rompe la card Membri', (tester) async {
+      await pumpDashboard(
+        tester,
+        overrides: baseOverrides(
+          membersRepo: _FakeDashboardRepository(countsByCompanyId: {'c1': 7}),
+          cashRepo: _FakeCashRepository(
+            summariesByCompanyId: {},
+            failCompanyIds: {'c1'},
+          ),
+          company: _context(companyId: 'c1', name: 'Acme', slug: 'acme'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('7 membri'), findsOneWidget);
+      expect(
+        find.text('Caricamento riepilogo economico non riuscito. Riprova.'),
+        findsOneWidget,
+      );
+      expect(find.text('Membri'), findsOneWidget);
+    });
+
+    testWidgets('logout nasconde card economiche e membri', (tester) async {
+      late _SwitchableActiveCompany controller;
+
+      await pumpDashboard(
+        tester,
+        overrides: baseOverrides(
+          membersRepo: _FakeDashboardRepository(countsByCompanyId: {'c1': 2}),
+          cashRepo: _FakeCashRepository(
+            summariesByCompanyId: {'c1': _cashSummary()},
+          ),
+          company: null,
+          companyFactory: () {
+            controller = _SwitchableActiveCompany(
+              _context(companyId: 'c1', name: 'Acme', slug: 'acme'),
+            );
+            return controller;
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Riepilogo economico'), findsOneWidget);
+      expect(find.text('2 membri'), findsOneWidget);
+
+      controller.switchTo(null);
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Nessuna azienda attiva'), findsOneWidget);
+      expect(find.text('Riepilogo economico'), findsNothing);
+      expect(find.text('Membri'), findsNothing);
+
+      controller.switchTo(
+        _context(companyId: 'c1', name: 'Acme', slug: 'acme'),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Riepilogo economico'), findsOneWidget);
+      expect(find.text('2 membri'), findsOneWidget);
+    });
   });
 }

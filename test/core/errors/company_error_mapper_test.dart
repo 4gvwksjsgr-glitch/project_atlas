@@ -39,7 +39,59 @@ void main() {
       );
 
       expect(failure, isA<AuthFailure>());
-      expect(failure.message, contains('permessi'));
+      expect(
+        failure.message,
+        'Non hai i permessi per modificare questa azienda.',
+      );
     });
+
+    test(
+      'permission denied su getCompanyCashSummary usa messaggio di visualizzazione',
+      () {
+        final byText = CompanyErrorMapper.mapException(
+          const supabase.PostgrestException(
+            message: 'permission denied for schema private',
+            code: '42501',
+          ),
+          CompanyOperation.getCompanyCashSummary,
+        );
+        expect(byText, isA<AuthFailure>());
+        expect(
+          byText.message,
+          'Non hai i permessi per visualizzare il riepilogo economico.',
+        );
+
+        final byCode = CompanyErrorMapper.mapException(
+          const supabase.PostgrestException(
+            message: 'Insufficient privilege',
+            code: '42501',
+          ),
+          CompanyOperation.getCompanyCashSummary,
+        );
+        expect(
+          byCode.message,
+          'Non hai i permessi per visualizzare il riepilogo economico.',
+        );
+      },
+    );
+
+    test(
+      'permission denied su updateCompany mantiene messaggio di modifica',
+      () {
+        final failure = CompanyErrorMapper.mapException(
+          const supabase.PostgrestException(
+            message: 'permission denied for table companies',
+            code: '42501',
+          ),
+          CompanyOperation.updateCompany,
+        );
+
+        expect(failure, isA<AuthFailure>());
+        expect(
+          failure.message,
+          'Non hai i permessi per modificare questa azienda.',
+        );
+      },
+    );
   });
 }

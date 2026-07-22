@@ -9,6 +9,7 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/signup_screen.dart';
 import '../../features/auth/presentation/screens/update_password_screen.dart';
 import '../../features/clients/presentation/screens/customer_form_screen.dart';
+import '../../features/clients/presentation/screens/customer_import_screen.dart';
 import '../../features/clients/presentation/screens/customers_screen.dart';
 import '../../features/companies/presentation/providers/company_providers.dart';
 import '../../features/companies/presentation/screens/company_onboarding_screen.dart';
@@ -108,6 +109,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'new',
                     builder: (context, state) => const CustomerFormScreen(),
+                  ),
+                  GoRoute(
+                    path: 'import',
+                    builder: (context, state) => const CustomerImportScreen(),
                   ),
                   GoRoute(
                     path: ':customerId/edit',

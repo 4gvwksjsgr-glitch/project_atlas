@@ -54,6 +54,89 @@
   "customersLoadError": "Caricamento clienti non riuscito. Riprova.",
   "customersRetry": "Riprova",
   "customersNewButton": "Nuovo cliente",
+  "customersImportButton": "Importa clienti",
+  "customersImportTitle": "Importa clienti",
+  "customersImportForbidden": "Non hai i permessi per importare clienti.",
+  "customersImportIntro": "Importa un elenco clienti da file CSV o Excel nell'azienda attiva.",
+  "customersImportFieldsNotice": "Questa versione importa soltanto: Nome o ragione sociale, Email, Telefono, Note.",
+  "customersImportLimits": "Limiti: file fino a 2 MB, massimo 500 righe dati, massimo 20 fogli Excel, un foglio alla volta.",
+  "customersImportPickFile": "Seleziona file CSV o XLSX",
+  "customersImportPickSheet": "Scegli il foglio da importare",
+  "customersImportMappingTitle": "Associa le colonne",
+  "customersImportMappingHint": "Il campo Nome o ragione sociale è obbligatorio. Ogni campo può essere associato a una sola colonna.",
+  "customersImportFieldName": "Nome o ragione sociale",
+  "customersImportFieldEmail": "Email",
+  "customersImportFieldPhone": "Telefono",
+  "customersImportFieldNotes": "Note",
+  "customersImportFieldIgnore": "Ignora",
+  "customersImportContinue": "Continua",
+  "customersImportSummaryTitle": "Riepilogo analisi",
+  "customersImportSummaryRead": "Righe lette: {count}",
+  "@customersImportSummaryRead": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "customersImportSummaryValid": "Clienti validi: {count}",
+  "@customersImportSummaryValid": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "customersImportSummaryDuplicates": "Duplicati esclusi: {count}",
+  "@customersImportSummaryDuplicates": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "customersImportSummaryErrors": "Righe con errori: {count}",
+  "@customersImportSummaryErrors": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "customersImportSummaryEmpty": "Righe vuote ignorate: {count}",
+  "@customersImportSummaryEmpty": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "customersImportSummaryWarnings": "Avvisi: {count}",
+  "@customersImportSummaryWarnings": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "customersImportPreviewTitle": "Anteprima (prime 20 righe)",
+  "customersImportPreviewRowTitle": "Riga {row} · {status}",
+  "@customersImportPreviewRowTitle": {
+    "placeholders": {
+      "row": { "type": "int" },
+      "status": { "type": "String" }
+    }
+  },
+  "customersImportPreviewStatusError": "errore",
+  "customersImportPreviewStatusDuplicate": "duplicato",
+  "customersImportPreviewStatusOk": "ok",
+  "customersImportIssueWithRow": "Riga {row} — {message}",
+  "@customersImportIssueWithRow": {
+    "placeholders": {
+      "row": { "type": "int" },
+      "message": { "type": "String" }
+    }
+  },
+  "customersImportIssueLeadingZeroRisk": "Questa cella numerica potrebbe aver perso uno zero iniziale.",
+  "customersImportIssueDuplicateEmailInFile": "Email duplicata nel file: la riga verrà esclusa.",
+  "customersImportIssueDuplicateEmailInDatabase": "Email già presente tra i clienti dell'azienda: la riga verrà esclusa.",
+  "customersImportIssueMissingName": "Nome o ragione sociale mancante.",
+  "customersImportIssueInvalidEmail": "Indirizzo email non valido.",
+  "customersImportIssueNameTooLong": "Nome o ragione sociale troppo lungo.",
+  "customersImportIssueEmailTooLong": "Indirizzo email troppo lungo.",
+  "customersImportIssuePhoneTooLong": "Numero di telefono troppo lungo.",
+  "customersImportIssueNotesTooLong": "Note troppo lunghe.",
+  "customersImportIssueFormulaNotSupported": "Le formule Excel non sono supportate in questo campo.",
+  "customersImportIssueInvalidCellType": "Tipo di cella non supportato.",
+  "customersImportIssueDuplicateNameWarning": "Esiste già una riga con lo stesso nome: controlla che non sia un duplicato.",
+  "customersImportIssueGeneric": "Problema nella riga.",
+  "customersImportConfirm": "Conferma importazione",
+  "customersImportResultTitle": "Importazione completata",
+  "customersImportResultInserted": "Clienti inseriti: {count}",
+  "@customersImportResultInserted": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "customersImportResultSkipped": "Duplicati esclusi dal server: {count}",
+  "@customersImportResultSkipped": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "customersImportBackToList": "Torna ai clienti",
   "customerNewTitle": "Nuovo cliente",
   "customerEditTitle": "Modifica cliente",
   "customerNotFound": "Cliente non trovato.",

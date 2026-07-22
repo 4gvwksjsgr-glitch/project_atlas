@@ -18,4 +18,9 @@ class Customer {
   final String? notes;
   final DateTime createdAt;
   final DateTime updatedAt;
+
+  @override
+  String toString() =>
+      'Customer(id: $id, companyId: $companyId, createdAt: $createdAt, '
+      'updatedAt: $updatedAt)';
 }

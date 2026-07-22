@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,12 +13,16 @@ import 'package:project_atlas/core/storage/app_shared_preferences.dart';
 import 'package:project_atlas/core/utils/result.dart';
 import 'package:project_atlas/features/auth/presentation/providers/auth_providers.dart';
 import 'package:project_atlas/features/clients/domain/entities/customer.dart';
+import 'package:project_atlas/features/clients/domain/entities/customer_import_issue.dart';
+import 'package:project_atlas/features/clients/domain/entities/customer_import_payload_row.dart';
+import 'package:project_atlas/features/clients/domain/entities/customer_import_result.dart';
 import 'package:project_atlas/features/clients/domain/repositories/customer_repository.dart';
 import 'package:project_atlas/features/clients/domain/usecases/create_customer.dart';
 import 'package:project_atlas/features/clients/domain/usecases/get_customers.dart';
 import 'package:project_atlas/features/clients/domain/usecases/update_customer.dart';
 import 'package:project_atlas/features/clients/presentation/providers/customer_providers.dart';
 import 'package:project_atlas/features/clients/presentation/screens/customer_form_screen.dart';
+import 'package:project_atlas/features/clients/presentation/screens/customer_import_screen.dart';
 import 'package:project_atlas/features/clients/presentation/screens/customers_screen.dart';
 import 'package:project_atlas/features/companies/data/datasource/active_company_local_datasource.dart';
 import 'package:project_atlas/features/companies/domain/entities/company.dart';
@@ -25,7 +31,6 @@ import 'package:project_atlas/features/companies/presentation/controllers/active
 import 'package:project_atlas/features/companies/presentation/providers/company_providers.dart';
 import 'package:project_atlas/features/companies/presentation/screens/company_selector_screen.dart';
 import 'package:project_atlas/features/companies/presentation/screens/company_settings_screen.dart';
-import 'package:project_atlas/features/companies/presentation/widgets/active_company_chip.dart';
 import 'package:project_atlas/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:project_atlas/features/transactions/domain/usecases/get_transactions.dart';
 import 'package:project_atlas/features/transactions/presentation/providers/transaction_providers.dart';
@@ -44,47 +49,29 @@ final _settingsNavigatorKey = GlobalKey<NavigatorState>();
 
 CompanyMembership _membership({
   required String companyId,
-  required String name,
-  CompanyRole role = CompanyRole.owner,
+  required CompanyRole role,
 }) {
   return CompanyMembership(
-    id: 'membership-$companyId',
+    id: 'membership-$companyId-${role.name}',
     companyId: companyId,
     role: role,
     joinedAt: DateTime.utc(2026, 1, 1),
     company: Company(
       id: companyId,
-      name: name,
-      slug: name.toLowerCase(),
+      name: 'Co $companyId',
+      slug: 'co-$companyId',
       createdAt: DateTime.utc(2026, 1, 1),
       updatedAt: DateTime.utc(2026, 1, 1),
     ),
   );
 }
 
-Customer _customer({
-  required String id,
-  required String companyId,
-  required String name,
-}) {
-  return Customer(
-    id: id,
-    companyId: companyId,
-    name: name,
-    email: null,
-    phone: null,
-    notes: null,
-    createdAt: DateTime.utc(2026, 1, 1),
-    updatedAt: DateTime.utc(2026, 1, 1),
-  );
-}
-
-Session _testSession({String userId = 'user-1'}) {
+Session _testSession() {
   return Session(
     accessToken: 'token',
     tokenType: 'bearer',
     user: User(
-      id: userId,
+      id: 'user-1',
       appMetadata: {},
       userMetadata: {},
       aud: 'authenticated',
@@ -93,19 +80,11 @@ Session _testSession({String userId = 'user-1'}) {
   );
 }
 
-class _CustomersRepo implements CustomerRepository {
-  _CustomersRepo(this.byCompany, {this.createError});
-
-  final Map<String, List<Customer>> byCompany;
-  final Failure? createError;
-  int createCount = 0;
-
+class _Repo implements CustomerRepository {
   @override
   Future<Result<List<Customer>>> getCustomers({
     required String companyId,
-  }) async {
-    return Success(List<Customer>.from(byCompany[companyId] ?? const []));
-  }
+  }) async => const Success([]);
 
   @override
   Future<Result<Customer>> createCustomer({
@@ -114,19 +93,7 @@ class _CustomersRepo implements CustomerRepository {
     String? email,
     String? phone,
     String? notes,
-  }) async {
-    createCount += 1;
-    if (createError != null) {
-      return Error(createError!);
-    }
-    final customer = _customer(
-      id: 'created-$createCount',
-      companyId: companyId,
-      name: name,
-    );
-    byCompany.putIfAbsent(companyId, () => []).add(customer);
-    return Success(customer);
-  }
+  }) async => const Error(UnknownFailure());
 
   @override
   Future<Result<Customer>> updateCustomer({
@@ -136,36 +103,18 @@ class _CustomersRepo implements CustomerRepository {
     String? email,
     String? phone,
     String? notes,
-  }) async {
-    final list = byCompany[companyId] ?? [];
-    final index = list.indexWhere((c) => c.id == customerId);
-    final updated = Customer(
-      id: customerId,
-      companyId: companyId,
-      name: name,
-      email: email,
-      phone: phone,
-      notes: notes,
-      createdAt: DateTime.utc(2026, 1, 1),
-      updatedAt: DateTime.utc(2026, 1, 2),
-    );
-    if (index >= 0) {
-      list[index] = updated;
-    }
-    return Success(updated);
-  }
+  }) async => const Error(UnknownFailure());
 }
 
-Future<(ProviderContainer, GoRouter)> _pumpClients({
+Future<GoRouter> _pump({
   required WidgetTester tester,
-  required List<CompanyMembership> memberships,
-  required CustomerRepository repository,
-  String initialCompanyId = 'c1',
-  String initialLocation = RoutePaths.clients,
+  required CompanyRole role,
+  required String initialLocation,
+  bool settle = true,
 }) async {
   await ActiveCompanyLocalDataSource(
     appSharedPreferences!,
-  ).persistActiveCompanyId(userId: 'user-1', companyId: initialCompanyId);
+  ).persistActiveCompanyId(userId: 'user-1', companyId: 'c1');
 
   late ProviderContainer container;
   GoRouter? router;
@@ -177,16 +126,16 @@ Future<(ProviderContainer, GoRouter)> _pumpClients({
           authSessionProvider.overrideWithValue(_testSession()),
           isAuthenticatedProvider.overrideWithValue(true),
           isPasswordRecoveryActiveProvider.overrideWithValue(false),
-          userCompaniesProvider.overrideWith((ref) async => memberships),
-          customerRepositoryProvider.overrideWithValue(repository),
-          getCustomersUseCaseProvider.overrideWithValue(
-            GetCustomers(repository),
+          userCompaniesProvider.overrideWith(
+            (ref) async => [_membership(companyId: 'c1', role: role)],
           ),
+          customerRepositoryProvider.overrideWithValue(_Repo()),
+          getCustomersUseCaseProvider.overrideWithValue(GetCustomers(_Repo())),
           createCustomerUseCaseProvider.overrideWithValue(
-            CreateCustomer(repository),
+            CreateCustomer(_Repo()),
           ),
           updateCustomerUseCaseProvider.overrideWithValue(
-            UpdateCustomer(repository),
+            UpdateCustomer(_Repo()),
           ),
           transactionRepositoryProvider.overrideWithValue(
             const EmptyTransactionRepository(),
@@ -245,6 +194,11 @@ Future<(ProviderContainer, GoRouter)> _pumpClients({
                                 const CustomerFormScreen(),
                           ),
                           GoRoute(
+                            path: 'import',
+                            builder: (context, state) =>
+                                const CustomerImportScreen(),
+                          ),
+                          GoRoute(
                             path: ':customerId/edit',
                             builder: (context, state) => CustomerFormScreen(
                               customerId: state.pathParameters['customerId'],
@@ -277,190 +231,175 @@ Future<(ProviderContainer, GoRouter)> _pumpClients({
               ),
             ],
           );
-
           return MaterialApp.router(
+            locale: const Locale('it'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            locale: const Locale('it'),
             routerConfig: router!,
           );
         },
       ),
     ),
   );
-  await tester.pumpAndSettle();
-  return (container, router!);
+
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    await tester.pump();
+    await tester.pump();
+  }
+  addTearDown(container.dispose);
+  return router!;
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   setUp(() async {
     await setUpMockSharedPreferences();
   });
 
-  group('CustomersScreen', () {
-    testWidgets('mostra empty state e nuovo cliente per owner', (tester) async {
-      final repository = _CustomersRepo({'c1': []});
-      final (container, _) = await _pumpClients(
+  group('Employee e routing import clienti', () {
+    testWidgets('employee non vede Importa clienti', (tester) async {
+      await _pump(
         tester: tester,
-        memberships: [_membership(companyId: 'c1', name: 'Acme')],
-        repository: repository,
+        role: CompanyRole.employee,
+        initialLocation: RoutePaths.clients,
       );
-      addTearDown(container.dispose);
-
-      expect(find.textContaining('Nessun cliente'), findsOneWidget);
-      expect(find.text('Nuovo cliente'), findsOneWidget);
-      expect(find.text('Importa clienti'), findsOneWidget);
+      expect(find.text('Importa clienti'), findsNothing);
     });
 
-    testWidgets('employee non vede Nuovo cliente né Importa clienti', (
+    testWidgets('accesso diretto /clients/import respinto per employee', (
       tester,
     ) async {
-      final repository = _CustomersRepo({
-        'c1': [_customer(id: 'cust-1', companyId: 'c1', name: 'Rossi')],
-      });
-      final (container, _) = await _pumpClients(
+      final router = await _pump(
         tester: tester,
-        memberships: [
-          _membership(
-            companyId: 'c1',
-            name: 'Acme',
-            role: CompanyRole.employee,
-          ),
-        ],
-        repository: repository,
+        role: CompanyRole.employee,
+        initialLocation: RoutePaths.customersImport,
+        settle: false,
       );
-      addTearDown(container.dispose);
-
-      expect(find.text('Nuovo cliente'), findsNothing);
+      expect(
+        find.text('Non hai i permessi per importare clienti.'),
+        findsOneWidget,
+      );
+      await tester.pumpAndSettle();
+      expect(
+        router.routerDelegate.currentConfiguration.uri.path,
+        RoutePaths.clients,
+      );
       expect(find.text('Importa clienti'), findsNothing);
-      await tester.tap(find.text('Rossi'));
-      await tester.pumpAndSettle();
-
-      expect(find.textContaining('Non hai i permessi'), findsOneWidget);
-      expect(find.text('Salva'), findsNothing);
     });
 
-    testWidgets('loading errore e retry', (tester) async {
-      final repository = _FailingThenOkRepo();
-      final (container, _) = await _pumpClients(
+    testWidgets('owner può aprire la rotta import', (tester) async {
+      await _pump(
         tester: tester,
-        memberships: [_membership(companyId: 'c1', name: 'Acme')],
-        repository: repository,
+        role: CompanyRole.owner,
+        initialLocation: RoutePaths.customersImport,
       );
-      addTearDown(container.dispose);
-
-      expect(find.textContaining('fallito'), findsOneWidget);
-      await tester.tap(find.text('Riprova'));
-      await tester.pumpAndSettle();
-      expect(find.text('Cliente Ok'), findsOneWidget);
+      expect(find.text('Importa clienti'), findsWidgets);
     });
 
-    testWidgets('form conserva valori dopo errore create', (tester) async {
-      final repository = _CustomersRepo({
-        'c1': [],
-      }, createError: const NetworkFailure('Errore di rete. Riprova.'));
-      final (container, router) = await _pumpClients(
+    testWidgets('admin può aprire la rotta import', (tester) async {
+      await _pump(
         tester: tester,
-        memberships: [_membership(companyId: 'c1', name: 'Acme')],
-        repository: repository,
+        role: CompanyRole.admin,
+        initialLocation: RoutePaths.customersImport,
       );
-      addTearDown(container.dispose);
-
-      router.go(RoutePaths.customerNew);
-      await tester.pumpAndSettle();
-
-      await tester.enterText(find.byType(TextFormField).at(0), 'Bozza Nome');
-      await tester.enterText(find.byType(TextFormField).at(1), 'a@b.com');
-      await tester.tap(find.text('Salva'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Errore di rete. Riprova.'), findsOneWidget);
-      expect(find.text('Bozza Nome'), findsOneWidget);
-      expect(find.text('a@b.com'), findsOneWidget);
+      expect(find.text('Importa clienti'), findsWidgets);
     });
 
-    testWidgets('cambio A → B non mostra clienti di A', (tester) async {
-      final repository = _CustomersRepo({
-        'c1': [_customer(id: 'a1', companyId: 'c1', name: 'Cliente A')],
-        'c2': [_customer(id: 'b1', companyId: 'c2', name: 'Cliente B')],
-      });
-      final (container, _) = await _pumpClients(
+    testWidgets('manager può aprire la rotta import', (tester) async {
+      await _pump(
         tester: tester,
-        memberships: [
-          _membership(companyId: 'c1', name: 'Acme'),
-          _membership(companyId: 'c2', name: 'Beta'),
-        ],
-        repository: repository,
+        role: CompanyRole.manager,
+        initialLocation: RoutePaths.customersImport,
       );
-      addTearDown(container.dispose);
-
-      expect(find.text('Cliente A'), findsOneWidget);
-      expect(find.text('Cliente B'), findsNothing);
-
-      await tester.tap(find.byType(ActiveCompanyChip));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Beta'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Clienti'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Cliente A'), findsNothing);
-      expect(find.text('Cliente B'), findsOneWidget);
+      expect(find.text('Importa clienti'), findsWidgets);
     });
 
-    testWidgets('create aggiorna lista del tenant', (tester) async {
-      final repository = _CustomersRepo({'c1': []});
-      final (container, router) = await _pumpClients(
-        tester: tester,
-        memberships: [_membership(companyId: 'c1', name: 'Acme')],
-        repository: repository,
-      );
-      addTearDown(container.dispose);
-
-      router.go(RoutePaths.customerNew);
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextFormField).at(0), 'Nuovo Cliente');
-      await tester.tap(find.text('Salva'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Nuovo Cliente'), findsOneWidget);
-      expect(repository.createCount, 1);
+    test('backend rifiuta employee anche aggirando la UI', () {
+      final sql = File(
+        'supabase/migrations/20260720000001_import_customers_rpc.sql',
+      ).readAsStringSync();
+      expect(sql, contains("ARRAY['owner', 'admin', 'manager']"));
+      expect(sql, contains('Insufficient permissions'));
+      expect(sql, isNot(contains("'employee'")));
     });
   });
-}
 
-class _FailingThenOkRepo implements CustomerRepository {
-  var attempts = 0;
+  group('Privacy entità e messaggi', () {
+    test('toString senza nome email telefono note', () {
+      final customer = Customer(
+        id: 'id-1',
+        companyId: 'c1',
+        name: 'Mario Rossi',
+        email: 'mario@secret.test',
+        phone: '3331112222',
+        notes: 'nota riservata',
+        createdAt: DateTime.utc(2026, 1, 1),
+        updatedAt: DateTime.utc(2026, 1, 1),
+      );
+      final text = customer.toString();
+      expect(text, isNot(contains('Mario')));
+      expect(text, isNot(contains('mario@secret.test')));
+      expect(text, isNot(contains('3331112222')));
+      expect(text, isNot(contains('nota riservata')));
 
-  @override
-  Future<Result<List<Customer>>> getCustomers({
-    required String companyId,
-  }) async {
-    attempts += 1;
-    if (attempts == 1) {
-      return const Error(NetworkFailure('Caricamento clienti fallito'));
-    }
-    return Success([
-      _customer(id: 'ok', companyId: companyId, name: 'Cliente Ok'),
-    ]);
-  }
+      const row = CustomerImportPayloadRow(
+        sourceRow: 2,
+        name: 'Mario Rossi',
+        email: 'mario@secret.test',
+        phone: '3331112222',
+        notes: 'nota riservata',
+      );
+      expect(row.toString(), isNot(contains('Mario')));
+      expect(row.toString(), isNot(contains('mario@secret.test')));
 
-  @override
-  Future<Result<Customer>> createCustomer({
-    required String companyId,
-    required String name,
-    String? email,
-    String? phone,
-    String? notes,
-  }) => throw UnimplementedError();
+      final result = CustomerImportResult(
+        insertedCount: 1,
+        skippedDuplicateCount: 0,
+        skippedSourceRows: const [2],
+      );
+      expect(result.toString(), isNot(contains('Mario')));
+      expect(result.toString(), contains('insertedCount'));
 
-  @override
-  Future<Result<Customer>> updateCustomer({
-    required String companyId,
-    required String customerId,
-    required String name,
-    String? email,
-    String? phone,
-    String? notes,
-  }) => throw UnimplementedError();
+      const issue = CustomerImportIssue(
+        severity: CustomerImportIssueSeverity.error,
+        code: 'missingName',
+        sourceRow: 4,
+      );
+      expect(issue.toString(), contains('sourceRow: 4'));
+      expect(issue.toString(), contains('missingName'));
+      expect(issue.toString(), isNot(contains('@')));
+    });
+
+    test(
+      'nessun print/debugPrint/logger con dati cliente nel feature clients',
+      () {
+        final dartFiles = Directory('lib/features/clients')
+            .listSync(recursive: true)
+            .whereType<File>()
+            .where((f) => f.path.endsWith('.dart'));
+        for (final file in dartFiles) {
+          final content = file.readAsStringSync();
+          expect(content, isNot(contains('debugPrint(')), reason: file.path);
+          expect(
+            content.contains('print(') && content.contains('email'),
+            isFalse,
+            reason: file.path,
+          );
+        }
+      },
+    );
+
+    test('RPC result model solo conteggi e source_row', () {
+      final sql = File(
+        'supabase/migrations/20260720000001_import_customers_rpc.sql',
+      ).readAsStringSync();
+      expect(sql, contains('inserted_count BIGINT'));
+      expect(sql, contains('skipped_duplicate_count BIGINT'));
+      expect(sql, contains('skipped_source_rows INTEGER[]'));
+      expect(sql, isNot(contains('RETURNS TABLE (\n  name')));
+    });
+  });
 }

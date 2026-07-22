@@ -376,6 +376,288 @@ abstract class AppLocalizations {
   /// **'Nuovo cliente'**
   String get customersNewButton;
 
+  /// No description provided for @customersImportButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Importa clienti'**
+  String get customersImportButton;
+
+  /// No description provided for @customersImportTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Importa clienti'**
+  String get customersImportTitle;
+
+  /// No description provided for @customersImportForbidden.
+  ///
+  /// In it, this message translates to:
+  /// **'Non hai i permessi per importare clienti.'**
+  String get customersImportForbidden;
+
+  /// No description provided for @customersImportIntro.
+  ///
+  /// In it, this message translates to:
+  /// **'Importa un elenco clienti da file CSV o Excel nell\'azienda attiva.'**
+  String get customersImportIntro;
+
+  /// No description provided for @customersImportFieldsNotice.
+  ///
+  /// In it, this message translates to:
+  /// **'Questa versione importa soltanto: Nome o ragione sociale, Email, Telefono, Note.'**
+  String get customersImportFieldsNotice;
+
+  /// No description provided for @customersImportLimits.
+  ///
+  /// In it, this message translates to:
+  /// **'Limiti: file fino a 2 MB, massimo 500 righe dati, massimo 20 fogli Excel, un foglio alla volta.'**
+  String get customersImportLimits;
+
+  /// No description provided for @customersImportPickFile.
+  ///
+  /// In it, this message translates to:
+  /// **'Seleziona file CSV o XLSX'**
+  String get customersImportPickFile;
+
+  /// No description provided for @customersImportPickSheet.
+  ///
+  /// In it, this message translates to:
+  /// **'Scegli il foglio da importare'**
+  String get customersImportPickSheet;
+
+  /// No description provided for @customersImportMappingTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Associa le colonne'**
+  String get customersImportMappingTitle;
+
+  /// No description provided for @customersImportMappingHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Il campo Nome o ragione sociale è obbligatorio. Ogni campo può essere associato a una sola colonna.'**
+  String get customersImportMappingHint;
+
+  /// No description provided for @customersImportFieldName.
+  ///
+  /// In it, this message translates to:
+  /// **'Nome o ragione sociale'**
+  String get customersImportFieldName;
+
+  /// No description provided for @customersImportFieldEmail.
+  ///
+  /// In it, this message translates to:
+  /// **'Email'**
+  String get customersImportFieldEmail;
+
+  /// No description provided for @customersImportFieldPhone.
+  ///
+  /// In it, this message translates to:
+  /// **'Telefono'**
+  String get customersImportFieldPhone;
+
+  /// No description provided for @customersImportFieldNotes.
+  ///
+  /// In it, this message translates to:
+  /// **'Note'**
+  String get customersImportFieldNotes;
+
+  /// No description provided for @customersImportFieldIgnore.
+  ///
+  /// In it, this message translates to:
+  /// **'Ignora'**
+  String get customersImportFieldIgnore;
+
+  /// No description provided for @customersImportContinue.
+  ///
+  /// In it, this message translates to:
+  /// **'Continua'**
+  String get customersImportContinue;
+
+  /// No description provided for @customersImportSummaryTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Riepilogo analisi'**
+  String get customersImportSummaryTitle;
+
+  /// No description provided for @customersImportSummaryRead.
+  ///
+  /// In it, this message translates to:
+  /// **'Righe lette: {count}'**
+  String customersImportSummaryRead(int count);
+
+  /// No description provided for @customersImportSummaryValid.
+  ///
+  /// In it, this message translates to:
+  /// **'Clienti validi: {count}'**
+  String customersImportSummaryValid(int count);
+
+  /// No description provided for @customersImportSummaryDuplicates.
+  ///
+  /// In it, this message translates to:
+  /// **'Duplicati esclusi: {count}'**
+  String customersImportSummaryDuplicates(int count);
+
+  /// No description provided for @customersImportSummaryErrors.
+  ///
+  /// In it, this message translates to:
+  /// **'Righe con errori: {count}'**
+  String customersImportSummaryErrors(int count);
+
+  /// No description provided for @customersImportSummaryEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Righe vuote ignorate: {count}'**
+  String customersImportSummaryEmpty(int count);
+
+  /// No description provided for @customersImportSummaryWarnings.
+  ///
+  /// In it, this message translates to:
+  /// **'Avvisi: {count}'**
+  String customersImportSummaryWarnings(int count);
+
+  /// No description provided for @customersImportPreviewTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Anteprima (prime 20 righe)'**
+  String get customersImportPreviewTitle;
+
+  /// No description provided for @customersImportPreviewRowTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Riga {row} · {status}'**
+  String customersImportPreviewRowTitle(int row, String status);
+
+  /// No description provided for @customersImportPreviewStatusError.
+  ///
+  /// In it, this message translates to:
+  /// **'errore'**
+  String get customersImportPreviewStatusError;
+
+  /// No description provided for @customersImportPreviewStatusDuplicate.
+  ///
+  /// In it, this message translates to:
+  /// **'duplicato'**
+  String get customersImportPreviewStatusDuplicate;
+
+  /// No description provided for @customersImportPreviewStatusOk.
+  ///
+  /// In it, this message translates to:
+  /// **'ok'**
+  String get customersImportPreviewStatusOk;
+
+  /// No description provided for @customersImportIssueWithRow.
+  ///
+  /// In it, this message translates to:
+  /// **'Riga {row} — {message}'**
+  String customersImportIssueWithRow(int row, String message);
+
+  /// No description provided for @customersImportIssueLeadingZeroRisk.
+  ///
+  /// In it, this message translates to:
+  /// **'Questa cella numerica potrebbe aver perso uno zero iniziale.'**
+  String get customersImportIssueLeadingZeroRisk;
+
+  /// No description provided for @customersImportIssueDuplicateEmailInFile.
+  ///
+  /// In it, this message translates to:
+  /// **'Email duplicata nel file: la riga verrà esclusa.'**
+  String get customersImportIssueDuplicateEmailInFile;
+
+  /// No description provided for @customersImportIssueDuplicateEmailInDatabase.
+  ///
+  /// In it, this message translates to:
+  /// **'Email già presente tra i clienti dell\'azienda: la riga verrà esclusa.'**
+  String get customersImportIssueDuplicateEmailInDatabase;
+
+  /// No description provided for @customersImportIssueMissingName.
+  ///
+  /// In it, this message translates to:
+  /// **'Nome o ragione sociale mancante.'**
+  String get customersImportIssueMissingName;
+
+  /// No description provided for @customersImportIssueInvalidEmail.
+  ///
+  /// In it, this message translates to:
+  /// **'Indirizzo email non valido.'**
+  String get customersImportIssueInvalidEmail;
+
+  /// No description provided for @customersImportIssueNameTooLong.
+  ///
+  /// In it, this message translates to:
+  /// **'Nome o ragione sociale troppo lungo.'**
+  String get customersImportIssueNameTooLong;
+
+  /// No description provided for @customersImportIssueEmailTooLong.
+  ///
+  /// In it, this message translates to:
+  /// **'Indirizzo email troppo lungo.'**
+  String get customersImportIssueEmailTooLong;
+
+  /// No description provided for @customersImportIssuePhoneTooLong.
+  ///
+  /// In it, this message translates to:
+  /// **'Numero di telefono troppo lungo.'**
+  String get customersImportIssuePhoneTooLong;
+
+  /// No description provided for @customersImportIssueNotesTooLong.
+  ///
+  /// In it, this message translates to:
+  /// **'Note troppo lunghe.'**
+  String get customersImportIssueNotesTooLong;
+
+  /// No description provided for @customersImportIssueFormulaNotSupported.
+  ///
+  /// In it, this message translates to:
+  /// **'Le formule Excel non sono supportate in questo campo.'**
+  String get customersImportIssueFormulaNotSupported;
+
+  /// No description provided for @customersImportIssueInvalidCellType.
+  ///
+  /// In it, this message translates to:
+  /// **'Tipo di cella non supportato.'**
+  String get customersImportIssueInvalidCellType;
+
+  /// No description provided for @customersImportIssueDuplicateNameWarning.
+  ///
+  /// In it, this message translates to:
+  /// **'Esiste già una riga con lo stesso nome: controlla che non sia un duplicato.'**
+  String get customersImportIssueDuplicateNameWarning;
+
+  /// No description provided for @customersImportIssueGeneric.
+  ///
+  /// In it, this message translates to:
+  /// **'Problema nella riga.'**
+  String get customersImportIssueGeneric;
+
+  /// No description provided for @customersImportConfirm.
+  ///
+  /// In it, this message translates to:
+  /// **'Conferma importazione'**
+  String get customersImportConfirm;
+
+  /// No description provided for @customersImportResultTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Importazione completata'**
+  String get customersImportResultTitle;
+
+  /// No description provided for @customersImportResultInserted.
+  ///
+  /// In it, this message translates to:
+  /// **'Clienti inseriti: {count}'**
+  String customersImportResultInserted(int count);
+
+  /// No description provided for @customersImportResultSkipped.
+  ///
+  /// In it, this message translates to:
+  /// **'Duplicati esclusi dal server: {count}'**
+  String customersImportResultSkipped(int count);
+
+  /// No description provided for @customersImportBackToList.
+  ///
+  /// In it, this message translates to:
+  /// **'Torna ai clienti'**
+  String get customersImportBackToList;
+
   /// No description provided for @customerNewTitle.
   ///
   /// In it, this message translates to:

@@ -165,6 +165,182 @@ class AppLocalizationsIt extends AppLocalizations {
   String get customersNewButton => 'Nuovo cliente';
 
   @override
+  String get customersImportButton => 'Importa clienti';
+
+  @override
+  String get customersImportTitle => 'Importa clienti';
+
+  @override
+  String get customersImportForbidden =>
+      'Non hai i permessi per importare clienti.';
+
+  @override
+  String get customersImportIntro =>
+      'Importa un elenco clienti da file CSV o Excel nell\'azienda attiva.';
+
+  @override
+  String get customersImportFieldsNotice =>
+      'Questa versione importa soltanto: Nome o ragione sociale, Email, Telefono, Note.';
+
+  @override
+  String get customersImportLimits =>
+      'Limiti: file fino a 2 MB, massimo 500 righe dati, massimo 20 fogli Excel, un foglio alla volta.';
+
+  @override
+  String get customersImportPickFile => 'Seleziona file CSV o XLSX';
+
+  @override
+  String get customersImportPickSheet => 'Scegli il foglio da importare';
+
+  @override
+  String get customersImportMappingTitle => 'Associa le colonne';
+
+  @override
+  String get customersImportMappingHint =>
+      'Il campo Nome o ragione sociale è obbligatorio. Ogni campo può essere associato a una sola colonna.';
+
+  @override
+  String get customersImportFieldName => 'Nome o ragione sociale';
+
+  @override
+  String get customersImportFieldEmail => 'Email';
+
+  @override
+  String get customersImportFieldPhone => 'Telefono';
+
+  @override
+  String get customersImportFieldNotes => 'Note';
+
+  @override
+  String get customersImportFieldIgnore => 'Ignora';
+
+  @override
+  String get customersImportContinue => 'Continua';
+
+  @override
+  String get customersImportSummaryTitle => 'Riepilogo analisi';
+
+  @override
+  String customersImportSummaryRead(int count) {
+    return 'Righe lette: $count';
+  }
+
+  @override
+  String customersImportSummaryValid(int count) {
+    return 'Clienti validi: $count';
+  }
+
+  @override
+  String customersImportSummaryDuplicates(int count) {
+    return 'Duplicati esclusi: $count';
+  }
+
+  @override
+  String customersImportSummaryErrors(int count) {
+    return 'Righe con errori: $count';
+  }
+
+  @override
+  String customersImportSummaryEmpty(int count) {
+    return 'Righe vuote ignorate: $count';
+  }
+
+  @override
+  String customersImportSummaryWarnings(int count) {
+    return 'Avvisi: $count';
+  }
+
+  @override
+  String get customersImportPreviewTitle => 'Anteprima (prime 20 righe)';
+
+  @override
+  String customersImportPreviewRowTitle(int row, String status) {
+    return 'Riga $row · $status';
+  }
+
+  @override
+  String get customersImportPreviewStatusError => 'errore';
+
+  @override
+  String get customersImportPreviewStatusDuplicate => 'duplicato';
+
+  @override
+  String get customersImportPreviewStatusOk => 'ok';
+
+  @override
+  String customersImportIssueWithRow(int row, String message) {
+    return 'Riga $row — $message';
+  }
+
+  @override
+  String get customersImportIssueLeadingZeroRisk =>
+      'Questa cella numerica potrebbe aver perso uno zero iniziale.';
+
+  @override
+  String get customersImportIssueDuplicateEmailInFile =>
+      'Email duplicata nel file: la riga verrà esclusa.';
+
+  @override
+  String get customersImportIssueDuplicateEmailInDatabase =>
+      'Email già presente tra i clienti dell\'azienda: la riga verrà esclusa.';
+
+  @override
+  String get customersImportIssueMissingName =>
+      'Nome o ragione sociale mancante.';
+
+  @override
+  String get customersImportIssueInvalidEmail => 'Indirizzo email non valido.';
+
+  @override
+  String get customersImportIssueNameTooLong =>
+      'Nome o ragione sociale troppo lungo.';
+
+  @override
+  String get customersImportIssueEmailTooLong =>
+      'Indirizzo email troppo lungo.';
+
+  @override
+  String get customersImportIssuePhoneTooLong =>
+      'Numero di telefono troppo lungo.';
+
+  @override
+  String get customersImportIssueNotesTooLong => 'Note troppo lunghe.';
+
+  @override
+  String get customersImportIssueFormulaNotSupported =>
+      'Le formule Excel non sono supportate in questo campo.';
+
+  @override
+  String get customersImportIssueInvalidCellType =>
+      'Tipo di cella non supportato.';
+
+  @override
+  String get customersImportIssueDuplicateNameWarning =>
+      'Esiste già una riga con lo stesso nome: controlla che non sia un duplicato.';
+
+  @override
+  String get customersImportIssueGeneric => 'Problema nella riga.';
+
+  @override
+  String get customersImportConfirm => 'Conferma importazione';
+
+  @override
+  String get customersImportResultTitle => 'Importazione completata';
+
+  @override
+  String customersImportResultInserted(int count) {
+    return 'Clienti inseriti: $count';
+  }
+
+  @override
+  String customersImportResultSkipped(int count) {
+    return 'Duplicati esclusi dal server: $count';
+  }
+
+  @override
+  String get customersImportBackToList => 'Torna ai clienti';
+
+  @override
   String get customerNewTitle => 'Nuovo cliente';
 
   @override

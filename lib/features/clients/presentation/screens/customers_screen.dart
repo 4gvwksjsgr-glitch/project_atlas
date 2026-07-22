@@ -75,6 +75,14 @@ class CustomersListBody extends ConsumerWidget {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
+            if (canManage) ...[
+              const SizedBox(height: AppUiConstants.spacingMedium),
+              OutlinedButton.icon(
+                onPressed: () => context.push(RoutePaths.customersImport),
+                icon: const Icon(Icons.upload_file),
+                label: Text(l10n.customersImportButton),
+              ),
+            ],
             const SizedBox(height: AppUiConstants.spacingLarge),
             Expanded(
               child: customersAsync.when(

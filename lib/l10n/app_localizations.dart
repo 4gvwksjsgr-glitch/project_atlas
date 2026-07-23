@@ -754,6 +754,66 @@ abstract class AppLocalizations {
   /// **'Nessun movimento ancora. Aggiungi il primo movimento per iniziare.'**
   String get transactionsEmpty;
 
+  /// No description provided for @transactionsFilterEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun movimento corrisponde ai filtri selezionati.'**
+  String get transactionsFilterEmpty;
+
+  /// No description provided for @transactionsResultsCount.
+  ///
+  /// In it, this message translates to:
+  /// **'Risultati trovati: {count}'**
+  String transactionsResultsCount(int count);
+
+  /// No description provided for @transactionsFiltersTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Filtri'**
+  String get transactionsFiltersTitle;
+
+  /// No description provided for @transactionsFilterFromDate.
+  ///
+  /// In it, this message translates to:
+  /// **'Dal'**
+  String get transactionsFilterFromDate;
+
+  /// No description provided for @transactionsFilterToDate.
+  ///
+  /// In it, this message translates to:
+  /// **'Al'**
+  String get transactionsFilterToDate;
+
+  /// No description provided for @transactionsFilterPickDate.
+  ///
+  /// In it, this message translates to:
+  /// **'Scegli data'**
+  String get transactionsFilterPickDate;
+
+  /// No description provided for @transactionsFilterKindAll.
+  ///
+  /// In it, this message translates to:
+  /// **'Tutti'**
+  String get transactionsFilterKindAll;
+
+  /// No description provided for @transactionsFilterClientAll.
+  ///
+  /// In it, this message translates to:
+  /// **'Tutti i clienti'**
+  String get transactionsFilterClientAll;
+
+  /// No description provided for @transactionsFilterDescriptionHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Cerca nella descrizione'**
+  String get transactionsFilterDescriptionHint;
+
+  /// No description provided for @transactionsFilterClear.
+  ///
+  /// In it, this message translates to:
+  /// **'Cancella filtri'**
+  String get transactionsFilterClear;
+
   /// No description provided for @transactionsLoadError.
   ///
   /// In it, this message translates to:

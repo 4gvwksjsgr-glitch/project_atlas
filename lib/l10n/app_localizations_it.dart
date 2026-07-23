@@ -392,6 +392,39 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessun movimento ancora. Aggiungi il primo movimento per iniziare.';
 
   @override
+  String get transactionsFilterEmpty =>
+      'Nessun movimento corrisponde ai filtri selezionati.';
+
+  @override
+  String transactionsResultsCount(int count) {
+    return 'Risultati trovati: $count';
+  }
+
+  @override
+  String get transactionsFiltersTitle => 'Filtri';
+
+  @override
+  String get transactionsFilterFromDate => 'Dal';
+
+  @override
+  String get transactionsFilterToDate => 'Al';
+
+  @override
+  String get transactionsFilterPickDate => 'Scegli data';
+
+  @override
+  String get transactionsFilterKindAll => 'Tutti';
+
+  @override
+  String get transactionsFilterClientAll => 'Tutti i clienti';
+
+  @override
+  String get transactionsFilterDescriptionHint => 'Cerca nella descrizione';
+
+  @override
+  String get transactionsFilterClear => 'Cancella filtri';
+
+  @override
   String get transactionsLoadError =>
       'Caricamento movimenti non riuscito. Riprova.';
 

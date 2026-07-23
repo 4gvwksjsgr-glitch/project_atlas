@@ -4,10 +4,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/cash_transaction.dart';
 import '../../domain/value_objects/calendar_date.dart';
 import '../../domain/value_objects/money_amount.dart';
+import '../../domain/value_objects/transaction_filters.dart';
 import '../models/cash_transaction_model.dart';
 
 typedef TransactionsListExecutor =
-    Future<List<Map<String, dynamic>>> Function({required String companyId});
+    Future<List<Map<String, dynamic>>> Function({
+      required String companyId,
+      required TransactionFilters filters,
+    });
 
 typedef TransactionCreateExecutor =
     Future<Map<String, dynamic>> Function({
@@ -54,13 +58,14 @@ class TransactionRemoteDataSource {
 
   Future<List<CashTransactionModel>> getTransactions({
     required String companyId,
+    TransactionFilters filters = const TransactionFilters(),
   }) async {
     if (companyId.isEmpty) {
       throw ArgumentError.value(companyId, 'companyId', 'obbligatorio');
     }
 
     final executor = _listExecutor ?? _executeList;
-    final rows = await executor(companyId: companyId);
+    final rows = await executor(companyId: companyId, filters: filters);
     return rows.map(CashTransactionModel.fromJson).toList();
   }
 
@@ -123,17 +128,53 @@ class TransactionRemoteDataSource {
 
   Future<List<Map<String, dynamic>>> _executeList({
     required String companyId,
+    required TransactionFilters filters,
   }) async {
-    final response = await _client!
+    var query = _client!
         .from('transactions')
         .select(CashTransactionModel.selectColumns)
-        .eq('company_id', companyId)
+        .eq('company_id', companyId);
+
+    if (filters.fromDate != null) {
+      query = query.gte(
+        'occurred_on',
+        CalendarDate.toIsoDate(filters.fromDate!),
+      );
+    }
+    if (filters.toDate != null) {
+      query = query.lte('occurred_on', CalendarDate.toIsoDate(filters.toDate!));
+    }
+    if (filters.kind != null) {
+      query = query.eq('kind', filters.kind!.dbValue);
+    }
+    final clientId = filters.clientId?.trim();
+    if (clientId != null && clientId.isNotEmpty) {
+      query = query.eq('client_id', clientId);
+    }
+    final descriptionQuery = filters.descriptionQuery.trim();
+    if (descriptionQuery.isNotEmpty) {
+      query = query.ilike(
+        'description',
+        '%${escapeIlikePattern(descriptionQuery)}%',
+      );
+    }
+
+    final response = await query
         .order('occurred_on', ascending: false)
         .order('created_at', ascending: false);
 
     return (response as List<dynamic>)
         .map((row) => Map<String, dynamic>.from(row as Map))
         .toList();
+  }
+
+  /// Escape per pattern ILIKE: evita che `%` / `_` dell'utente diventino wildcards.
+  @visibleForTesting
+  static String escapeIlikePattern(String raw) {
+    return raw
+        .replaceAll(r'\', r'\\')
+        .replaceAll('%', r'\%')
+        .replaceAll('_', r'\_');
   }
 
   Future<Map<String, dynamic>> _executeCreate({

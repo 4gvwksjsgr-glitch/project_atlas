@@ -4,6 +4,7 @@ import 'package:project_atlas/features/transactions/data/models/cash_transaction
 import 'package:project_atlas/features/transactions/domain/entities/cash_transaction.dart';
 import 'package:project_atlas/features/transactions/domain/value_objects/calendar_date.dart';
 import 'package:project_atlas/features/transactions/domain/value_objects/money_amount.dart';
+import 'package:project_atlas/features/transactions/domain/value_objects/transaction_filters.dart';
 
 void main() {
   group('TransactionRemoteDataSource', () {
@@ -11,7 +12,7 @@ void main() {
       String? filteredCompanyId;
 
       final dataSource = TransactionRemoteDataSource.test(
-        listExecutor: ({required String companyId}) async {
+        listExecutor: ({required String companyId, required filters}) async {
           filteredCompanyId = companyId;
           return [
             {
@@ -43,7 +44,7 @@ void main() {
     test('rifiuta companyId vuoto sulla lista', () async {
       var called = false;
       final dataSource = TransactionRemoteDataSource.test(
-        listExecutor: ({required String companyId}) async {
+        listExecutor: ({required String companyId, required filters}) async {
           called = true;
           return [];
         },
@@ -243,6 +244,36 @@ void main() {
           description: 'Test',
         ),
         throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('lista inoltra filtri AND all executor', () async {
+      TransactionFilters? received;
+      final dataSource = TransactionRemoteDataSource.test(
+        listExecutor: ({required String companyId, required filters}) async {
+          received = filters;
+          return const [];
+        },
+      );
+
+      final filters = TransactionFilters(
+        fromDate: DateTime(2026, 1, 1),
+        toDate: DateTime(2026, 1, 31),
+        kind: TransactionKind.expense,
+        clientId: 'client-1',
+        descriptionQuery: 'bolletta',
+      );
+      await dataSource.getTransactions(
+        companyId: 'company-42',
+        filters: filters,
+      );
+      expect(received, filters);
+    });
+
+    test('escapeIlikePattern protegge % e _', () {
+      expect(
+        TransactionRemoteDataSource.escapeIlikePattern(r'100%_off'),
+        r'100\%\_off',
       );
     });
   });

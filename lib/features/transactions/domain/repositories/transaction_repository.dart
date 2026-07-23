@@ -1,10 +1,12 @@
 import '../../../../core/utils/result.dart';
 import '../entities/cash_transaction.dart';
 import '../value_objects/money_amount.dart';
+import '../value_objects/transaction_filters.dart';
 
 abstract class TransactionRepository {
   Future<Result<List<CashTransaction>>> getTransactions({
     required String companyId,
+    TransactionFilters filters = const TransactionFilters(),
   });
 
   Future<Result<CashTransaction>> createTransaction({

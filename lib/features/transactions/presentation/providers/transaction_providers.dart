@@ -8,6 +8,9 @@ import '../../domain/repositories/transaction_repository.dart';
 import '../../domain/usecases/create_transaction.dart';
 import '../../domain/usecases/get_transactions.dart';
 import '../../domain/usecases/update_transaction.dart';
+import '../controllers/transaction_filters_notifier.dart';
+
+export '../controllers/transaction_filters_notifier.dart';
 
 final transactionRemoteDataSourceProvider =
     Provider<TransactionRemoteDataSource>((ref) {
@@ -33,11 +36,13 @@ final updateTransactionUseCaseProvider = Provider<UpdateTransaction>((ref) {
 });
 
 /// Lista movimenti keyed per azienda attiva: al cambio companyId parte una nuova query.
+/// I filtri AND sono quelli di [transactionFiltersProvider] per la stessa azienda.
 final transactionsProvider = FutureProvider.autoDispose
     .family<List<CashTransaction>, String>((ref, companyId) async {
+      final filters = ref.watch(transactionFiltersProvider(companyId));
       final result = await ref
           .read(getTransactionsUseCaseProvider)
-          .call(companyId: companyId);
+          .call(companyId: companyId, filters: filters);
 
       return result.when(
         success: (transactions) => transactions,

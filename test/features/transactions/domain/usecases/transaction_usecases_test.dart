@@ -6,9 +6,11 @@ import 'package:project_atlas/features/transactions/domain/usecases/create_trans
 import 'package:project_atlas/features/transactions/domain/usecases/get_transactions.dart';
 import 'package:project_atlas/features/transactions/domain/usecases/update_transaction.dart';
 import 'package:project_atlas/features/transactions/domain/value_objects/money_amount.dart';
+import 'package:project_atlas/features/transactions/domain/value_objects/transaction_filters.dart';
 
 class _TransactionRepositorySpy implements TransactionRepository {
   String? lastCompanyId;
+  TransactionFilters? lastFilters;
   String? lastTransactionId;
   String? lastClientId;
   TransactionKind? lastKind;
@@ -20,8 +22,10 @@ class _TransactionRepositorySpy implements TransactionRepository {
   @override
   Future<Result<List<CashTransaction>>> getTransactions({
     required String companyId,
+    TransactionFilters filters = const TransactionFilters(),
   }) async {
     lastCompanyId = companyId;
+    lastFilters = filters;
     return const Success([]);
   }
 
@@ -100,7 +104,39 @@ void main() {
       final repository = _TransactionRepositorySpy();
       await GetTransactions(repository).call(companyId: 'company-1');
       expect(repository.lastCompanyId, 'company-1');
+      expect(repository.lastFilters, const TransactionFilters());
     });
+
+    test('inoltra filtri AND al repository', () async {
+      final repository = _TransactionRepositorySpy();
+      final filters = TransactionFilters(
+        fromDate: DateTime(2026, 1, 1),
+        toDate: DateTime(2026, 1, 31),
+        kind: TransactionKind.income,
+        clientId: 'client-9',
+        descriptionQuery: 'affitto',
+      );
+      await GetTransactions(
+        repository,
+      ).call(companyId: 'company-1', filters: filters);
+      expect(repository.lastFilters, filters);
+    });
+
+    test(
+      'rifiuta intervallo date invertito senza chiamare il repository',
+      () async {
+        final repository = _TransactionRepositorySpy();
+        final result = await GetTransactions(repository).call(
+          companyId: 'company-1',
+          filters: TransactionFilters(
+            fromDate: DateTime(2026, 3, 1),
+            toDate: DateTime(2026, 1, 1),
+          ),
+        );
+        expect(result.isError, isTrue);
+        expect(repository.lastCompanyId, isNull);
+      },
+    );
   });
 
   group('CreateTransaction', () {

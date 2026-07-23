@@ -27,9 +27,12 @@ import 'package:project_atlas/features/transactions/domain/usecases/create_trans
 import 'package:project_atlas/features/transactions/domain/usecases/get_transactions.dart';
 import 'package:project_atlas/features/transactions/domain/usecases/update_transaction.dart';
 import 'package:project_atlas/features/transactions/domain/value_objects/money_amount.dart';
+import 'package:project_atlas/features/transactions/domain/value_objects/transaction_filters.dart';
 import 'package:project_atlas/features/transactions/presentation/providers/transaction_providers.dart';
 import 'package:project_atlas/features/transactions/presentation/screens/transaction_form_screen.dart';
 import 'package:project_atlas/features/transactions/presentation/screens/transactions_screen.dart';
+import 'package:project_atlas/features/transactions/presentation/widgets/transaction_filters_bar.dart';
+import 'package:project_atlas/features/transactions/presentation/widgets/transaction_list_tile.dart';
 import 'package:project_atlas/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -105,14 +108,16 @@ class _TransactionsRepo implements TransactionRepository {
   final Map<String, List<CashTransaction>> byCompany;
   final Failure? createError;
   int createCount = 0;
+  TransactionFilters? lastFilters;
 
   @override
   Future<Result<List<CashTransaction>>> getTransactions({
     required String companyId,
+    TransactionFilters filters = const TransactionFilters(),
   }) async {
-    return Success(
-      List<CashTransaction>.from(byCompany[companyId] ?? const []),
-    );
+    lastFilters = filters;
+    final all = List<CashTransaction>.from(byCompany[companyId] ?? const []);
+    return Success(_applyFilters(all, filters));
   }
 
   @override
@@ -177,12 +182,44 @@ class _TransactionsRepo implements TransactionRepository {
   }
 }
 
+List<CashTransaction> _applyFilters(
+  List<CashTransaction> source,
+  TransactionFilters filters,
+) {
+  return source.where((transaction) {
+    if (filters.fromDate != null &&
+        transaction.occurredOn.isBefore(filters.fromDate!)) {
+      return false;
+    }
+    if (filters.toDate != null &&
+        transaction.occurredOn.isAfter(filters.toDate!)) {
+      return false;
+    }
+    if (filters.kind != null && transaction.kind != filters.kind) {
+      return false;
+    }
+    final clientId = filters.clientId?.trim();
+    if (clientId != null &&
+        clientId.isNotEmpty &&
+        transaction.clientId != clientId) {
+      return false;
+    }
+    final query = filters.descriptionQuery.trim().toLowerCase();
+    if (query.isNotEmpty &&
+        !transaction.description.toLowerCase().contains(query)) {
+      return false;
+    }
+    return true;
+  }).toList();
+}
+
 class _FailingThenOkRepo implements TransactionRepository {
   var attempts = 0;
 
   @override
   Future<Result<List<CashTransaction>>> getTransactions({
     required String companyId,
+    TransactionFilters filters = const TransactionFilters(),
   }) async {
     attempts += 1;
     if (attempts == 1) {
@@ -225,6 +262,11 @@ Future<(ProviderContainer, GoRouter)> _pumpTransactions({
   String initialLocation = RoutePaths.transactions,
   bool customersError = false,
 }) async {
+  tester.view.physicalSize = const Size(900, 1600);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
   await ActiveCompanyLocalDataSource(
     appSharedPreferences!,
   ).persistActiveCompanyId(userId: 'user-1', companyId: initialCompanyId);
@@ -415,6 +457,7 @@ void main() {
       addTearDown(container.dispose);
 
       expect(find.textContaining('fallito'), findsOneWidget);
+      await tester.ensureVisible(find.text('Riprova'));
       await tester.tap(find.text('Riprova'));
       await tester.pumpAndSettle();
       expect(find.text('Movimento Ok'), findsOneWidget);
@@ -543,6 +586,261 @@ void main() {
 
       expect(find.text('Senza cliente'), findsOneWidget);
       expect(repository.createCount, 1);
+    });
+
+    testWidgets('mostra contatore risultati e filtri', (tester) async {
+      final repository = _TransactionsRepo({
+        'c1': [
+          _transaction(
+            id: 'i1',
+            companyId: 'c1',
+            description: 'Incasso',
+            kind: TransactionKind.income,
+          ),
+          _transaction(
+            id: 'e1',
+            companyId: 'c1',
+            description: 'Affitto',
+            kind: TransactionKind.expense,
+          ),
+        ],
+      });
+      final (container, _) = await _pumpTransactions(
+        tester: tester,
+        memberships: [_membership(companyId: 'c1', name: 'Acme')],
+        repository: repository,
+      );
+      addTearDown(container.dispose);
+
+      expect(find.text('Filtri'), findsOneWidget);
+      expect(find.text('Cancella filtri'), findsOneWidget);
+      expect(find.text('Risultati trovati: 2'), findsOneWidget);
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is TransactionListTile &&
+              widget.transaction.description == 'Incasso',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is TransactionListTile &&
+              widget.transaction.description == 'Affitto',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('filtro entrate AND ricerca descrizione', (tester) async {
+      final repository = _TransactionsRepo({
+        'c1': [
+          _transaction(
+            id: 'i1',
+            companyId: 'c1',
+            description: 'Incasso negozio',
+            kind: TransactionKind.income,
+          ),
+          _transaction(
+            id: 'i2',
+            companyId: 'c1',
+            description: 'Rimborso',
+            kind: TransactionKind.income,
+          ),
+          _transaction(
+            id: 'e1',
+            companyId: 'c1',
+            description: 'Incasso errato uscita',
+            kind: TransactionKind.expense,
+          ),
+        ],
+      });
+      final (container, _) = await _pumpTransactions(
+        tester: tester,
+        memberships: [_membership(companyId: 'c1', name: 'Acme')],
+        repository: repository,
+      );
+      addTearDown(container.dispose);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(SegmentedButton<TransactionKind?>),
+          matching: find.text('Entrata'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('transaction-description-filter')),
+        'Incasso',
+      );
+      await tester.pump(TransactionFiltersBar.descriptionDebounce);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Incasso negozio'), findsOneWidget);
+      expect(find.text('Rimborso'), findsNothing);
+      expect(find.text('Incasso errato uscita'), findsNothing);
+      expect(find.text('Risultati trovati: 1'), findsOneWidget);
+      expect(repository.lastFilters?.kind, TransactionKind.income);
+      expect(repository.lastFilters?.descriptionQuery, 'Incasso');
+    });
+
+    testWidgets(
+      'ricerca descrizione mantiene il focus durante la digitazione',
+      (tester) async {
+        final repository = _TransactionsRepo({
+          'c1': [
+            _transaction(
+              id: 'i1',
+              companyId: 'c1',
+              description: 'Incasso negozio',
+              kind: TransactionKind.income,
+            ),
+            _transaction(
+              id: 'i2',
+              companyId: 'c1',
+              description: 'Rimborso',
+              kind: TransactionKind.income,
+            ),
+          ],
+        });
+        final (container, _) = await _pumpTransactions(
+          tester: tester,
+          memberships: [_membership(companyId: 'c1', name: 'Acme')],
+          repository: repository,
+        );
+        addTearDown(container.dispose);
+
+        final field = find.byKey(const Key('transaction-description-filter'));
+        await tester.tap(field);
+        await tester.pump();
+
+        await tester.enterText(field, 'I');
+        await tester.pump();
+        expect(tester.widget<TextField>(field).focusNode!.hasFocus, isTrue);
+
+        await tester.enterText(field, 'In');
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(tester.widget<TextField>(field).focusNode!.hasFocus, isTrue);
+        expect(repository.lastFilters?.descriptionQuery ?? '', isEmpty);
+
+        await tester.enterText(field, 'Inc');
+        await tester.pump(TransactionFiltersBar.descriptionDebounce);
+        await tester.pumpAndSettle();
+
+        expect(tester.widget<TextField>(field).focusNode!.hasFocus, isTrue);
+        expect(repository.lastFilters?.descriptionQuery, 'Inc');
+        expect(find.text('Incasso negozio'), findsOneWidget);
+        expect(find.text('Rimborso'), findsNothing);
+      },
+    );
+
+    testWidgets('Cancella filtri ripristina lista completa', (tester) async {
+      final repository = _TransactionsRepo({
+        'c1': [
+          _transaction(
+            id: 'i1',
+            companyId: 'c1',
+            description: 'Entrata A',
+            kind: TransactionKind.income,
+          ),
+          _transaction(
+            id: 'e1',
+            companyId: 'c1',
+            description: 'Uscita B',
+            kind: TransactionKind.expense,
+          ),
+        ],
+      });
+      final (container, _) = await _pumpTransactions(
+        tester: tester,
+        memberships: [_membership(companyId: 'c1', name: 'Acme')],
+        repository: repository,
+      );
+      addTearDown(container.dispose);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(SegmentedButton<TransactionKind?>),
+          matching: find.text('Uscita'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Entrata A'), findsNothing);
+      expect(find.text('Uscita B'), findsOneWidget);
+
+      await tester.ensureVisible(find.text('Cancella filtri'));
+      await tester.tap(find.text('Cancella filtri'));
+      await tester.pumpAndSettle();
+      expect(find.text('Entrata A'), findsOneWidget);
+      expect(find.text('Uscita B'), findsOneWidget);
+      expect(repository.lastFilters?.hasActiveFilters, isFalse);
+    });
+
+    testWidgets('cambio azienda resetta i filtri', (tester) async {
+      final repository = _TransactionsRepo({
+        'c1': [
+          _transaction(
+            id: 'a1',
+            companyId: 'c1',
+            description: 'Solo A entrata',
+            kind: TransactionKind.income,
+          ),
+          _transaction(
+            id: 'a2',
+            companyId: 'c1',
+            description: 'Solo A uscita',
+            kind: TransactionKind.expense,
+          ),
+        ],
+        'c2': [
+          _transaction(
+            id: 'b1',
+            companyId: 'c2',
+            description: 'Movimento B entrata',
+            kind: TransactionKind.income,
+          ),
+          _transaction(
+            id: 'b2',
+            companyId: 'c2',
+            description: 'Movimento B uscita',
+            kind: TransactionKind.expense,
+          ),
+        ],
+      });
+      final (container, _) = await _pumpTransactions(
+        tester: tester,
+        memberships: [
+          _membership(companyId: 'c1', name: 'Acme'),
+          _membership(companyId: 'c2', name: 'Beta'),
+        ],
+        repository: repository,
+      );
+      addTearDown(container.dispose);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(SegmentedButton<TransactionKind?>),
+          matching: find.text('Entrata'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Solo A uscita'), findsNothing);
+
+      await tester.tap(find.byType(ActiveCompanyChip));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Beta'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Movimenti'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Movimento B entrata'), findsOneWidget);
+      expect(find.text('Movimento B uscita'), findsOneWidget);
+      expect(find.text('Risultati trovati: 2'), findsOneWidget);
+      expect(
+        container.read(transactionFiltersProvider('c2')).hasActiveFilters,
+        isFalse,
+      );
     });
   });
 }

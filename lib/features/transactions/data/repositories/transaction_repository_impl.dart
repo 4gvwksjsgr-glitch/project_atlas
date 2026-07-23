@@ -4,6 +4,7 @@ import '../../../../core/utils/result.dart';
 import '../../domain/entities/cash_transaction.dart';
 import '../../domain/repositories/transaction_repository.dart';
 import '../../domain/value_objects/money_amount.dart';
+import '../../domain/value_objects/transaction_filters.dart';
 import '../datasource/transaction_remote_datasource.dart';
 
 class TransactionRepositoryImpl implements TransactionRepository {
@@ -14,14 +15,20 @@ class TransactionRepositoryImpl implements TransactionRepository {
   @override
   Future<Result<List<CashTransaction>>> getTransactions({
     required String companyId,
+    TransactionFilters filters = const TransactionFilters(),
   }) async {
     if (companyId.isEmpty) {
       return const Error(ValidationFailure('Azienda non valida.'));
+    }
+    final validationError = filters.validationError;
+    if (validationError != null) {
+      return Error(ValidationFailure(validationError));
     }
 
     try {
       final rows = await _remoteDataSource.getTransactions(
         companyId: companyId,
+        filters: filters,
       );
       return Success(rows.map((model) => model.toEntity()).toList());
     } on Object catch (error) {

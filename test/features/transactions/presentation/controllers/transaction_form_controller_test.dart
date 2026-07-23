@@ -14,6 +14,7 @@ import 'package:project_atlas/features/transactions/domain/repositories/transact
 import 'package:project_atlas/features/transactions/domain/usecases/create_transaction.dart';
 import 'package:project_atlas/features/transactions/domain/usecases/update_transaction.dart';
 import 'package:project_atlas/features/transactions/domain/value_objects/money_amount.dart';
+import 'package:project_atlas/features/transactions/domain/value_objects/transaction_filters.dart';
 import 'package:project_atlas/features/transactions/presentation/controllers/transaction_form_controller.dart';
 import 'package:project_atlas/features/transactions/presentation/providers/transaction_providers.dart';
 
@@ -28,6 +29,7 @@ class _Repo implements TransactionRepository {
   @override
   Future<Result<List<CashTransaction>>> getTransactions({
     required String companyId,
+    TransactionFilters filters = const TransactionFilters(),
   }) async {
     listCompanyIds.add(companyId);
     return const Success([]);

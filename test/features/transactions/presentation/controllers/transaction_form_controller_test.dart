@@ -18,6 +18,8 @@ import 'package:project_atlas/features/transactions/domain/value_objects/transac
 import 'package:project_atlas/features/transactions/presentation/controllers/transaction_form_controller.dart';
 import 'package:project_atlas/features/transactions/presentation/providers/transaction_providers.dart';
 
+import '../../helpers/fake_category_repository.dart';
+
 class _Repo implements TransactionRepository {
   _Repo({this.createResult});
 
@@ -39,6 +41,7 @@ class _Repo implements TransactionRepository {
   Future<Result<CashTransaction>> createTransaction({
     required String companyId,
     String? clientId,
+    String? categoryId,
     required TransactionKind kind,
     required MoneyAmount amount,
     required DateTime occurredOn,
@@ -52,6 +55,7 @@ class _Repo implements TransactionRepository {
             id: 'new-1',
             companyId: companyId,
             clientId: clientId,
+            categoryId: categoryId,
             kind: kind,
             amount: amount,
             occurredOn: occurredOn,
@@ -68,6 +72,7 @@ class _Repo implements TransactionRepository {
     required String companyId,
     required String transactionId,
     String? clientId,
+    String? categoryId,
     required TransactionKind kind,
     required MoneyAmount amount,
     required DateTime occurredOn,
@@ -80,6 +85,7 @@ class _Repo implements TransactionRepository {
         id: transactionId,
         companyId: companyId,
         clientId: clientId,
+        categoryId: categoryId,
         kind: kind,
         amount: amount,
         occurredOn: occurredOn,
@@ -123,10 +129,16 @@ void main() {
         overrides: [
           transactionRepositoryProvider.overrideWithValue(repository),
           createTransactionUseCaseProvider.overrideWithValue(
-            CreateTransaction(repository),
+            CreateTransaction(
+              repository,
+              const PassthroughCategoryRepository(),
+            ),
           ),
           updateTransactionUseCaseProvider.overrideWithValue(
-            UpdateTransaction(repository),
+            UpdateTransaction(
+              repository,
+              const PassthroughCategoryRepository(),
+            ),
           ),
           transactionsProvider.overrideWith((ref, companyId) async {
             final result = await repository.getTransactions(
@@ -175,10 +187,16 @@ void main() {
           overrides: [
             transactionRepositoryProvider.overrideWithValue(repository),
             createTransactionUseCaseProvider.overrideWithValue(
-              CreateTransaction(repository),
+              CreateTransaction(
+                repository,
+                const PassthroughCategoryRepository(),
+              ),
             ),
             updateTransactionUseCaseProvider.overrideWithValue(
-              UpdateTransaction(repository),
+              UpdateTransaction(
+                repository,
+                const PassthroughCategoryRepository(),
+              ),
             ),
             getDashboardCashSummaryUseCaseProvider.overrideWithValue(
               GetDashboardCashSummary(cashRepo),
@@ -260,7 +278,10 @@ void main() {
         overrides: [
           transactionRepositoryProvider.overrideWithValue(repository),
           createTransactionUseCaseProvider.overrideWithValue(
-            CreateTransaction(repository),
+            CreateTransaction(
+              repository,
+              const PassthroughCategoryRepository(),
+            ),
           ),
         ],
       );

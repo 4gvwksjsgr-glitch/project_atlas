@@ -21,6 +21,12 @@ class _Repo implements CategoryRepository {
   }) async => const Success([]);
 
   @override
+  Future<Result<TransactionCategory>> getCategory({
+    required String companyId,
+    required String categoryId,
+  }) async => const Error(ValidationFailure('Categoria non trovata.'));
+
+  @override
   Future<Result<TransactionCategory>> createCategory({
     required String companyId,
     required String name,

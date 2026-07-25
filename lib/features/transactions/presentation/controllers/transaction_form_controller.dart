@@ -55,6 +55,7 @@ class TransactionFormController
 
   Future<void> save({
     String? clientId,
+    String? categoryId,
     required TransactionKind kind,
     required MoneyAmount amount,
     required DateTime occurredOn,
@@ -79,6 +80,7 @@ class TransactionFormController
             .call(
               companyId: arg.companyId,
               clientId: clientId,
+              categoryId: categoryId,
               kind: kind,
               amount: amount,
               occurredOn: occurredOn,
@@ -92,6 +94,7 @@ class TransactionFormController
               companyId: arg.companyId,
               transactionId: arg.transactionId,
               clientId: clientId,
+              categoryId: categoryId,
               kind: kind,
               amount: amount,
               occurredOn: occurredOn,

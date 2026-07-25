@@ -24,6 +24,9 @@ class CashTransaction {
     required this.occurredOn,
     required this.description,
     this.notes,
+    this.categoryId,
+    this.categoryName,
+    this.categoryIsActive,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -38,6 +41,9 @@ class CashTransaction {
   final DateTime occurredOn;
   final String description;
   final String? notes;
+  final String? categoryId;
+  final String? categoryName;
+  final bool? categoryIsActive;
   final DateTime createdAt;
   final DateTime updatedAt;
 }

@@ -958,6 +958,54 @@ abstract class AppLocalizations {
   /// **'Movimento aggiornato correttamente.'**
   String get transactionUpdateSuccess;
 
+  /// No description provided for @transactionCategoryLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Categoria'**
+  String get transactionCategoryLabel;
+
+  /// No description provided for @transactionCategoryNone.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna categoria'**
+  String get transactionCategoryNone;
+
+  /// No description provided for @transactionCategoryArchived.
+  ///
+  /// In it, this message translates to:
+  /// **'Archiviata'**
+  String get transactionCategoryArchived;
+
+  /// No description provided for @transactionCategoriesLoading.
+  ///
+  /// In it, this message translates to:
+  /// **'Caricamento categorie...'**
+  String get transactionCategoriesLoading;
+
+  /// No description provided for @transactionCategoriesLoadError.
+  ///
+  /// In it, this message translates to:
+  /// **'Caricamento categorie non riuscito. Riprova.'**
+  String get transactionCategoriesLoadError;
+
+  /// No description provided for @transactionCategoriesEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna categoria disponibile per questo tipo.'**
+  String get transactionCategoriesEmpty;
+
+  /// No description provided for @transactionCategoriesManageLink.
+  ///
+  /// In it, this message translates to:
+  /// **'Gestisci categorie'**
+  String get transactionCategoriesManageLink;
+
+  /// No description provided for @transactionCategoryInvalid.
+  ///
+  /// In it, this message translates to:
+  /// **'La categoria selezionata non è valida per questo movimento.'**
+  String get transactionCategoryInvalid;
+
   /// No description provided for @companySettingsTitle.
   ///
   /// In it, this message translates to:

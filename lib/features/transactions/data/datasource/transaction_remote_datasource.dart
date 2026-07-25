@@ -17,6 +17,7 @@ typedef TransactionCreateExecutor =
     Future<Map<String, dynamic>> Function({
       required String companyId,
       String? clientId,
+      String? categoryId,
       required TransactionKind kind,
       required MoneyAmount amount,
       required DateTime occurredOn,
@@ -29,6 +30,7 @@ typedef TransactionUpdateExecutor =
       required String companyId,
       required String transactionId,
       String? clientId,
+      String? categoryId,
       required TransactionKind kind,
       required MoneyAmount amount,
       required DateTime occurredOn,
@@ -72,6 +74,7 @@ class TransactionRemoteDataSource {
   Future<CashTransactionModel> createTransaction({
     required String companyId,
     String? clientId,
+    String? categoryId,
     required TransactionKind kind,
     required MoneyAmount amount,
     required DateTime occurredOn,
@@ -86,6 +89,7 @@ class TransactionRemoteDataSource {
     final response = await executor(
       companyId: companyId,
       clientId: clientId,
+      categoryId: categoryId,
       kind: kind,
       amount: amount,
       occurredOn: occurredOn,
@@ -99,6 +103,7 @@ class TransactionRemoteDataSource {
     required String companyId,
     required String transactionId,
     String? clientId,
+    String? categoryId,
     required TransactionKind kind,
     required MoneyAmount amount,
     required DateTime occurredOn,
@@ -117,6 +122,7 @@ class TransactionRemoteDataSource {
       companyId: companyId,
       transactionId: transactionId,
       clientId: clientId,
+      categoryId: categoryId,
       kind: kind,
       amount: amount,
       occurredOn: occurredOn,
@@ -180,6 +186,7 @@ class TransactionRemoteDataSource {
   Future<Map<String, dynamic>> _executeCreate({
     required String companyId,
     String? clientId,
+    String? categoryId,
     required TransactionKind kind,
     required MoneyAmount amount,
     required DateTime occurredOn,
@@ -189,6 +196,7 @@ class TransactionRemoteDataSource {
     final payload = <String, dynamic>{
       'company_id': companyId,
       'client_id': clientId,
+      'category_id': categoryId,
       'kind': kind.dbValue,
       'amount': amount.toCanonicalDecimal(),
       'occurred_on': CalendarDate.toIsoDate(occurredOn),
@@ -207,6 +215,7 @@ class TransactionRemoteDataSource {
     required String companyId,
     required String transactionId,
     String? clientId,
+    String? categoryId,
     required TransactionKind kind,
     required MoneyAmount amount,
     required DateTime occurredOn,
@@ -214,10 +223,12 @@ class TransactionRemoteDataSource {
     String? notes,
   }) async {
     // Mai company_id nel payload di update.
+    // category_id deve essere sempre presente (anche null) per consentire la rimozione.
     return await _client!
         .from('transactions')
         .update({
           'client_id': clientId,
+          'category_id': categoryId,
           'kind': kind.dbValue,
           'amount': amount.toCanonicalDecimal(),
           'occurred_on': CalendarDate.toIsoDate(occurredOn),

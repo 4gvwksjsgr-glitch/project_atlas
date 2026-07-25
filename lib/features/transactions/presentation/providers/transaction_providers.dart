@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/di/providers.dart';
+import '../../../categories/presentation/providers/category_providers.dart';
 import '../../data/datasource/transaction_remote_datasource.dart';
 import '../../data/repositories/transaction_repository_impl.dart';
 import '../../domain/entities/cash_transaction.dart';
@@ -28,11 +29,17 @@ final getTransactionsUseCaseProvider = Provider<GetTransactions>((ref) {
 });
 
 final createTransactionUseCaseProvider = Provider<CreateTransaction>((ref) {
-  return CreateTransaction(ref.watch(transactionRepositoryProvider));
+  return CreateTransaction(
+    ref.watch(transactionRepositoryProvider),
+    ref.watch(categoryRepositoryProvider),
+  );
 });
 
 final updateTransactionUseCaseProvider = Provider<UpdateTransaction>((ref) {
-  return UpdateTransaction(ref.watch(transactionRepositoryProvider));
+  return UpdateTransaction(
+    ref.watch(transactionRepositoryProvider),
+    ref.watch(categoryRepositoryProvider),
+  );
 });
 
 /// Lista movimenti keyed per azienda attiva: al cambio companyId parte una nuova query.

@@ -12,6 +12,7 @@ abstract class TransactionRepository {
   Future<Result<CashTransaction>> createTransaction({
     required String companyId,
     String? clientId,
+    String? categoryId,
     required TransactionKind kind,
     required MoneyAmount amount,
     required DateTime occurredOn,
@@ -23,6 +24,7 @@ abstract class TransactionRepository {
     required String companyId,
     required String transactionId,
     String? clientId,
+    String? categoryId,
     required TransactionKind kind,
     required MoneyAmount amount,
     required DateTime occurredOn,

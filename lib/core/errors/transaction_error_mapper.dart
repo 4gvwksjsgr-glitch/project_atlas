@@ -86,10 +86,21 @@ abstract final class TransactionErrorMapper {
       return const ValidationFailure('La descrizione è obbligatoria.');
     }
 
-    if (combined.contains('transactions_client_same_company') ||
-        combined.contains('foreign key')) {
+    if (combined.contains('transactions_category_same_company_kind')) {
+      return const ValidationFailure(
+        'La categoria selezionata non è valida per questo movimento.',
+      );
+    }
+
+    if (combined.contains('transactions_client_same_company')) {
       return const ValidationFailure(
         'Il cliente selezionato non appartiene a questa azienda.',
+      );
+    }
+
+    if (combined.contains('foreign key')) {
+      return const ValidationFailure(
+        'Il riferimento selezionato non è valido per questo movimento.',
       );
     }
 

@@ -7,6 +7,12 @@ import '../models/transaction_category_model.dart';
 typedef CategoriesListExecutor =
     Future<List<Map<String, dynamic>>> Function({required String companyId});
 
+typedef CategoryGetExecutor =
+    Future<Map<String, dynamic>?> Function({
+      required String companyId,
+      required String categoryId,
+    });
+
 typedef CategoryCreateExecutor =
     Future<Map<String, dynamic>> Function({
       required String companyId,
@@ -32,6 +38,7 @@ class CategoryRemoteDataSource {
   CategoryRemoteDataSource(
     SupabaseClient client, {
     @visibleForTesting this._listExecutor,
+    @visibleForTesting this._getExecutor,
     @visibleForTesting this._createExecutor,
     @visibleForTesting this._renameExecutor,
     @visibleForTesting this._setActiveExecutor,
@@ -40,6 +47,7 @@ class CategoryRemoteDataSource {
   @visibleForTesting
   CategoryRemoteDataSource.test({
     this._listExecutor,
+    this._getExecutor,
     this._createExecutor,
     this._renameExecutor,
     this._setActiveExecutor,
@@ -47,6 +55,7 @@ class CategoryRemoteDataSource {
 
   final SupabaseClient? _client;
   final CategoriesListExecutor? _listExecutor;
+  final CategoryGetExecutor? _getExecutor;
   final CategoryCreateExecutor? _createExecutor;
   final CategoryRenameExecutor? _renameExecutor;
   final CategorySetActiveExecutor? _setActiveExecutor;
@@ -61,6 +70,25 @@ class CategoryRemoteDataSource {
     final executor = _listExecutor ?? _executeList;
     final rows = await executor(companyId: companyId);
     return rows.map(TransactionCategoryModel.fromJson).toList();
+  }
+
+  Future<TransactionCategoryModel?> getCategory({
+    required String companyId,
+    required String categoryId,
+  }) async {
+    if (companyId.isEmpty) {
+      throw ArgumentError.value(companyId, 'companyId', 'obbligatorio');
+    }
+    if (categoryId.isEmpty) {
+      throw ArgumentError.value(categoryId, 'categoryId', 'obbligatorio');
+    }
+
+    final executor = _getExecutor ?? _executeGet;
+    final row = await executor(companyId: companyId, categoryId: categoryId);
+    if (row == null) {
+      return null;
+    }
+    return TransactionCategoryModel.fromJson(row);
   }
 
   Future<TransactionCategoryModel> createCategory({
@@ -137,6 +165,23 @@ class CategoryRemoteDataSource {
     return (response as List<dynamic>)
         .map((row) => Map<String, dynamic>.from(row as Map))
         .toList();
+  }
+
+  Future<Map<String, dynamic>?> _executeGet({
+    required String companyId,
+    required String categoryId,
+  }) async {
+    final response = await _client!
+        .from('transaction_categories')
+        .select(TransactionCategoryModel.selectColumns)
+        .eq('company_id', companyId)
+        .eq('id', categoryId)
+        .maybeSingle();
+
+    if (response == null) {
+      return null;
+    }
+    return Map<String, dynamic>.from(response);
   }
 
   Future<Map<String, dynamic>> _executeCreate({

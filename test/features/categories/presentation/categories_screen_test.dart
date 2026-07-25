@@ -112,6 +112,23 @@ class _CategoriesRepo implements CategoryRepository {
   }
 
   @override
+  Future<Result<TransactionCategory>> getCategory({
+    required String companyId,
+    required String categoryId,
+  }) async {
+    if (listError != null) {
+      return Error(listError!);
+    }
+    final list = byCompany[companyId] ?? const [];
+    for (final category in list) {
+      if (category.id == categoryId) {
+        return Success(category);
+      }
+    }
+    return const Error(ValidationFailure('Categoria non trovata.'));
+  }
+
+  @override
   Future<Result<TransactionCategory>> createCategory({
     required String companyId,
     required String name,

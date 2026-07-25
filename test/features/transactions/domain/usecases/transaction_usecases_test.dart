@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:project_atlas/core/utils/result.dart';
+import 'package:project_atlas/features/categories/domain/entities/transaction_category.dart';
 import 'package:project_atlas/features/transactions/domain/entities/cash_transaction.dart';
 import 'package:project_atlas/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:project_atlas/features/transactions/domain/usecases/create_transaction.dart';
@@ -8,11 +9,14 @@ import 'package:project_atlas/features/transactions/domain/usecases/update_trans
 import 'package:project_atlas/features/transactions/domain/value_objects/money_amount.dart';
 import 'package:project_atlas/features/transactions/domain/value_objects/transaction_filters.dart';
 
+import '../../helpers/fake_category_repository.dart';
+
 class _TransactionRepositorySpy implements TransactionRepository {
   String? lastCompanyId;
   TransactionFilters? lastFilters;
   String? lastTransactionId;
   String? lastClientId;
+  String? lastCategoryId;
   TransactionKind? lastKind;
   MoneyAmount? lastAmount;
   DateTime? lastOccurredOn;
@@ -33,6 +37,7 @@ class _TransactionRepositorySpy implements TransactionRepository {
   Future<Result<CashTransaction>> createTransaction({
     required String companyId,
     String? clientId,
+    String? categoryId,
     required TransactionKind kind,
     required MoneyAmount amount,
     required DateTime occurredOn,
@@ -41,6 +46,7 @@ class _TransactionRepositorySpy implements TransactionRepository {
   }) async {
     lastCompanyId = companyId;
     lastClientId = clientId;
+    lastCategoryId = categoryId;
     lastKind = kind;
     lastAmount = amount;
     lastOccurredOn = occurredOn;
@@ -51,6 +57,7 @@ class _TransactionRepositorySpy implements TransactionRepository {
         id: 'txn-1',
         companyId: companyId,
         clientId: clientId,
+        categoryId: categoryId,
         kind: kind,
         amount: amount,
         occurredOn: occurredOn,
@@ -67,6 +74,7 @@ class _TransactionRepositorySpy implements TransactionRepository {
     required String companyId,
     required String transactionId,
     String? clientId,
+    String? categoryId,
     required TransactionKind kind,
     required MoneyAmount amount,
     required DateTime occurredOn,
@@ -76,6 +84,7 @@ class _TransactionRepositorySpy implements TransactionRepository {
     lastCompanyId = companyId;
     lastTransactionId = transactionId;
     lastClientId = clientId;
+    lastCategoryId = categoryId;
     lastKind = kind;
     lastAmount = amount;
     lastOccurredOn = occurredOn;
@@ -86,6 +95,7 @@ class _TransactionRepositorySpy implements TransactionRepository {
         id: transactionId,
         companyId: companyId,
         clientId: clientId,
+        categoryId: categoryId,
         kind: kind,
         amount: amount,
         occurredOn: occurredOn,
@@ -143,7 +153,10 @@ void main() {
     test('normalizza note vuote a null', () async {
       final repository = _TransactionRepositorySpy();
       final amount = MoneyAmount.parse('10,00');
-      await CreateTransaction(repository).call(
+      await CreateTransaction(
+        repository,
+        const PassthroughCategoryRepository(),
+      ).call(
         companyId: 'company-1',
         kind: TransactionKind.income,
         amount: amount,
@@ -158,7 +171,10 @@ void main() {
     test('esegue il trim della descrizione', () async {
       final repository = _TransactionRepositorySpy();
       final amount = MoneyAmount.parse('10,00');
-      await CreateTransaction(repository).call(
+      await CreateTransaction(
+        repository,
+        const PassthroughCategoryRepository(),
+      ).call(
         companyId: 'company-1',
         kind: TransactionKind.expense,
         amount: amount,
@@ -172,7 +188,10 @@ void main() {
     test('inoltra MoneyAmount e kind senza alterarli', () async {
       final repository = _TransactionRepositorySpy();
       final amount = MoneyAmount.parse('1.234,56');
-      await CreateTransaction(repository).call(
+      await CreateTransaction(
+        repository,
+        const PassthroughCategoryRepository(),
+      ).call(
         companyId: 'company-1',
         kind: TransactionKind.income,
         amount: amount,
@@ -191,7 +210,10 @@ void main() {
     test('normalizza clientId vuoto a null', () async {
       final repository = _TransactionRepositorySpy();
       final amount = MoneyAmount.parse('10,00');
-      await CreateTransaction(repository).call(
+      await CreateTransaction(
+        repository,
+        const PassthroughCategoryRepository(),
+      ).call(
         companyId: 'company-1',
         clientId: '   ',
         kind: TransactionKind.income,
@@ -206,7 +228,10 @@ void main() {
     test('normalizza la data rimuovendo l\'orario', () async {
       final repository = _TransactionRepositorySpy();
       final amount = MoneyAmount.parse('10,00');
-      await CreateTransaction(repository).call(
+      await CreateTransaction(
+        repository,
+        const PassthroughCategoryRepository(),
+      ).call(
         companyId: 'company-1',
         kind: TransactionKind.income,
         amount: amount,
@@ -216,13 +241,143 @@ void main() {
 
       expect(repository.lastOccurredOn, DateTime(2026, 7, 17));
     });
+
+    test(
+      'is_active non vincola il salvataggio: categoria attiva e compatibile consentita',
+      () async {
+        final repository = _TransactionRepositorySpy();
+        final categories = StubCategoryRepository(
+          category: TransactionCategory(
+            id: 'cat-1',
+            companyId: 'company-1',
+            name: 'Software',
+            kind: TransactionKind.expense,
+            isActive: true,
+            createdAt: DateTime.utc(2026, 1, 1),
+            updatedAt: DateTime.utc(2026, 1, 1),
+          ),
+        );
+        final amount = MoneyAmount.parse('10,00');
+        await CreateTransaction(repository, categories).call(
+          companyId: 'company-1',
+          categoryId: 'cat-1',
+          kind: TransactionKind.expense,
+          amount: amount,
+          occurredOn: DateTime(2026, 7, 17),
+          description: 'Licenza',
+        );
+
+        expect(repository.lastCategoryId, 'cat-1');
+        expect(categories.lastGetCategoryId, 'cat-1');
+      },
+    );
+
+    test(
+      'is_active non vincola il salvataggio: archiviata dopo selezione ma company/kind validi consentita',
+      () async {
+        final repository = _TransactionRepositorySpy();
+        final categories = StubCategoryRepository(
+          category: TransactionCategory(
+            id: 'cat-1',
+            companyId: 'company-1',
+            name: 'Software',
+            kind: TransactionKind.expense,
+            isActive: false,
+            createdAt: DateTime.utc(2026, 1, 1),
+            updatedAt: DateTime.utc(2026, 1, 1),
+          ),
+        );
+        final result = await CreateTransaction(repository, categories).call(
+          companyId: 'company-1',
+          categoryId: 'cat-1',
+          kind: TransactionKind.expense,
+          amount: MoneyAmount.parse('10,00'),
+          occurredOn: DateTime(2026, 7, 17),
+          description: 'Licenza',
+        );
+
+        expect(result.isSuccess, isTrue);
+        expect(repository.lastCategoryId, 'cat-1');
+      },
+    );
+
+    test('rifiuta categoria di altra azienda', () async {
+      final repository = _TransactionRepositorySpy();
+      final categories = StubCategoryRepository(
+        category: TransactionCategory(
+          id: 'cat-1',
+          companyId: 'company-other',
+          name: 'Software',
+          kind: TransactionKind.expense,
+          isActive: true,
+          createdAt: DateTime.utc(2026, 1, 1),
+          updatedAt: DateTime.utc(2026, 1, 1),
+        ),
+      );
+      final result = await CreateTransaction(repository, categories).call(
+        companyId: 'company-1',
+        categoryId: 'cat-1',
+        kind: TransactionKind.expense,
+        amount: MoneyAmount.parse('10,00'),
+        occurredOn: DateTime(2026, 7, 17),
+        description: 'Licenza',
+      );
+
+      expect(result.isError, isTrue);
+      expect(repository.lastCategoryId, isNull);
+    });
+
+    test('rifiuta categoria di kind incompatibile', () async {
+      final repository = _TransactionRepositorySpy();
+      final categories = StubCategoryRepository(
+        category: TransactionCategory(
+          id: 'cat-1',
+          companyId: 'company-1',
+          name: 'Vendite',
+          kind: TransactionKind.income,
+          isActive: true,
+          createdAt: DateTime.utc(2026, 1, 1),
+          updatedAt: DateTime.utc(2026, 1, 1),
+        ),
+      );
+      final result = await CreateTransaction(repository, categories).call(
+        companyId: 'company-1',
+        categoryId: 'cat-1',
+        kind: TransactionKind.expense,
+        amount: MoneyAmount.parse('10,00'),
+        occurredOn: DateTime(2026, 7, 17),
+        description: 'Licenza',
+      );
+
+      expect(result.isError, isTrue);
+      expect(repository.lastCategoryId, isNull);
+    });
+
+    test('rifiuta categoria inesistente', () async {
+      final repository = _TransactionRepositorySpy();
+      final categories = StubCategoryRepository();
+      final result = await CreateTransaction(repository, categories).call(
+        companyId: 'company-1',
+        categoryId: 'missing',
+        kind: TransactionKind.expense,
+        amount: MoneyAmount.parse('10,00'),
+        occurredOn: DateTime(2026, 7, 17),
+        description: 'Licenza',
+      );
+
+      expect(result.isError, isTrue);
+      expect(repository.lastCategoryId, isNull);
+    });
   });
 
   group('UpdateTransaction', () {
     test('inoltra companyId, transactionId e normalizza opzionali', () async {
       final repository = _TransactionRepositorySpy();
       final amount = MoneyAmount.parse('50,00');
-      await UpdateTransaction(repository).call(
+      await UpdateTransaction(
+        repository,
+        const PassthroughCategoryRepository(),
+      ).call(
         companyId: 'company-1',
         transactionId: 'txn-9',
         kind: TransactionKind.expense,
@@ -238,6 +393,137 @@ void main() {
       expect(repository.lastNotes, isNull);
       expect(repository.lastKind, TransactionKind.expense);
       expect(repository.lastAmount, amount);
+    });
+
+    test(
+      'is_active non vincola il salvataggio: mantenimento categoria archiviata corrente consentito',
+      () async {
+        final repository = _TransactionRepositorySpy();
+        final categories = StubCategoryRepository(
+          category: TransactionCategory(
+            id: 'cat-1',
+            companyId: 'company-1',
+            name: 'Software',
+            kind: TransactionKind.expense,
+            isActive: false,
+            createdAt: DateTime.utc(2026, 1, 1),
+            updatedAt: DateTime.utc(2026, 1, 1),
+          ),
+        );
+        await UpdateTransaction(repository, categories).call(
+          companyId: 'company-1',
+          transactionId: 'txn-9',
+          categoryId: 'cat-1',
+          kind: TransactionKind.expense,
+          amount: MoneyAmount.parse('10,00'),
+          occurredOn: DateTime(2026, 7, 18),
+          description: 'Licenza',
+        );
+
+        expect(repository.lastCategoryId, 'cat-1');
+      },
+    );
+
+    test(
+      'is_active non vincola il salvataggio: archiviata dopo selezione ma company/kind validi consentita',
+      () async {
+        final repository = _TransactionRepositorySpy();
+        final categories = StubCategoryRepository(
+          category: TransactionCategory(
+            id: 'cat-2',
+            companyId: 'company-1',
+            name: 'Hardware',
+            kind: TransactionKind.expense,
+            isActive: false,
+            createdAt: DateTime.utc(2026, 1, 1),
+            updatedAt: DateTime.utc(2026, 1, 1),
+          ),
+        );
+        final result = await UpdateTransaction(repository, categories).call(
+          companyId: 'company-1',
+          transactionId: 'txn-9',
+          categoryId: 'cat-2',
+          kind: TransactionKind.expense,
+          amount: MoneyAmount.parse('10,00'),
+          occurredOn: DateTime(2026, 7, 18),
+          description: 'Licenza',
+        );
+
+        expect(result.isSuccess, isTrue);
+        expect(repository.lastCategoryId, 'cat-2');
+      },
+    );
+
+    test('imposta categoryId null per rimozione', () async {
+      final repository = _TransactionRepositorySpy();
+      await UpdateTransaction(
+        repository,
+        const PassthroughCategoryRepository(),
+      ).call(
+        companyId: 'company-1',
+        transactionId: 'txn-9',
+        categoryId: null,
+        kind: TransactionKind.expense,
+        amount: MoneyAmount.parse('10,00'),
+        occurredOn: DateTime(2026, 7, 18),
+        description: 'Licenza',
+      );
+
+      expect(repository.lastCategoryId, isNull);
+    });
+
+    test('rifiuta categoria di altra azienda', () async {
+      final repository = _TransactionRepositorySpy();
+      final categories = StubCategoryRepository(
+        category: TransactionCategory(
+          id: 'cat-1',
+          companyId: 'company-other',
+          name: 'Software',
+          kind: TransactionKind.expense,
+          isActive: true,
+          createdAt: DateTime.utc(2026, 1, 1),
+          updatedAt: DateTime.utc(2026, 1, 1),
+        ),
+      );
+      final result = await UpdateTransaction(repository, categories).call(
+        companyId: 'company-1',
+        transactionId: 'txn-9',
+        categoryId: 'cat-1',
+        kind: TransactionKind.expense,
+        amount: MoneyAmount.parse('10,00'),
+        occurredOn: DateTime(2026, 7, 18),
+        description: 'Licenza',
+      );
+
+      expect(result.isError, isTrue);
+      expect(repository.lastCategoryId, isNull);
+    });
+
+    test('rifiuta categoria di kind incompatibile', () async {
+      final repository = _TransactionRepositorySpy();
+      final categories = StubCategoryRepository(
+        category: TransactionCategory(
+          id: 'cat-1',
+          companyId: 'company-1',
+          name: 'Vendite',
+          kind: TransactionKind.income,
+          isActive: true,
+          createdAt: DateTime.utc(2026, 1, 1),
+          updatedAt: DateTime.utc(2026, 1, 1),
+        ),
+      );
+      final result = await UpdateTransaction(repository, categories).call(
+        companyId: 'company-1',
+        transactionId: 'txn-9',
+        categoryId: 'cat-1',
+        kind: TransactionKind.expense,
+        amount: MoneyAmount.parse('10,00'),
+        occurredOn: DateTime(2026, 7, 18),
+        description: 'Licenza',
+      );
+
+      expect(result.isError, isTrue);
+      expect(repository.lastCategoryId, isNull);
     });
   });
 }

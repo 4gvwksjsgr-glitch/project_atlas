@@ -45,6 +45,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
   Future<Result<CashTransaction>> createTransaction({
     required String companyId,
     String? clientId,
+    String? categoryId,
     required TransactionKind kind,
     required MoneyAmount amount,
     required DateTime occurredOn,
@@ -62,6 +63,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
       final row = await _remoteDataSource.createTransaction(
         companyId: companyId,
         clientId: clientId,
+        categoryId: categoryId,
         kind: kind,
         amount: amount,
         occurredOn: occurredOn,
@@ -84,6 +86,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
     required String companyId,
     required String transactionId,
     String? clientId,
+    String? categoryId,
     required TransactionKind kind,
     required MoneyAmount amount,
     required DateTime occurredOn,
@@ -105,6 +108,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
         companyId: companyId,
         transactionId: transactionId,
         clientId: clientId,
+        categoryId: categoryId,
         kind: kind,
         amount: amount,
         occurredOn: occurredOn,

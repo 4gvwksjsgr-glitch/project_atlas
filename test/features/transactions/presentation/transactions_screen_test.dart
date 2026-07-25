@@ -10,6 +10,8 @@ import 'package:project_atlas/core/router/shell_scaffold.dart';
 import 'package:project_atlas/core/storage/app_shared_preferences.dart';
 import 'package:project_atlas/core/utils/result.dart';
 import 'package:project_atlas/features/auth/presentation/providers/auth_providers.dart';
+import 'package:project_atlas/features/categories/domain/entities/transaction_category.dart';
+import 'package:project_atlas/features/categories/presentation/providers/category_providers.dart';
 import 'package:project_atlas/features/clients/presentation/providers/customer_providers.dart';
 import 'package:project_atlas/features/clients/presentation/screens/customers_screen.dart';
 import 'package:project_atlas/features/companies/data/datasource/active_company_local_datasource.dart';
@@ -37,6 +39,7 @@ import 'package:project_atlas/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../test_helpers/shared_preferences_test_helper.dart';
+import '../helpers/fake_category_repository.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _dashboardNavigatorKey = GlobalKey<NavigatorState>();
@@ -72,12 +75,14 @@ CashTransaction _transaction({
   String amount = '10,00',
   DateTime? occurredOn,
   String? clientId,
+  String? categoryId,
   String? notes,
 }) {
   return CashTransaction(
     id: id,
     companyId: companyId,
     clientId: clientId,
+    categoryId: categoryId,
     kind: kind,
     amount: MoneyAmount.parse(amount),
     occurredOn: occurredOn ?? DateTime(2026, 7, 17),
@@ -108,6 +113,7 @@ class _TransactionsRepo implements TransactionRepository {
   final Map<String, List<CashTransaction>> byCompany;
   final Failure? createError;
   int createCount = 0;
+  String? lastCategoryId;
   TransactionFilters? lastFilters;
 
   @override
@@ -124,6 +130,7 @@ class _TransactionsRepo implements TransactionRepository {
   Future<Result<CashTransaction>> createTransaction({
     required String companyId,
     String? clientId,
+    String? categoryId,
     required TransactionKind kind,
     required MoneyAmount amount,
     required DateTime occurredOn,
@@ -131,6 +138,7 @@ class _TransactionsRepo implements TransactionRepository {
     String? notes,
   }) async {
     createCount += 1;
+    lastCategoryId = categoryId;
     if (createError != null) {
       return Error(createError!);
     }
@@ -138,6 +146,7 @@ class _TransactionsRepo implements TransactionRepository {
       id: 'created-$createCount',
       companyId: companyId,
       clientId: clientId,
+      categoryId: categoryId,
       kind: kind,
       amount: amount,
       occurredOn: occurredOn,
@@ -155,6 +164,7 @@ class _TransactionsRepo implements TransactionRepository {
     required String companyId,
     required String transactionId,
     String? clientId,
+    String? categoryId,
     required TransactionKind kind,
     required MoneyAmount amount,
     required DateTime occurredOn,
@@ -167,6 +177,7 @@ class _TransactionsRepo implements TransactionRepository {
       id: transactionId,
       companyId: companyId,
       clientId: clientId,
+      categoryId: categoryId,
       kind: kind,
       amount: amount,
       occurredOn: occurredOn,
@@ -234,6 +245,7 @@ class _FailingThenOkRepo implements TransactionRepository {
   Future<Result<CashTransaction>> createTransaction({
     required String companyId,
     String? clientId,
+    String? categoryId,
     required TransactionKind kind,
     required MoneyAmount amount,
     required DateTime occurredOn,
@@ -246,6 +258,7 @@ class _FailingThenOkRepo implements TransactionRepository {
     required String companyId,
     required String transactionId,
     String? clientId,
+    String? categoryId,
     required TransactionKind kind,
     required MoneyAmount amount,
     required DateTime occurredOn,
@@ -261,6 +274,7 @@ Future<(ProviderContainer, GoRouter)> _pumpTransactions({
   String initialCompanyId = 'c1',
   String initialLocation = RoutePaths.transactions,
   bool customersError = false,
+  List<TransactionCategory> categories = const [],
 }) async {
   tester.view.physicalSize = const Size(900, 1600);
   tester.view.devicePixelRatio = 1.0;
@@ -287,10 +301,16 @@ Future<(ProviderContainer, GoRouter)> _pumpTransactions({
             GetTransactions(repository),
           ),
           createTransactionUseCaseProvider.overrideWithValue(
-            CreateTransaction(repository),
+            CreateTransaction(
+              repository,
+              const PassthroughCategoryRepository(),
+            ),
           ),
           updateTransactionUseCaseProvider.overrideWithValue(
-            UpdateTransaction(repository),
+            UpdateTransaction(
+              repository,
+              const PassthroughCategoryRepository(),
+            ),
           ),
           customersProvider.overrideWith((ref, companyId) async {
             if (customersError) {
@@ -298,6 +318,7 @@ Future<(ProviderContainer, GoRouter)> _pumpTransactions({
             }
             return [];
           }),
+          categoriesProvider.overrideWith((ref, companyId) async => categories),
         ],
       ),
       child: Consumer(
@@ -554,6 +575,60 @@ void main() {
       expect(find.text('Nuovo movimento salvato'), findsOneWidget);
       expect(repository.createCount, 1);
     });
+
+    testWidgets(
+      'selezione categoria poi cambio kind azzera categoryId e salva null',
+      (tester) async {
+        final repository = _TransactionsRepo({'c1': []});
+        final (container, router) = await _pumpTransactions(
+          tester: tester,
+          memberships: [_membership(companyId: 'c1', name: 'Acme')],
+          repository: repository,
+          categories: [
+            TransactionCategory(
+              id: 'cat-soft',
+              companyId: 'c1',
+              name: 'Software',
+              kind: TransactionKind.expense,
+              isActive: true,
+              createdAt: DateTime.utc(2026, 7, 25),
+              updatedAt: DateTime.utc(2026, 7, 25),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        router.go(RoutePaths.transactionNew);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(const Key('transaction-category-menu')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Software').last);
+        await tester.pumpAndSettle();
+        expect(find.text('Software'), findsWidgets);
+
+        await tester.tap(find.text('Entrata'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Nessuna categoria'), findsOneWidget);
+
+        final fields = find.descendant(
+          of: find.byType(TransactionFormBody),
+          matching: find.byType(TextFormField),
+        );
+        await tester.enterText(fields.at(0), '15,00');
+        await tester.enterText(fields.at(1), 'Dopo cambio kind');
+        await tester.ensureVisible(
+          find.byKey(const Key('transaction-save-button')),
+        );
+        await tester.tap(find.byKey(const Key('transaction-save-button')));
+        await tester.pumpAndSettle();
+
+        expect(repository.createCount, 1);
+        expect(repository.lastCategoryId, isNull);
+        expect(find.text('Dopo cambio kind'), findsOneWidget);
+      },
+    );
 
     testWidgets('form salvabile senza cliente se clienti in errore', (
       tester,

@@ -14,6 +14,7 @@ abstract final class RoutePaths {
   static const transactions = '/transactions';
   static const transactionNew = '/transactions/new';
   static const settingsCompany = '/settings/company';
+  static const settingsCategories = '/settings/company/categories';
 
   static String customerEdit(String customerId) => '/clients/$customerId/edit';
 

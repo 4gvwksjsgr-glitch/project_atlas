@@ -522,6 +522,101 @@ class AppLocalizationsIt extends AppLocalizations {
   String get companySettingsSaveSuccess => 'Azienda aggiornata correttamente.';
 
   @override
+  String get categoriesTitle => 'Categorie';
+
+  @override
+  String get categoriesSubtitle =>
+      'Categorie operative di entrate e uscite (non fiscali).';
+
+  @override
+  String get categoriesSettingsLinkSubtitle =>
+      'Gestisci le categorie dei movimenti';
+
+  @override
+  String get categoriesNoActiveCompany =>
+      'Nessuna azienda attiva. Seleziona un\'azienda per continuare.';
+
+  @override
+  String get categoriesReadOnlyMessage =>
+      'Puoi visualizzare le categorie, ma non modificarle.';
+
+  @override
+  String get categoriesEmpty =>
+      'Nessuna categoria ancora. Aggiungi la prima categoria operativa.';
+
+  @override
+  String get categoriesSectionEmpty => 'Nessuna categoria in questa sezione.';
+
+  @override
+  String get categoriesLoadError =>
+      'Caricamento categorie non riuscito. Riprova.';
+
+  @override
+  String get categoriesRetry => 'Riprova';
+
+  @override
+  String get categoriesNewButton => 'Nuova categoria';
+
+  @override
+  String get categoriesCreateTitle => 'Nuova categoria';
+
+  @override
+  String get categoriesRenameTitle => 'Rinomina categoria';
+
+  @override
+  String get categoriesNameLabel => 'Nome';
+
+  @override
+  String get categoriesNameRequired =>
+      'Il nome della categoria è obbligatorio.';
+
+  @override
+  String get categoriesNameTooLong =>
+      'Il nome della categoria non può superare i 80 caratteri.';
+
+  @override
+  String get categoriesCancel => 'Annulla';
+
+  @override
+  String get categoriesSave => 'Salva';
+
+  @override
+  String get categoriesIncomeSection => 'Entrate';
+
+  @override
+  String get categoriesExpenseSection => 'Uscite';
+
+  @override
+  String get categoriesActiveGroup => 'Attive';
+
+  @override
+  String get categoriesArchivedGroup => 'Archiviate';
+
+  @override
+  String get categoriesArchivedBadge => 'Archiviata';
+
+  @override
+  String get categoriesRenameAction => 'Rinomina';
+
+  @override
+  String get categoriesArchiveAction => 'Archivia';
+
+  @override
+  String get categoriesReactivateAction => 'Riattiva';
+
+  @override
+  String get categoriesCreateSuccess => 'Categoria creata.';
+
+  @override
+  String get categoriesRenameSuccess => 'Categoria rinominata.';
+
+  @override
+  String get categoriesArchiveSuccess => 'Categoria archiviata.';
+
+  @override
+  String get categoriesReactivateSuccess => 'Categoria riattivata.';
+
+  @override
   String get emailRequired => 'Inserisci l\'email';
 
   @override

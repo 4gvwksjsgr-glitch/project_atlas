@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/route_paths.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/constants/app_ui_constants.dart';
 import '../../../../shared/helpers/validators.dart';
@@ -150,6 +152,15 @@ class _CompanySettingsFormState extends ConsumerState<CompanySettingsForm> {
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
+            ),
+            const SizedBox(height: AppUiConstants.spacingLarge),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.category_outlined),
+              title: Text(l10n.categoriesTitle),
+              subtitle: Text(l10n.categoriesSettingsLinkSubtitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push(RoutePaths.settingsCategories),
             ),
             const SizedBox(height: AppUiConstants.spacingLarge),
             Text(

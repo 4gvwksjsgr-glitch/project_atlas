@@ -291,4 +291,13 @@ void main() {
       expect(CompanyRole.employee.canManageTransactions, isFalse);
     });
   });
+
+  group('CompanyRole.canManageCategories', () {
+    test('owner admin manager possono gestire, employee no', () {
+      expect(CompanyRole.owner.canManageCategories, isTrue);
+      expect(CompanyRole.admin.canManageCategories, isTrue);
+      expect(CompanyRole.manager.canManageCategories, isTrue);
+      expect(CompanyRole.employee.canManageCategories, isFalse);
+    });
+  });
 }

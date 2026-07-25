@@ -994,6 +994,180 @@ abstract class AppLocalizations {
   /// **'Azienda aggiornata correttamente.'**
   String get companySettingsSaveSuccess;
 
+  /// No description provided for @categoriesTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Categorie'**
+  String get categoriesTitle;
+
+  /// No description provided for @categoriesSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Categorie operative di entrate e uscite (non fiscali).'**
+  String get categoriesSubtitle;
+
+  /// No description provided for @categoriesSettingsLinkSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Gestisci le categorie dei movimenti'**
+  String get categoriesSettingsLinkSubtitle;
+
+  /// No description provided for @categoriesNoActiveCompany.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna azienda attiva. Seleziona un\'azienda per continuare.'**
+  String get categoriesNoActiveCompany;
+
+  /// No description provided for @categoriesReadOnlyMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Puoi visualizzare le categorie, ma non modificarle.'**
+  String get categoriesReadOnlyMessage;
+
+  /// No description provided for @categoriesEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna categoria ancora. Aggiungi la prima categoria operativa.'**
+  String get categoriesEmpty;
+
+  /// No description provided for @categoriesSectionEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna categoria in questa sezione.'**
+  String get categoriesSectionEmpty;
+
+  /// No description provided for @categoriesLoadError.
+  ///
+  /// In it, this message translates to:
+  /// **'Caricamento categorie non riuscito. Riprova.'**
+  String get categoriesLoadError;
+
+  /// No description provided for @categoriesRetry.
+  ///
+  /// In it, this message translates to:
+  /// **'Riprova'**
+  String get categoriesRetry;
+
+  /// No description provided for @categoriesNewButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Nuova categoria'**
+  String get categoriesNewButton;
+
+  /// No description provided for @categoriesCreateTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Nuova categoria'**
+  String get categoriesCreateTitle;
+
+  /// No description provided for @categoriesRenameTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Rinomina categoria'**
+  String get categoriesRenameTitle;
+
+  /// No description provided for @categoriesNameLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Nome'**
+  String get categoriesNameLabel;
+
+  /// No description provided for @categoriesNameRequired.
+  ///
+  /// In it, this message translates to:
+  /// **'Il nome della categoria è obbligatorio.'**
+  String get categoriesNameRequired;
+
+  /// No description provided for @categoriesNameTooLong.
+  ///
+  /// In it, this message translates to:
+  /// **'Il nome della categoria non può superare i 80 caratteri.'**
+  String get categoriesNameTooLong;
+
+  /// No description provided for @categoriesCancel.
+  ///
+  /// In it, this message translates to:
+  /// **'Annulla'**
+  String get categoriesCancel;
+
+  /// No description provided for @categoriesSave.
+  ///
+  /// In it, this message translates to:
+  /// **'Salva'**
+  String get categoriesSave;
+
+  /// No description provided for @categoriesIncomeSection.
+  ///
+  /// In it, this message translates to:
+  /// **'Entrate'**
+  String get categoriesIncomeSection;
+
+  /// No description provided for @categoriesExpenseSection.
+  ///
+  /// In it, this message translates to:
+  /// **'Uscite'**
+  String get categoriesExpenseSection;
+
+  /// No description provided for @categoriesActiveGroup.
+  ///
+  /// In it, this message translates to:
+  /// **'Attive'**
+  String get categoriesActiveGroup;
+
+  /// No description provided for @categoriesArchivedGroup.
+  ///
+  /// In it, this message translates to:
+  /// **'Archiviate'**
+  String get categoriesArchivedGroup;
+
+  /// No description provided for @categoriesArchivedBadge.
+  ///
+  /// In it, this message translates to:
+  /// **'Archiviata'**
+  String get categoriesArchivedBadge;
+
+  /// No description provided for @categoriesRenameAction.
+  ///
+  /// In it, this message translates to:
+  /// **'Rinomina'**
+  String get categoriesRenameAction;
+
+  /// No description provided for @categoriesArchiveAction.
+  ///
+  /// In it, this message translates to:
+  /// **'Archivia'**
+  String get categoriesArchiveAction;
+
+  /// No description provided for @categoriesReactivateAction.
+  ///
+  /// In it, this message translates to:
+  /// **'Riattiva'**
+  String get categoriesReactivateAction;
+
+  /// No description provided for @categoriesCreateSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Categoria creata.'**
+  String get categoriesCreateSuccess;
+
+  /// No description provided for @categoriesRenameSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Categoria rinominata.'**
+  String get categoriesRenameSuccess;
+
+  /// No description provided for @categoriesArchiveSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Categoria archiviata.'**
+  String get categoriesArchiveSuccess;
+
+  /// No description provided for @categoriesReactivateSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Categoria riattivata.'**
+  String get categoriesReactivateSuccess;
+
   /// No description provided for @emailRequired.
   ///
   /// In it, this message translates to:

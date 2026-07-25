@@ -8,6 +8,7 @@ import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/signup_screen.dart';
 import '../../features/auth/presentation/screens/update_password_screen.dart';
+import '../../features/categories/presentation/screens/categories_screen.dart';
 import '../../features/clients/presentation/screens/customer_form_screen.dart';
 import '../../features/clients/presentation/screens/customer_import_screen.dart';
 import '../../features/clients/presentation/screens/customers_screen.dart';
@@ -156,6 +157,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: RoutePaths.settingsCompany,
                 builder: (context, state) => const CompanySettingsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'categories',
+                    builder: (context, state) => const CategoriesScreen(),
+                  ),
+                ],
               ),
             ],
           ),

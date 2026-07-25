@@ -12,6 +12,9 @@ class CashTransactionModel {
     required this.occurredOn,
     required this.description,
     this.notes,
+    this.categoryId,
+    this.categoryName,
+    this.categoryIsActive,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -24,16 +27,33 @@ class CashTransactionModel {
   final DateTime occurredOn;
   final String description;
   final String? notes;
+  final String? categoryId;
+  final String? categoryName;
+  final bool? categoryIsActive;
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  /// Select con embed esplicito sulla FK Step 12B (evita ambiguità PostgREST).
   static const selectColumns =
       'id, company_id, client_id, kind, amount, occurred_on, '
-      'description, notes, created_at, updated_at';
+      'description, notes, category_id, created_at, updated_at, '
+      'category:transaction_categories!transactions_category_same_company_kind('
+      'id, name, kind, is_active'
+      ')';
 
   factory CashTransactionModel.fromJson(Map<String, dynamic> json) {
     final amountRaw = json['amount'];
     final amountString = amountRaw is String ? amountRaw : amountRaw.toString();
+
+    final categoryId = json['category_id'] as String?;
+    String? categoryName;
+    bool? categoryIsActive;
+    final categoryRaw = json['category'];
+    if (categoryRaw is Map) {
+      final category = Map<String, dynamic>.from(categoryRaw);
+      categoryName = category['name'] as String?;
+      categoryIsActive = category['is_active'] as bool?;
+    }
 
     return CashTransactionModel(
       id: json['id'] as String,
@@ -46,6 +66,9 @@ class CashTransactionModel {
       ),
       description: json['description'] as String,
       notes: json['notes'] as String?,
+      categoryId: categoryId,
+      categoryName: categoryName,
+      categoryIsActive: categoryIsActive,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
@@ -61,6 +84,9 @@ class CashTransactionModel {
       occurredOn: occurredOn,
       description: description,
       notes: notes,
+      categoryId: categoryId,
+      categoryName: categoryName,
+      categoryIsActive: categoryIsActive,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );

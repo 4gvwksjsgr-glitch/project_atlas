@@ -19,6 +19,7 @@ void main() {
               'id': 't1',
               'company_id': companyId,
               'client_id': null,
+              'category_id': null,
               'kind': 'income',
               'amount': '10.00',
               'occurred_on': '2026-07-17',
@@ -67,6 +68,7 @@ void main() {
               ({
                 required String companyId,
                 String? clientId,
+                String? categoryId,
                 required TransactionKind kind,
                 required MoneyAmount amount,
                 required DateTime occurredOn,
@@ -76,6 +78,7 @@ void main() {
                 payload = {
                   'company_id': companyId,
                   'client_id': clientId,
+                  'category_id': categoryId,
                   'kind': kind.dbValue,
                   'amount': amount.toCanonicalDecimal(),
                   'occurred_on': CalendarDate.toIsoDate(occurredOn),
@@ -86,6 +89,7 @@ void main() {
                   'id': 'new-1',
                   'company_id': companyId,
                   'client_id': clientId,
+                  'category_id': categoryId,
                   'kind': kind.dbValue,
                   'amount': amount.toCanonicalDecimal(),
                   'occurred_on': CalendarDate.toIsoDate(occurredOn),
@@ -110,10 +114,64 @@ void main() {
         expect(payload?['amount'], '12.99');
         expect(payload?['occurred_on'], '2026-07-17');
         expect(payload?['notes'], isNull);
+        expect(payload?['category_id'], isNull);
         expect(transaction.id, 'new-1');
         expect(transaction, isA<CashTransactionModel>());
       },
     );
+
+    test('create include category_id quando fornito', () async {
+      Map<String, dynamic>? payload;
+
+      final dataSource = TransactionRemoteDataSource.test(
+        createExecutor:
+            ({
+              required String companyId,
+              String? clientId,
+              String? categoryId,
+              required TransactionKind kind,
+              required MoneyAmount amount,
+              required DateTime occurredOn,
+              required String description,
+              String? notes,
+            }) async {
+              payload = {
+                'company_id': companyId,
+                'client_id': clientId,
+                'category_id': categoryId,
+                'kind': kind.dbValue,
+                'amount': amount.toCanonicalDecimal(),
+                'occurred_on': CalendarDate.toIsoDate(occurredOn),
+                'description': description,
+                'notes': notes,
+              };
+              return {
+                'id': 'new-2',
+                'company_id': companyId,
+                'client_id': clientId,
+                'category_id': categoryId,
+                'kind': kind.dbValue,
+                'amount': amount.toCanonicalDecimal(),
+                'occurred_on': CalendarDate.toIsoDate(occurredOn),
+                'description': description,
+                'notes': notes,
+                'created_at': '2026-07-17T00:00:00.000Z',
+                'updated_at': '2026-07-17T00:00:00.000Z',
+              };
+            },
+      );
+
+      await dataSource.createTransaction(
+        companyId: 'company-7',
+        categoryId: 'cat-9',
+        kind: TransactionKind.expense,
+        amount: MoneyAmount.parse('12,99'),
+        occurredOn: DateTime(2026, 7, 17),
+        description: 'Licenza',
+      );
+
+      expect(payload?['category_id'], 'cat-9');
+    });
 
     test(
       'update usa doppio filtro id + company_id nel payload query',
@@ -127,6 +185,7 @@ void main() {
                 required String companyId,
                 required String transactionId,
                 String? clientId,
+                String? categoryId,
                 required TransactionKind kind,
                 required MoneyAmount amount,
                 required DateTime occurredOn,
@@ -139,6 +198,7 @@ void main() {
                   'id': transactionId,
                   'company_id': companyId,
                   'client_id': clientId,
+                  'category_id': categoryId,
                   'kind': kind.dbValue,
                   'amount': amount.toCanonicalDecimal(),
                   'occurred_on': CalendarDate.toIsoDate(occurredOn),
@@ -176,6 +236,7 @@ void main() {
                 required String companyId,
                 required String transactionId,
                 String? clientId,
+                String? categoryId,
                 required TransactionKind kind,
                 required MoneyAmount amount,
                 required DateTime occurredOn,
@@ -183,8 +244,10 @@ void main() {
                 String? notes,
               }) async {
                 // Mai company_id nel payload di update: solo filtro via id/company_id.
+                // category_id deve essere sempre presente (anche null) per consentire la rimozione.
                 capturedPayload = {
                   'client_id': clientId,
+                  'category_id': categoryId,
                   'kind': kind.dbValue,
                   'amount': amount.toCanonicalDecimal(),
                   'occurred_on': CalendarDate.toIsoDate(occurredOn),
@@ -195,6 +258,7 @@ void main() {
                   'id': transactionId,
                   'company_id': companyId,
                   'client_id': clientId,
+                  'category_id': categoryId,
                   'kind': kind.dbValue,
                   'amount': amount.toCanonicalDecimal(),
                   'occurred_on': CalendarDate.toIsoDate(occurredOn),
@@ -217,6 +281,66 @@ void main() {
 
         expect(capturedPayload, isNotNull);
         expect(capturedPayload!.containsKey('company_id'), isFalse);
+        expect(capturedPayload!.containsKey('category_id'), isTrue);
+        expect(capturedPayload!['category_id'], isNull);
+      },
+    );
+
+    test(
+      'update con categoryId null include esplicitamente category_id',
+      () async {
+        Map<String, dynamic>? capturedPayload;
+
+        final dataSource = TransactionRemoteDataSource.test(
+          updateExecutor:
+              ({
+                required String companyId,
+                required String transactionId,
+                String? clientId,
+                String? categoryId,
+                required TransactionKind kind,
+                required MoneyAmount amount,
+                required DateTime occurredOn,
+                required String description,
+                String? notes,
+              }) async {
+                capturedPayload = {
+                  'client_id': clientId,
+                  'category_id': categoryId,
+                  'kind': kind.dbValue,
+                  'amount': amount.toCanonicalDecimal(),
+                  'occurred_on': CalendarDate.toIsoDate(occurredOn),
+                  'description': description,
+                  'notes': notes,
+                };
+                return {
+                  'id': transactionId,
+                  'company_id': companyId,
+                  'client_id': clientId,
+                  'category_id': categoryId,
+                  'kind': kind.dbValue,
+                  'amount': amount.toCanonicalDecimal(),
+                  'occurred_on': CalendarDate.toIsoDate(occurredOn),
+                  'description': description,
+                  'notes': notes,
+                  'created_at': '2026-07-17T00:00:00.000Z',
+                  'updated_at': '2026-07-18T00:00:00.000Z',
+                };
+              },
+        );
+
+        await dataSource.updateTransaction(
+          companyId: 'company-7',
+          transactionId: 'txn-3',
+          categoryId: null,
+          kind: TransactionKind.expense,
+          amount: MoneyAmount.parse('20,00'),
+          occurredOn: DateTime(2026, 7, 18),
+          description: 'Senza categoria',
+        );
+
+        expect(capturedPayload!.containsKey('category_id'), isTrue);
+        expect(capturedPayload!['category_id'], isNull);
       },
     );
 

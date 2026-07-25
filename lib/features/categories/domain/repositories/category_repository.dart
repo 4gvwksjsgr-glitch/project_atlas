@@ -7,6 +7,12 @@ abstract class CategoryRepository {
     required String companyId,
   });
 
+  /// Singola categoria tenant-scoped (per validazione assegnazione movimenti).
+  Future<Result<TransactionCategory>> getCategory({
+    required String companyId,
+    required String categoryId,
+  });
+
   Future<Result<TransactionCategory>> createCategory({
     required String companyId,
     required String name,

@@ -501,6 +501,33 @@ class AppLocalizationsIt extends AppLocalizations {
   String get transactionUpdateSuccess => 'Movimento aggiornato correttamente.';
 
   @override
+  String get transactionCategoryLabel => 'Categoria';
+
+  @override
+  String get transactionCategoryNone => 'Nessuna categoria';
+
+  @override
+  String get transactionCategoryArchived => 'Archiviata';
+
+  @override
+  String get transactionCategoriesLoading => 'Caricamento categorie...';
+
+  @override
+  String get transactionCategoriesLoadError =>
+      'Caricamento categorie non riuscito. Riprova.';
+
+  @override
+  String get transactionCategoriesEmpty =>
+      'Nessuna categoria disponibile per questo tipo.';
+
+  @override
+  String get transactionCategoriesManageLink => 'Gestisci categorie';
+
+  @override
+  String get transactionCategoryInvalid =>
+      'La categoria selezionata non è valida per questo movimento.';
+
+  @override
   String get companySettingsTitle => 'Impostazioni azienda';
 
   @override

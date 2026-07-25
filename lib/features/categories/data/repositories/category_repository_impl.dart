@@ -35,6 +35,41 @@ class CategoryRepositoryImpl implements CategoryRepository {
   }
 
   @override
+  Future<Result<TransactionCategory>> getCategory({
+    required String companyId,
+    required String categoryId,
+  }) async {
+    if (companyId.isEmpty) {
+      return const Error(ValidationFailure('Azienda non valida.'));
+    }
+    if (categoryId.isEmpty) {
+      return const Error(ValidationFailure('Categoria non valida.'));
+    }
+
+    try {
+      final category = await _remoteDataSource.getCategory(
+        companyId: companyId,
+        categoryId: categoryId,
+      );
+      if (category == null) {
+        return const Error(
+          ValidationFailure(
+            'La categoria selezionata non è valida per questo movimento.',
+          ),
+        );
+      }
+      return Success(category.toEntity());
+    } on Object catch (error) {
+      return Error(
+        CategoryErrorMapper.mapException(
+          error,
+          CategoryOperation.getCategories,
+        ),
+      );
+    }
+  }
+
+  @override
   Future<Result<TransactionCategory>> createCategory({
     required String companyId,
     required String name,

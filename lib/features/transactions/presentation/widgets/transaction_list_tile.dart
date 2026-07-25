@@ -24,6 +24,13 @@ class TransactionListTile extends StatelessWidget {
         ? theme.colorScheme.primary
         : theme.colorScheme.error;
 
+    final categoryName = transaction.categoryName?.trim();
+    final subtitleParts = <String>[
+      kindLabel,
+      CalendarDate.toIsoDate(transaction.occurredOn),
+      if (categoryName != null && categoryName.isNotEmpty) categoryName,
+    ];
+
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: amountColor.withValues(alpha: 0.12),
@@ -32,7 +39,7 @@ class TransactionListTile extends StatelessWidget {
       ),
       title: Text(transaction.description),
       subtitle: Text(
-        '$kindLabel · ${CalendarDate.toIsoDate(transaction.occurredOn)}',
+        subtitleParts.join(' · '),
         style: theme.textTheme.bodySmall?.copyWith(
           color: theme.colorScheme.onSurfaceVariant,
         ),

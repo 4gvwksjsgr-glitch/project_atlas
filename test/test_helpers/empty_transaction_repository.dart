@@ -20,6 +20,7 @@ class EmptyTransactionRepository implements TransactionRepository {
   Future<Result<CashTransaction>> createTransaction({
     required String companyId,
     String? clientId,
+    String? categoryId,
     required TransactionKind kind,
     required MoneyAmount amount,
     required DateTime occurredOn,
@@ -34,6 +35,7 @@ class EmptyTransactionRepository implements TransactionRepository {
     required String companyId,
     required String transactionId,
     String? clientId,
+    String? categoryId,
     required TransactionKind kind,
     required MoneyAmount amount,
     required DateTime occurredOn,

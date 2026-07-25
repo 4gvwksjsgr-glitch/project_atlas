@@ -87,6 +87,76 @@ void main() {
 
       expect(model.amount.cents, 4250);
     });
+
+    test('senza categoria: categoryId e embed null', () {
+      final model = CashTransactionModel.fromJson({
+        'id': 't6',
+        'company_id': 'co1',
+        'client_id': null,
+        'category_id': null,
+        'kind': 'expense',
+        'amount': '10.00',
+        'occurred_on': '2026-07-17',
+        'description': 'Senza categoria',
+        'notes': null,
+        'created_at': '2026-07-17T00:00:00.000Z',
+        'updated_at': '2026-07-17T00:00:00.000Z',
+      });
+
+      expect(model.categoryId, isNull);
+      expect(model.categoryName, isNull);
+      expect(model.categoryIsActive, isNull);
+    });
+
+    test('con embed category map attiva', () {
+      final model = CashTransactionModel.fromJson({
+        'id': 't7',
+        'company_id': 'co1',
+        'client_id': null,
+        'category_id': 'cat-1',
+        'kind': 'expense',
+        'amount': '10.00',
+        'occurred_on': '2026-07-17',
+        'description': 'Con categoria',
+        'notes': null,
+        'category': {
+          'id': 'cat-1',
+          'name': 'Software',
+          'kind': 'expense',
+          'is_active': true,
+        },
+        'created_at': '2026-07-17T00:00:00.000Z',
+        'updated_at': '2026-07-17T00:00:00.000Z',
+      });
+
+      expect(model.categoryId, 'cat-1');
+      expect(model.categoryName, 'Software');
+      expect(model.categoryIsActive, isTrue);
+    });
+
+    test('con categoria archiviata (is_active false)', () {
+      final model = CashTransactionModel.fromJson({
+        'id': 't8',
+        'company_id': 'co1',
+        'category_id': 'cat-2',
+        'kind': 'income',
+        'amount': '25.00',
+        'occurred_on': '2026-07-17',
+        'description': 'Categoria archiviata',
+        'category': {
+          'id': 'cat-2',
+          'name': 'Vecchia',
+          'kind': 'income',
+          'is_active': false,
+        },
+        'created_at': '2026-07-17T00:00:00.000Z',
+        'updated_at': '2026-07-17T00:00:00.000Z',
+      });
+
+      expect(model.categoryId, 'cat-2');
+      expect(model.categoryName, 'Vecchia');
+      expect(model.categoryIsActive, isFalse);
+    });
   });
 
   group('CashTransactionModel.toEntity', () {
@@ -95,11 +165,18 @@ void main() {
         'id': 't1',
         'company_id': 'co1',
         'client_id': 'cl1',
+        'category_id': 'cat-1',
         'kind': 'income',
         'amount': '150.00',
         'occurred_on': '2026-07-17',
         'description': 'Vendita merce',
         'notes': 'Pagato in contanti',
+        'category': {
+          'id': 'cat-1',
+          'name': 'Vendite',
+          'kind': 'income',
+          'is_active': true,
+        },
         'created_at': '2026-07-17T08:00:00.000Z',
         'updated_at': '2026-07-18T09:00:00.000Z',
       });
@@ -109,6 +186,9 @@ void main() {
       expect(entity.id, 't1');
       expect(entity.companyId, 'co1');
       expect(entity.clientId, 'cl1');
+      expect(entity.categoryId, 'cat-1');
+      expect(entity.categoryName, 'Vendite');
+      expect(entity.categoryIsActive, isTrue);
       expect(entity.kind, TransactionKind.income);
       expect(entity.amount.cents, 15000);
       expect(entity.occurredOn, DateTime(2026, 7, 17));

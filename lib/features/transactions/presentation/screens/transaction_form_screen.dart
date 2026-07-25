@@ -14,6 +14,8 @@ import '../../domain/value_objects/calendar_date.dart';
 import '../../domain/value_objects/money_amount.dart';
 import '../controllers/transaction_form_controller.dart';
 import '../providers/transaction_providers.dart';
+import '../widgets/transaction_category_picker.dart';
+import '../../../categories/domain/entities/transaction_category.dart';
 
 class TransactionFormScreen extends ConsumerWidget {
   const TransactionFormScreen({super.key, this.transactionId});
@@ -141,6 +143,8 @@ class _TransactionFormBodyState extends ConsumerState<TransactionFormBody> {
   late TransactionKind _kind;
   late DateTime _occurredOn;
   String? _clientId;
+  String? _categoryId;
+  TransactionCategory? _keptArchivedCategory;
 
   TransactionFormKey get _formArg =>
       (companyId: widget.companyId, transactionId: widget.transactionId);
@@ -152,6 +156,20 @@ class _TransactionFormBodyState extends ConsumerState<TransactionFormBody> {
     _kind = initial?.kind ?? TransactionKind.expense;
     _occurredOn = initial?.occurredOn ?? CalendarDate.todayLocal();
     _clientId = initial?.clientId;
+    _categoryId = initial?.categoryId;
+    if (initial?.categoryId != null &&
+        initial!.categoryName != null &&
+        initial.categoryIsActive == false) {
+      _keptArchivedCategory = TransactionCategory(
+        id: initial.categoryId!,
+        companyId: initial.companyId,
+        name: initial.categoryName!,
+        kind: initial.kind,
+        isActive: false,
+        createdAt: initial.createdAt,
+        updatedAt: initial.updatedAt,
+      );
+    }
     _amountController = TextEditingController(
       text: initial?.amount.formatEuro() ?? '',
     );
@@ -214,6 +232,7 @@ class _TransactionFormBodyState extends ConsumerState<TransactionFormBody> {
 
     await controller.save(
       clientId: _clientId,
+      categoryId: _categoryId,
       kind: _kind,
       amount: amount,
       occurredOn: _occurredOn,
@@ -300,9 +319,23 @@ class _TransactionFormBodyState extends ConsumerState<TransactionFormBody> {
                   selected: {_kind},
                   onSelectionChanged: widget.canEdit && !isLoading
                       ? (values) {
-                          setState(() => _kind = values.first);
+                          setState(() {
+                            _kind = values.first;
+                            _categoryId = null;
+                          });
                         }
                       : null,
+                ),
+                const SizedBox(height: AppUiConstants.spacingMedium),
+                TransactionCategoryPicker(
+                  companyId: widget.companyId,
+                  kind: _kind,
+                  selectedCategoryId: _categoryId,
+                  keptArchivedCategory: _keptArchivedCategory?.kind == _kind
+                      ? _keptArchivedCategory
+                      : null,
+                  canEdit: widget.canEdit && !isLoading,
+                  onSelected: (value) => setState(() => _categoryId = value),
                 ),
                 const SizedBox(height: AppUiConstants.spacingMedium),
                 TextFormField(

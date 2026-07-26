@@ -328,11 +328,155 @@ abstract class AppLocalizations {
   /// **'Movimenti'**
   String get navTransactions;
 
+  /// No description provided for @navDocuments.
+  ///
+  /// In it, this message translates to:
+  /// **'Documenti'**
+  String get navDocuments;
+
   /// No description provided for @navSettings.
   ///
   /// In it, this message translates to:
   /// **'Impostazioni'**
   String get navSettings;
+
+  /// No description provided for @cancel.
+  ///
+  /// In it, this message translates to:
+  /// **'Annulla'**
+  String get cancel;
+
+  /// No description provided for @save.
+  ///
+  /// In it, this message translates to:
+  /// **'Salva'**
+  String get save;
+
+  /// No description provided for @documentsTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Documenti'**
+  String get documentsTitle;
+
+  /// No description provided for @documentsEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun documento ancora. Carica il primo documento per iniziare.'**
+  String get documentsEmpty;
+
+  /// No description provided for @documentsLoadError.
+  ///
+  /// In it, this message translates to:
+  /// **'Caricamento documenti non riuscito. Riprova.'**
+  String get documentsLoadError;
+
+  /// No description provided for @documentsRetry.
+  ///
+  /// In it, this message translates to:
+  /// **'Riprova'**
+  String get documentsRetry;
+
+  /// No description provided for @documentsUpload.
+  ///
+  /// In it, this message translates to:
+  /// **'Carica documento'**
+  String get documentsUpload;
+
+  /// No description provided for @documentsUploadConfirm.
+  ///
+  /// In it, this message translates to:
+  /// **'Carica'**
+  String get documentsUploadConfirm;
+
+  /// No description provided for @documentsUploadSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Documento caricato.'**
+  String get documentsUploadSuccess;
+
+  /// No description provided for @documentsUploadError.
+  ///
+  /// In it, this message translates to:
+  /// **'Caricamento documento non riuscito. Riprova.'**
+  String get documentsUploadError;
+
+  /// No description provided for @documentTitleLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Titolo'**
+  String get documentTitleLabel;
+
+  /// No description provided for @documentOpen.
+  ///
+  /// In it, this message translates to:
+  /// **'Apri'**
+  String get documentOpen;
+
+  /// No description provided for @documentOpenFailed.
+  ///
+  /// In it, this message translates to:
+  /// **'Impossibile aprire il documento.'**
+  String get documentOpenFailed;
+
+  /// No description provided for @documentRename.
+  ///
+  /// In it, this message translates to:
+  /// **'Rinomina'**
+  String get documentRename;
+
+  /// No description provided for @documentRenameSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Titolo aggiornato.'**
+  String get documentRenameSuccess;
+
+  /// No description provided for @documentRenameError.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiornamento titolo non riuscito. Riprova.'**
+  String get documentRenameError;
+
+  /// No description provided for @documentArchive.
+  ///
+  /// In it, this message translates to:
+  /// **'Archivia'**
+  String get documentArchive;
+
+  /// No description provided for @documentRestore.
+  ///
+  /// In it, this message translates to:
+  /// **'Ripristina'**
+  String get documentRestore;
+
+  /// No description provided for @documentArchived.
+  ///
+  /// In it, this message translates to:
+  /// **'Archiviato'**
+  String get documentArchived;
+
+  /// No description provided for @documentArchiveSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Documento archiviato.'**
+  String get documentArchiveSuccess;
+
+  /// No description provided for @documentRestoreSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Documento ripristinato.'**
+  String get documentRestoreSuccess;
+
+  /// No description provided for @documentArchiveError.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiornamento archivio non riuscito. Riprova.'**
+  String get documentArchiveError;
+
+  /// No description provided for @documentReadOnlyMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Non hai i permessi per caricare o modificare i documenti. Puoi solo visualizzarli e aprirli.'**
+  String get documentReadOnlyMessage;
 
   /// No description provided for @customersTitle.
   ///

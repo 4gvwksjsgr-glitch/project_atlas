@@ -1,8 +1,9 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/di/providers.dart';
+import '../../../../core/files/app_file_pick_result.dart';
 import '../../../../core/router/route_paths.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/constants/app_ui_constants.dart';
@@ -146,20 +147,26 @@ class _InfoStep extends ConsumerWidget {
           onPressed: state.isBusy
               ? null
               : () async {
-                  final result = await FilePicker.pickFiles(
-                    type: FileType.custom,
-                    allowedExtensions: const ['csv', 'xlsx'],
-                    withData: true,
-                  );
-                  if (result == null || result.files.isEmpty) {
-                    return;
+                  final pickResult = await ref
+                      .read(appFilePickerProvider)
+                      .pickCustomerImportFile();
+                  switch (pickResult) {
+                    case AppFilePickCancelled():
+                      return;
+                    case AppFilePickFailure(:final message):
+                      if (!context.mounted) {
+                        return;
+                      }
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(message)));
+                      return;
+                    case AppFilePickSuccess(:final file):
+                      await controller.loadFile(
+                        fileName: file.name,
+                        bytes: file.bytes,
+                      );
                   }
-                  final file = result.files.single;
-                  final bytes = file.bytes;
-                  if (bytes == null) {
-                    return;
-                  }
-                  await controller.loadFile(fileName: file.name, bytes: bytes);
                 },
           icon: const Icon(Icons.upload_file),
           label: Text(l10n.customersImportPickFile),

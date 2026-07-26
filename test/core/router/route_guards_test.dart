@@ -284,6 +284,30 @@ void main() {
       );
     });
 
+    test('route Documenti protetta senza auth va al login', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.documents,
+          isAuthenticated: false,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesEmpty(),
+        ),
+        RoutePaths.login,
+      );
+    });
+
+    test('UserCompaniesReady lascia accessibile Documenti', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.documents,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesReady(),
+        ),
+        isNull,
+      );
+    });
+
     test(
       'utente autenticato con azienda attiva su onboarding va a dashboard',
       () {

@@ -20,6 +20,7 @@ abstract final class AuthRedirectConfig {
     RoutePaths.dashboard,
     RoutePaths.clients,
     RoutePaths.transactions,
+    RoutePaths.documents,
     RoutePaths.settingsCompany,
     RoutePaths.settingsCategories,
     RoutePaths.onboardingCompany,
@@ -34,7 +35,7 @@ abstract final class AuthRedirectConfig {
     return restrictedAuthRoutes.contains(location);
   }
 
-  /// Dashboard, Clienti, Movimenti (e sottorotte) e Impostazioni.
+  /// Dashboard, Clienti, Movimenti, Documenti (e sottorotte) e Impostazioni.
   static bool isTenantShellRoute(String location) {
     return location == RoutePaths.dashboard ||
         location == RoutePaths.settingsCompany ||
@@ -42,13 +43,16 @@ abstract final class AuthRedirectConfig {
         location == RoutePaths.clients ||
         location.startsWith('${RoutePaths.clients}/') ||
         location == RoutePaths.transactions ||
-        location.startsWith('${RoutePaths.transactions}/');
+        location.startsWith('${RoutePaths.transactions}/') ||
+        location == RoutePaths.documents ||
+        location.startsWith('${RoutePaths.documents}/');
   }
 
   static bool isProtectedRoute(String location) {
     return protectedRoutes.contains(location) ||
         location.startsWith('${RoutePaths.clients}/') ||
         location.startsWith('${RoutePaths.transactions}/') ||
+        location.startsWith('${RoutePaths.documents}/') ||
         location.startsWith('${RoutePaths.settingsCompany}/');
   }
 }

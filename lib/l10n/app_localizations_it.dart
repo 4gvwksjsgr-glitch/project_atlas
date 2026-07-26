@@ -139,7 +139,85 @@ class AppLocalizationsIt extends AppLocalizations {
   String get navTransactions => 'Movimenti';
 
   @override
+  String get navDocuments => 'Documenti';
+
+  @override
   String get navSettings => 'Impostazioni';
+
+  @override
+  String get cancel => 'Annulla';
+
+  @override
+  String get save => 'Salva';
+
+  @override
+  String get documentsTitle => 'Documenti';
+
+  @override
+  String get documentsEmpty =>
+      'Nessun documento ancora. Carica il primo documento per iniziare.';
+
+  @override
+  String get documentsLoadError =>
+      'Caricamento documenti non riuscito. Riprova.';
+
+  @override
+  String get documentsRetry => 'Riprova';
+
+  @override
+  String get documentsUpload => 'Carica documento';
+
+  @override
+  String get documentsUploadConfirm => 'Carica';
+
+  @override
+  String get documentsUploadSuccess => 'Documento caricato.';
+
+  @override
+  String get documentsUploadError =>
+      'Caricamento documento non riuscito. Riprova.';
+
+  @override
+  String get documentTitleLabel => 'Titolo';
+
+  @override
+  String get documentOpen => 'Apri';
+
+  @override
+  String get documentOpenFailed => 'Impossibile aprire il documento.';
+
+  @override
+  String get documentRename => 'Rinomina';
+
+  @override
+  String get documentRenameSuccess => 'Titolo aggiornato.';
+
+  @override
+  String get documentRenameError =>
+      'Aggiornamento titolo non riuscito. Riprova.';
+
+  @override
+  String get documentArchive => 'Archivia';
+
+  @override
+  String get documentRestore => 'Ripristina';
+
+  @override
+  String get documentArchived => 'Archiviato';
+
+  @override
+  String get documentArchiveSuccess => 'Documento archiviato.';
+
+  @override
+  String get documentRestoreSuccess => 'Documento ripristinato.';
+
+  @override
+  String get documentArchiveError =>
+      'Aggiornamento archivio non riuscito. Riprova.';
+
+  @override
+  String get documentReadOnlyMessage =>
+      'Non hai i permessi per caricare o modificare i documenti. Puoi solo visualizzarli e aprirli.';
 
   @override
   String get customersTitle => 'Clienti';

@@ -7,6 +7,7 @@ import 'package:project_atlas/core/permissions/company_role.dart';
 import 'package:project_atlas/core/router/route_guards.dart';
 import 'package:project_atlas/core/router/route_paths.dart';
 import 'package:project_atlas/core/router/shell_scaffold.dart';
+import 'package:project_atlas/features/documents/presentation/screens/documents_screen.dart';
 import 'package:project_atlas/core/storage/app_shared_preferences.dart';
 import 'package:project_atlas/core/utils/result.dart';
 import 'package:project_atlas/features/auth/presentation/providers/auth_providers.dart';
@@ -39,6 +40,7 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _dashboardNavigatorKey = GlobalKey<NavigatorState>();
 final _clientsNavigatorKey = GlobalKey<NavigatorState>();
 final _transactionsNavigatorKey = GlobalKey<NavigatorState>();
+final _documentsNavigatorKey = GlobalKey<NavigatorState>();
 final _settingsNavigatorKey = GlobalKey<NavigatorState>();
 
 CompanyMembership _membership({
@@ -285,6 +287,15 @@ Future<(ProviderContainer, GoRouter)> _pumpCategories({
                       GoRoute(
                         path: RoutePaths.transactions,
                         builder: (context, state) => const TransactionsScreen(),
+                      ),
+                    ],
+                  ),
+                  StatefulShellBranch(
+                    navigatorKey: _documentsNavigatorKey,
+                    routes: [
+                      GoRoute(
+                        path: RoutePaths.documents,
+                        builder: (context, state) => const DocumentsScreen(),
                       ),
                     ],
                   ),

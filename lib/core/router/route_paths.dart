@@ -13,6 +13,7 @@ abstract final class RoutePaths {
   static const customersImport = '/clients/import';
   static const transactions = '/transactions';
   static const transactionNew = '/transactions/new';
+  static const documents = '/documents';
   static const settingsCompany = '/settings/company';
   static const settingsCategories = '/settings/company/categories';
 

@@ -17,6 +17,7 @@ import '../../features/companies/presentation/screens/company_onboarding_screen.
 import '../../features/companies/presentation/screens/company_selector_screen.dart';
 import '../../features/companies/presentation/screens/company_settings_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
+import '../../features/documents/presentation/screens/documents_screen.dart';
 import '../../features/transactions/presentation/screens/transaction_form_screen.dart';
 import '../../features/transactions/presentation/screens/transactions_screen.dart';
 import 'route_guards.dart';
@@ -30,6 +31,9 @@ final _dashboardNavigatorKey = GlobalKey<NavigatorState>(
 final _clientsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'clients');
 final _transactionsNavigatorKey = GlobalKey<NavigatorState>(
   debugLabel: 'transactions',
+);
+final _documentsNavigatorKey = GlobalKey<NavigatorState>(
+  debugLabel: 'documents',
 );
 final _settingsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'settings');
 
@@ -148,6 +152,15 @@ final routerProvider = Provider<GoRouter>((ref) {
                     },
                   ),
                 ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _documentsNavigatorKey,
+            routes: [
+              GoRoute(
+                path: RoutePaths.documents,
+                builder: (context, state) => const DocumentsScreen(),
               ),
             ],
           ),

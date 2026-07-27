@@ -126,3 +126,68 @@ class SetDocumentArchived {
     );
   }
 }
+
+class UpdateDocumentLinks {
+  const UpdateDocumentLinks(this._repository);
+
+  final DocumentRepository _repository;
+
+  Future<Result<CompanyDocument>> call({
+    required String companyId,
+    required String documentId,
+    required String? clientId,
+    required String? transactionId,
+  }) {
+    final normalizedCompanyId = companyId.trim();
+    final normalizedDocumentId = documentId.trim();
+    if (normalizedCompanyId.isEmpty || normalizedDocumentId.isEmpty) {
+      return Future.value(
+        const Error(ValidationFailure('Documento non trovato.')),
+      );
+    }
+
+    final normalizedClientId = _normalizeOptionalId(clientId);
+    final normalizedTransactionId = _normalizeOptionalId(transactionId);
+
+    return _repository.updateDocumentLinks(
+      companyId: normalizedCompanyId,
+      documentId: normalizedDocumentId,
+      clientId: normalizedClientId,
+      transactionId: normalizedTransactionId,
+    );
+  }
+
+  static String? _normalizeOptionalId(String? value) {
+    if (value == null) {
+      return null;
+    }
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+    return trimmed;
+  }
+}
+
+class DeleteDocumentPermanently {
+  const DeleteDocumentPermanently(this._repository);
+
+  final DocumentRepository _repository;
+
+  Future<Result<void>> call({
+    required String companyId,
+    required String documentId,
+  }) {
+    final normalizedCompanyId = companyId.trim();
+    final normalizedDocumentId = documentId.trim();
+    if (normalizedCompanyId.isEmpty || normalizedDocumentId.isEmpty) {
+      return Future.value(
+        const Error(ValidationFailure('Documento non trovato.')),
+      );
+    }
+    return _repository.deleteDocumentPermanently(
+      companyId: normalizedCompanyId,
+      documentId: normalizedDocumentId,
+    );
+  }
+}

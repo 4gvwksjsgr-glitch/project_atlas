@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/errors/exceptions.dart';
 import '../models/company_document_model.dart';
 
 typedef DocumentsListExecutor =
@@ -22,6 +23,20 @@ typedef DocumentGetExecutor =
       required String documentId,
     });
 
+typedef DocumentDeleteMetadataExecutor =
+    Future<DocumentMetadataDeleteResult> Function({
+      required String companyId,
+      required String documentId,
+    });
+
+typedef DocumentDeleteRowsExecutor =
+    Future<List<Map<String, dynamic>>> Function({
+      required String companyId,
+      required String documentId,
+    });
+
+enum DocumentMetadataDeleteResult { deleted, alreadyAbsent }
+
 class DocumentRemoteDataSource {
   DocumentRemoteDataSource(
     SupabaseClient client, {
@@ -29,6 +44,8 @@ class DocumentRemoteDataSource {
     @visibleForTesting this._insertExecutor,
     @visibleForTesting this._updateExecutor,
     @visibleForTesting this._getExecutor,
+    @visibleForTesting this._deleteMetadataExecutor,
+    @visibleForTesting this._deleteRowsExecutor,
   }) : _client = client;
 
   @visibleForTesting
@@ -37,6 +54,8 @@ class DocumentRemoteDataSource {
     this._insertExecutor,
     this._updateExecutor,
     this._getExecutor,
+    this._deleteMetadataExecutor,
+    this._deleteRowsExecutor,
   }) : _client = null;
 
   final SupabaseClient? _client;
@@ -44,6 +63,8 @@ class DocumentRemoteDataSource {
   final DocumentInsertExecutor? _insertExecutor;
   final DocumentUpdateExecutor? _updateExecutor;
   final DocumentGetExecutor? _getExecutor;
+  final DocumentDeleteMetadataExecutor? _deleteMetadataExecutor;
+  final DocumentDeleteRowsExecutor? _deleteRowsExecutor;
 
   Future<List<CompanyDocumentModel>> getDocuments({
     required String companyId,
@@ -101,6 +122,25 @@ class DocumentRemoteDataSource {
     return CompanyDocumentModel.fromJson(row);
   }
 
+  /// Aggiorna atomicamente entrambi i collegamenti (UUID o null).
+  Future<CompanyDocumentModel> updateLinks({
+    required String companyId,
+    required String documentId,
+    required String? clientId,
+    required String? transactionId,
+  }) async {
+    final executor = _updateExecutor ?? _executeUpdate;
+    final row = await executor(
+      companyId: companyId,
+      documentId: documentId,
+      values: <String, dynamic>{
+        'client_id': clientId,
+        'transaction_id': transactionId,
+      },
+    );
+    return CompanyDocumentModel.fromJson(row);
+  }
+
   Future<CompanyDocumentModel> getDocument({
     required String companyId,
     required String documentId,
@@ -108,6 +148,14 @@ class DocumentRemoteDataSource {
     final executor = _getExecutor ?? _executeGet;
     final row = await executor(companyId: companyId, documentId: documentId);
     return CompanyDocumentModel.fromJson(row);
+  }
+
+  Future<DocumentMetadataDeleteResult> deleteDocumentMetadata({
+    required String companyId,
+    required String documentId,
+  }) async {
+    final executor = _deleteMetadataExecutor ?? _executeDeleteMetadata;
+    return executor(companyId: companyId, documentId: documentId);
   }
 
   Future<Map<String, dynamic>> _executeGet({
@@ -160,7 +208,61 @@ class DocumentRemoteDataSource {
         .select(CompanyDocumentModel.selectColumns)
         .single();
   }
+
+  Future<DocumentMetadataDeleteResult> _executeDeleteMetadata({
+    required String companyId,
+    required String documentId,
+  }) async {
+    final rowsExecutor = _deleteRowsExecutor ?? _executeDeleteRows;
+    final rows = await rowsExecutor(
+      companyId: companyId,
+      documentId: documentId,
+    );
+    if (rows.isNotEmpty) {
+      return DocumentMetadataDeleteResult.deleted;
+    }
+
+    // Zero righe: può essere già assente oppure no-op RLS. Verifica con get.
+    final getExecutor = _getExecutor ?? _executeGet;
+    try {
+      await getExecutor(companyId: companyId, documentId: documentId);
+      throw const DocumentMetadataDeleteNoOpException();
+    } on PostgrestException catch (error) {
+      if (_isPostgrestNotFound(error)) {
+        return DocumentMetadataDeleteResult.alreadyAbsent;
+      }
+      rethrow;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _executeDeleteRows({
+    required String companyId,
+    required String documentId,
+  }) async {
+    final response = await _client!
+        .from('documents')
+        .delete()
+        .eq('company_id', companyId)
+        .eq('id', documentId)
+        .select('id');
+
+    return (response as List<dynamic>)
+        .map((row) => Map<String, dynamic>.from(row as Map))
+        .toList(growable: false);
+  }
+
+  bool _isPostgrestNotFound(PostgrestException error) {
+    final code = error.code ?? '';
+    final combined =
+        '${error.message} ${error.details ?? ''} ${error.hint ?? ''}'
+            .toLowerCase();
+    return code == 'PGRST116' ||
+        combined.contains('0 rows') ||
+        combined.contains('cannot coerce');
+  }
 }
+
+enum DocumentStorageDeleteResult { deleted, alreadyAbsent }
 
 typedef DocumentStorageUploadExecutor =
     Future<void> Function({
@@ -169,7 +271,13 @@ typedef DocumentStorageUploadExecutor =
       required String mimeType,
     });
 
-typedef DocumentStorageDeleteExecutor = Future<void> Function(String path);
+typedef DocumentStorageDeleteExecutor =
+    Future<DocumentStorageDeleteResult> Function(String path);
+
+typedef DocumentStorageExistsExecutor = Future<bool> Function(String path);
+
+typedef DocumentStorageRemoveExecutor =
+    Future<List<String>> Function(String path);
 
 typedef DocumentStorageSignedUrlExecutor =
     Future<String> Function({required String path, required int expiresIn});
@@ -179,6 +287,8 @@ class DocumentStorageDataSource {
     SupabaseClient client, {
     @visibleForTesting this._uploadExecutor,
     @visibleForTesting this._deleteExecutor,
+    @visibleForTesting this._removeExecutor,
+    @visibleForTesting this._existsExecutor,
     @visibleForTesting this._signedUrlExecutor,
   }) : _client = client;
 
@@ -186,12 +296,16 @@ class DocumentStorageDataSource {
   DocumentStorageDataSource.test({
     this._uploadExecutor,
     this._deleteExecutor,
+    this._removeExecutor,
+    this._existsExecutor,
     this._signedUrlExecutor,
   }) : _client = null;
 
   final SupabaseClient? _client;
   final DocumentStorageUploadExecutor? _uploadExecutor;
   final DocumentStorageDeleteExecutor? _deleteExecutor;
+  final DocumentStorageRemoveExecutor? _removeExecutor;
+  final DocumentStorageExistsExecutor? _existsExecutor;
   final DocumentStorageSignedUrlExecutor? _signedUrlExecutor;
 
   static const bucketId = 'company-documents';
@@ -205,10 +319,15 @@ class DocumentStorageDataSource {
     await executor(path: path, bytes: bytes, mimeType: mimeType);
   }
 
-  /// Cleanup idempotente: assenza dell'oggetto non è errore.
-  Future<void> deleteObject(String path) async {
+  /// Elimina l'oggetto distinguendo deleted / alreadyAbsent / no-op.
+  Future<DocumentStorageDeleteResult> deleteObject(String path) async {
     final executor = _deleteExecutor ?? _executeDelete;
-    await executor(path);
+    return executor(path);
+  }
+
+  Future<bool> objectExists(String path) async {
+    final executor = _existsExecutor ?? _executeObjectExists;
+    return executor(path);
   }
 
   Future<String> createSignedUrl({
@@ -233,14 +352,58 @@ class DocumentStorageDataSource {
         );
   }
 
-  Future<void> _executeDelete(String path) async {
+  Future<DocumentStorageDeleteResult> _executeDelete(String path) async {
+    late final List<String> removedNames;
     try {
-      await _client!.storage.from(bucketId).remove([path]);
+      final remove = _removeExecutor ?? _executeRemove;
+      removedNames = await remove(path);
     } on StorageException catch (error) {
       final combined = '${error.message} ${error.statusCode ?? ''}'
           .toLowerCase();
       if (combined.contains('not found') || combined.contains('404')) {
-        return;
+        return DocumentStorageDeleteResult.alreadyAbsent;
+      }
+      rethrow;
+    }
+
+    if (_removedContainsPath(removedNames, path)) {
+      return DocumentStorageDeleteResult.deleted;
+    }
+
+    final exists = await objectExists(path);
+    if (!exists) {
+      return DocumentStorageDeleteResult.alreadyAbsent;
+    }
+    throw const DocumentStorageDeleteNoOpException();
+  }
+
+  Future<List<String>> _executeRemove(String path) async {
+    final removed = await _client!.storage.from(bucketId).remove([path]);
+    return removed.map((file) => file.name).toList(growable: false);
+  }
+
+  /// Probe esistenza via list sul prefisso cartella + match esatto del nome.
+  Future<bool> _executeObjectExists(String path) async {
+    final segments = path.split('/');
+    if (segments.length < 2) {
+      throw StorageException('Invalid storage path');
+    }
+    final fileName = segments.last;
+    final folder = segments.sublist(0, segments.length - 1).join('/');
+
+    try {
+      final listed = await _client!.storage
+          .from(bucketId)
+          .list(
+            path: folder,
+            searchOptions: SearchOptions(limit: 100, search: fileName),
+          );
+      return listed.any((file) => _namesMatch(file.name, path, fileName));
+    } on StorageException catch (error) {
+      final combined = '${error.message} ${error.statusCode ?? ''}'
+          .toLowerCase();
+      if (combined.contains('not found') || combined.contains('404')) {
+        return false;
       }
       rethrow;
     }
@@ -251,5 +414,14 @@ class DocumentStorageDataSource {
     required int expiresIn,
   }) async {
     return _client!.storage.from(bucketId).createSignedUrl(path, expiresIn);
+  }
+
+  static bool _removedContainsPath(List<String> removedNames, String path) {
+    final fileName = path.split('/').last;
+    return removedNames.any((name) => _namesMatch(name, path, fileName));
+  }
+
+  static bool _namesMatch(String name, String fullPath, String fileName) {
+    return name == fullPath || name == fileName || name.endsWith('/$fileName');
   }
 }

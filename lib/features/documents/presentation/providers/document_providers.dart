@@ -53,6 +53,15 @@ final setDocumentArchivedUseCaseProvider = Provider<SetDocumentArchived>((ref) {
   return SetDocumentArchived(ref.watch(documentRepositoryProvider));
 });
 
+final updateDocumentLinksUseCaseProvider = Provider<UpdateDocumentLinks>((ref) {
+  return UpdateDocumentLinks(ref.watch(documentRepositoryProvider));
+});
+
+final deleteDocumentPermanentlyUseCaseProvider =
+    Provider<DeleteDocumentPermanently>((ref) {
+      return DeleteDocumentPermanently(ref.watch(documentRepositoryProvider));
+    });
+
 final documentsProvider = FutureProvider.autoDispose
     .family<List<CompanyDocument>, String>((ref, companyId) async {
       final result = await ref

@@ -1,3 +1,5 @@
+import 'document_link_summaries.dart';
+
 /// Documento operativo aziendale (non fiscale).
 class CompanyDocument {
   const CompanyDocument({
@@ -12,6 +14,10 @@ class CompanyDocument {
     required this.isArchived,
     required this.createdAt,
     required this.updatedAt,
+    this.clientId,
+    this.transactionId,
+    this.clientSummary,
+    this.transactionSummary,
   });
 
   final String id;
@@ -25,10 +31,17 @@ class CompanyDocument {
   final bool isArchived;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? clientId;
+  final String? transactionId;
+  final DocumentClientSummary? clientSummary;
+  final DocumentTransactionSummary? transactionSummary;
 
   bool get isPdf => mimeType == 'application/pdf';
   bool get isImage =>
       mimeType == 'image/jpeg' ||
       mimeType == 'image/png' ||
       mimeType == 'image/webp';
+
+  bool get hasClientLink => clientId != null;
+  bool get hasTransactionLink => transactionId != null;
 }

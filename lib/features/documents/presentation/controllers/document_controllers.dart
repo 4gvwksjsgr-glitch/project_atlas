@@ -185,6 +185,75 @@ class DocumentMutationController
     );
   }
 
+  Future<bool> updateLinks({
+    required String documentId,
+    required String? clientId,
+    required String? transactionId,
+  }) async {
+    if (state.isLoading) {
+      return false;
+    }
+    state = state.copyWith(
+      actionStatus: CompanyActionStatus.loading,
+      clearError: true,
+    );
+    final result = await ref
+        .read(updateDocumentLinksUseCaseProvider)
+        .call(
+          companyId: arg,
+          documentId: documentId,
+          clientId: clientId,
+          transactionId: transactionId,
+        );
+    return result.when(
+      success: (_) {
+        ref.invalidate(documentsProvider(arg));
+        state = state.copyWith(
+          actionStatus: CompanyActionStatus.success,
+          clearError: true,
+        );
+        return true;
+      },
+      error: (failure) {
+        state = state.copyWith(
+          actionStatus: CompanyActionStatus.error,
+          errorMessage: failure.message,
+        );
+        return false;
+      },
+    );
+  }
+
+  Future<bool> deletePermanently({required String documentId}) async {
+    if (state.isLoading) {
+      return false;
+    }
+    state = state.copyWith(
+      actionStatus: CompanyActionStatus.loading,
+      clearError: true,
+    );
+    final result = await ref
+        .read(deleteDocumentPermanentlyUseCaseProvider)
+        .call(companyId: arg, documentId: documentId);
+    return result.when(
+      success: (_) {
+        ref.invalidate(documentsProvider(arg));
+        state = state.copyWith(
+          actionStatus: CompanyActionStatus.success,
+          clearError: true,
+        );
+        return true;
+      },
+      error: (failure) {
+        state = state.copyWith(
+          actionStatus: CompanyActionStatus.error,
+          errorMessage: failure.message,
+        );
+        return false;
+      },
+    );
+  }
+
   void clearFeedback() {
     state = const DocumentMutationState();
   }

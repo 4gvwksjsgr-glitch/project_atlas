@@ -101,6 +101,24 @@ class _RecordingRepo implements DocumentRepository {
   }) async {
     return const Error(NetworkFailure('unused'));
   }
+
+  @override
+  Future<Result<CompanyDocument>> updateDocumentLinks({
+    required String companyId,
+    required String documentId,
+    required String? clientId,
+    required String? transactionId,
+  }) async {
+    return const Error(NetworkFailure('unused'));
+  }
+
+  @override
+  Future<Result<void>> deleteDocumentPermanently({
+    required String companyId,
+    required String documentId,
+  }) async {
+    return const Error(NetworkFailure('unused'));
+  }
 }
 
 ActiveCompanyContext _owner() {

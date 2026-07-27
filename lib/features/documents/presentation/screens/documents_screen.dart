@@ -16,6 +16,9 @@ import '../../domain/services/document_file_validator.dart';
 import '../../domain/value_objects/document_file_rules.dart';
 import '../controllers/document_controllers.dart';
 import '../providers/document_providers.dart';
+import '../widgets/document_delete_dialog.dart';
+import '../widgets/document_links_dialog.dart';
+import '../../domain/entities/document_link_summaries.dart';
 
 class DocumentsScreen extends ConsumerWidget {
   const DocumentsScreen({super.key});
@@ -239,25 +242,47 @@ class _DocumentListTile extends ConsumerWidget {
         ? 'PDF'
         : document.mimeType.replaceFirst('image/', '').toUpperCase();
 
+    final linkLines = <String>[
+      if (document.clientSummary != null)
+        l10n.documentLinkedClient(document.clientSummary!.name),
+      if (document.transactionSummary != null)
+        l10n.documentLinkedTransaction(
+          _transactionLinkSummary(document.transactionSummary!),
+        ),
+    ];
+
     return ListTile(
       leading: Icon(
         document.isPdf ? Icons.picture_as_pdf : Icons.image_outlined,
       ),
       title: Text(document.title),
-      subtitle: Text(
-        [
-          document.originalFileName,
-          typeLabel,
-          sizeLabel,
-          date,
-          if (document.isArchived) l10n.documentArchived,
-        ].join(' · '),
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: document.isArchived
-              ? theme.colorScheme.onSurfaceVariant
-              : null,
-        ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            [
+              document.originalFileName,
+              typeLabel,
+              sizeLabel,
+              date,
+              if (document.isArchived) l10n.documentArchived,
+            ].join(' · '),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: document.isArchived
+                  ? theme.colorScheme.onSurfaceVariant
+                  : null,
+            ),
+          ),
+          for (final line in linkLines)
+            Text(
+              line,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+        ],
       ),
+      isThreeLine: linkLines.isNotEmpty,
       trailing: PopupMenuButton<String>(
         key: Key('document-menu-${document.id}'),
         onSelected: (value) async {
@@ -266,23 +291,52 @@ class _DocumentListTile extends ConsumerWidget {
               await _open(context, ref);
             case 'rename':
               await _rename(context, ref);
+            case 'links':
+              await showDocumentLinksDialog(
+                context: context,
+                ref: ref,
+                companyId: companyId,
+                document: document,
+              );
             case 'archive':
               await _setArchived(context, ref, archived: true);
             case 'restore':
               await _setArchived(context, ref, archived: false);
+            case 'delete':
+              await showDocumentDeleteDialog(
+                context: context,
+                ref: ref,
+                companyId: companyId,
+                document: document,
+              );
           }
         },
         itemBuilder: (context) => [
           PopupMenuItem(value: 'open', child: Text(l10n.documentOpen)),
           if (canManage)
             PopupMenuItem(value: 'rename', child: Text(l10n.documentRename)),
+          if (canManage)
+            PopupMenuItem(
+              value: 'links',
+              child: Text(l10n.documentManageLinks),
+            ),
           if (canManage && !document.isArchived)
             PopupMenuItem(value: 'archive', child: Text(l10n.documentArchive)),
           if (canManage && document.isArchived)
             PopupMenuItem(value: 'restore', child: Text(l10n.documentRestore)),
+          if (canManage)
+            PopupMenuItem(
+              value: 'delete',
+              child: Text(l10n.documentDeletePermanently),
+            ),
         ],
       ),
     );
+  }
+
+  static String _transactionLinkSummary(DocumentTransactionSummary summary) {
+    final date = DateFormat.yMMMd('it').format(summary.occurredOn);
+    return '${summary.description} · $date · ${summary.formatEuro()} €';
   }
 
   Future<void> _open(BuildContext context, WidgetRef ref) async {

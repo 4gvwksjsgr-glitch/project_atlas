@@ -7,6 +7,7 @@ import 'package:project_atlas/core/utils/result.dart';
 import 'package:project_atlas/features/companies/domain/entities/active_company_context.dart';
 import 'package:project_atlas/features/companies/presentation/controllers/active_company_controller.dart';
 import 'package:project_atlas/features/documents/domain/entities/company_document.dart';
+import 'package:project_atlas/features/documents/domain/entities/document_link_summaries.dart';
 import 'package:project_atlas/features/documents/domain/repositories/document_repository.dart';
 import 'package:project_atlas/features/documents/domain/services/document_url_launcher.dart';
 import 'package:project_atlas/features/documents/presentation/providers/document_providers.dart';
@@ -31,6 +32,10 @@ CompanyDocument _doc({
   String companyId = 'c1',
   bool archived = false,
   String title = 'Contratto',
+  String? clientId,
+  String? transactionId,
+  String? clientName,
+  String? transactionDescription,
 }) {
   return CompanyDocument(
     id: id,
@@ -44,6 +49,20 @@ CompanyDocument _doc({
     isArchived: archived,
     createdAt: DateTime.utc(2026, 7, 1, 10),
     updatedAt: DateTime.utc(2026, 7, 1, 10),
+    clientId: clientId,
+    transactionId: transactionId,
+    clientSummary: clientName == null
+        ? null
+        : DocumentClientSummary(id: clientId ?? 'cl1', name: clientName),
+    transactionSummary: transactionDescription == null
+        ? null
+        : DocumentTransactionSummary(
+            id: transactionId ?? 't1',
+            description: transactionDescription,
+            amountCents: 1250,
+            occurredOn: DateTime(2026, 7, 2),
+            kind: DocumentTransactionKind.expense,
+          ),
   );
 }
 
@@ -52,10 +71,14 @@ class _FakeDocumentRepository implements DocumentRepository {
 
   Result<List<CompanyDocument>>? listResult;
   Result<String>? signedUrlResult;
+  Result<void>? deleteResult;
 
   String? lastListCompanyId;
   String? lastRenamedTitle;
   bool? lastArchived;
+  String? lastClientId;
+  String? lastTransactionId;
+  final List<String> deletedDocumentIds = [];
 
   @override
   Future<Result<List<CompanyDocument>>> getDocuments({
@@ -105,6 +128,37 @@ class _FakeDocumentRepository implements DocumentRepository {
     return Success(
       _doc(id: documentId, companyId: companyId, archived: isArchived),
     );
+  }
+
+  @override
+  Future<Result<CompanyDocument>> updateDocumentLinks({
+    required String companyId,
+    required String documentId,
+    required String? clientId,
+    required String? transactionId,
+  }) async {
+    lastClientId = clientId;
+    lastTransactionId = transactionId;
+    return Success(
+      _doc(
+        id: documentId,
+        companyId: companyId,
+        clientId: clientId,
+        transactionId: transactionId,
+      ),
+    );
+  }
+
+  @override
+  Future<Result<void>> deleteDocumentPermanently({
+    required String companyId,
+    required String documentId,
+  }) async {
+    deletedDocumentIds.add(documentId);
+    if (deleteResult != null) {
+      return deleteResult!;
+    }
+    return const Success(null);
   }
 }
 
@@ -264,7 +318,91 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Rinomina'), findsOneWidget);
     expect(find.text('Archivia'), findsOneWidget);
+    expect(find.text('Gestisci collegamenti'), findsOneWidget);
+    expect(find.text('Elimina definitivamente'), findsOneWidget);
     expect(find.text('Apri'), findsOneWidget);
+  });
+
+  testWidgets('employee senza link/delete nel menu', (tester) async {
+    final repo = _FakeDocumentRepository(
+      listResult: Success([
+        _doc(
+          clientId: 'cl1',
+          clientName: 'Rossi',
+          transactionId: 't1',
+          transactionDescription: 'Affitto',
+        ),
+      ]),
+    );
+    await _pumpDocumentsScreen(
+      tester,
+      context: _context(role: CompanyRole.employee),
+      repository: repo,
+    );
+
+    expect(find.textContaining('Cliente: Rossi'), findsOneWidget);
+    expect(find.textContaining('Movimento: Affitto'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('document-menu-d1')));
+    await tester.pumpAndSettle();
+    expect(find.text('Gestisci collegamenti'), findsNothing);
+    expect(find.text('Elimina definitivamente'), findsNothing);
+  });
+
+  testWidgets('conferma eliminazione e successo', (tester) async {
+    final repo = _FakeDocumentRepository(listResult: Success([_doc()]));
+    await _pumpDocumentsScreen(tester, context: _context(), repository: repo);
+
+    await tester.tap(find.byKey(const Key('document-menu-d1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Elimina definitivamente'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'Questa operazione è irreversibile. Il documento e il file associato verranno eliminati.',
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const Key('document-delete-confirm')));
+    await tester.pumpAndSettle();
+
+    expect(repo.deletedDocumentIds, ['d1']);
+    expect(find.text('Documento eliminato.'), findsOneWidget);
+  });
+
+  testWidgets('eliminazione incompleta mostra errore', (tester) async {
+    final repo = _FakeDocumentRepository(listResult: Success([_doc()]))
+      ..deleteResult = const Error(IncompleteDocumentDeletionFailure());
+    await _pumpDocumentsScreen(tester, context: _context(), repository: repo);
+
+    await tester.tap(find.byKey(const Key('document-menu-d1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Elimina definitivamente'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('document-delete-confirm')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining(
+        'Il file è stato rimosso, ma i dati del documento non sono stati eliminati',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('annulla eliminazione', (tester) async {
+    final repo = _FakeDocumentRepository(listResult: Success([_doc()]));
+    await _pumpDocumentsScreen(tester, context: _context(), repository: repo);
+
+    await tester.tap(find.byKey(const Key('document-menu-d1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Elimina definitivamente'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Annulla'));
+    await tester.pumpAndSettle();
+
+    expect(repo.deletedDocumentIds, isEmpty);
   });
 
   testWidgets('documento archiviato distinguibile e riattivabile', (
@@ -280,5 +418,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Ripristina'), findsOneWidget);
     expect(find.text('Archivia'), findsNothing);
+    expect(find.text('Elimina definitivamente'), findsOneWidget);
   });
 }

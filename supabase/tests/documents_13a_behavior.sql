@@ -562,12 +562,17 @@ BEGIN
 
   BEGIN
     DELETE FROM public.documents WHERE id = v_doc;
-    PERFORM pg_temp.record_result('owner_delete_denied', false, NULL, 'expected deny');
-  EXCEPTION WHEN insufficient_privilege THEN
-    PERFORM pg_temp.record_result('owner_delete_denied', true, '42501', 'rejected');
-  WHEN OTHERS THEN
+    GET DIAGNOSTICS v_count = ROW_COUNT;
+    -- Step 13B: owner/admin/manager possono eliminare metadata definitivamente.
+    PERFORM pg_temp.record_result(
+      'owner_delete_allowed_final_schema',
+      v_count = 1,
+      NULL,
+      v_count::text
+    );
+  EXCEPTION WHEN OTHERS THEN
     GET STACKED DIAGNOSTICS v_sqlstate = RETURNED_SQLSTATE, v_err = MESSAGE_TEXT;
-    PERFORM pg_temp.record_result('owner_delete_denied', v_sqlstate = '42501', v_sqlstate, v_err);
+    PERFORM pg_temp.record_result('owner_delete_allowed_final_schema', false, v_sqlstate, v_err);
   END;
 
   -- manager insert

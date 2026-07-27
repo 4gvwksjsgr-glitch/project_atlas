@@ -1,9 +1,11 @@
 import 'dart:developer' as developer;
 import 'dart:typed_data';
 
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/errors/document_error_mapper.dart';
+import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/utils/result.dart';
 import '../../domain/entities/company_document.dart';
@@ -157,5 +159,115 @@ class DocumentRepositoryImpl implements DocumentRepository {
         DocumentErrorMapper.mapException(error, DocumentOperation.setArchived),
       );
     }
+  }
+
+  @override
+  Future<Result<CompanyDocument>> updateDocumentLinks({
+    required String companyId,
+    required String documentId,
+    required String? clientId,
+    required String? transactionId,
+  }) async {
+    try {
+      final model = await _remote.updateLinks(
+        companyId: companyId,
+        documentId: documentId,
+        clientId: clientId,
+        transactionId: transactionId,
+      );
+      return Success(model.toEntity());
+    } catch (error) {
+      return Error(
+        DocumentErrorMapper.mapException(error, DocumentOperation.updateLinks),
+      );
+    }
+  }
+
+  @override
+  Future<Result<void>> deleteDocumentPermanently({
+    required String companyId,
+    required String documentId,
+  }) async {
+    late final String storagePath;
+    try {
+      final document = await _remote.getDocument(
+        companyId: companyId,
+        documentId: documentId,
+      );
+      if (document.companyId != companyId) {
+        return const Success(null);
+      }
+      storagePath = document.storagePath;
+    } catch (error) {
+      if (_isDocumentNotFound(error)) {
+        return const Success(null);
+      }
+      return Error(
+        DocumentErrorMapper.mapException(
+          error,
+          DocumentOperation.deleteDocument,
+        ),
+      );
+    }
+
+    try {
+      final storageResult = await _storage.deleteObject(storagePath);
+      developer.log(
+        'Document storage delete result: ${storageResult.name}',
+        name: 'DocumentRepositoryImpl',
+      );
+    } catch (error) {
+      developer.log(
+        'Document storage delete failed',
+        name: 'DocumentRepositoryImpl',
+        error: error,
+      );
+      return Error(
+        DocumentErrorMapper.mapException(
+          error,
+          DocumentOperation.deleteDocumentStorage,
+        ),
+      );
+    }
+
+    try {
+      final metadataResult = await _remote.deleteDocumentMetadata(
+        companyId: companyId,
+        documentId: documentId,
+      );
+      developer.log(
+        'Document metadata delete result: ${metadataResult.name}',
+        name: 'DocumentRepositoryImpl',
+      );
+      return const Success(null);
+    } catch (error) {
+      developer.log(
+        'Document metadata delete failed after storage delete',
+        name: 'DocumentRepositoryImpl',
+        error: error,
+      );
+      if (error is DocumentMetadataDeleteNoOpException) {
+        return const Error(IncompleteDocumentDeletionFailure());
+      }
+      return Error(
+        DocumentErrorMapper.mapException(
+          error,
+          DocumentOperation.deleteDocumentMetadata,
+        ),
+      );
+    }
+  }
+
+  bool _isDocumentNotFound(Object error) {
+    if (error is supabase.PostgrestException) {
+      final code = error.code ?? '';
+      final combined =
+          '${error.message} ${error.details ?? ''} ${error.hint ?? ''}'
+              .toLowerCase();
+      return code == 'PGRST116' ||
+          combined.contains('0 rows') ||
+          combined.contains('cannot coerce');
+    }
+    return false;
   }
 }

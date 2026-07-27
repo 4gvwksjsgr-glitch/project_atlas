@@ -9,6 +9,10 @@ enum DocumentOperation {
   createSignedUrl,
   updateTitle,
   setArchived,
+  updateLinks,
+  deleteDocument,
+  deleteDocumentStorage,
+  deleteDocumentMetadata,
 }
 
 abstract final class DocumentErrorMapper {
@@ -21,6 +25,21 @@ abstract final class DocumentErrorMapper {
     }
     if (error is NetworkException) {
       return NetworkFailure(error.message);
+    }
+    if (error is DocumentStorageDeleteNoOpException) {
+      return DocumentStorageDeleteNoOpFailure(error.message);
+    }
+    if (error is DocumentMetadataDeleteNoOpException) {
+      return DocumentMetadataDeleteNoOpFailure(error.message);
+    }
+    if (error is IncompleteDocumentDeletionFailure) {
+      return error;
+    }
+    if (error is DocumentStorageDeleteNoOpFailure) {
+      return error;
+    }
+    if (error is DocumentMetadataDeleteNoOpFailure) {
+      return error;
     }
     if (error is ValidationFailure) {
       return error;
@@ -54,6 +73,10 @@ abstract final class DocumentErrorMapper {
     final combined = '${error.message} ${error.statusCode ?? ''}'.toLowerCase();
 
     if (combined.contains('not found') || combined.contains('404')) {
+      if (operation == DocumentOperation.deleteDocumentStorage ||
+          operation == DocumentOperation.deleteDocument) {
+        return const ValidationFailure('Il documento risulta già eliminato.');
+      }
       return const ValidationFailure('Documento non trovato.');
     }
     if (combined.contains('403') ||
@@ -61,6 +84,11 @@ abstract final class DocumentErrorMapper {
         combined.contains('permission') ||
         combined.contains('row-level security') ||
         combined.contains('jwt')) {
+      if (operation == DocumentOperation.deleteDocumentStorage ||
+          operation == DocumentOperation.deleteDocument ||
+          operation == DocumentOperation.deleteDocumentMetadata) {
+        return const DocumentMetadataDeleteNoOpFailure();
+      }
       return const AuthFailure(
         'Non hai i permessi per gestire i documenti di questa azienda.',
       );
@@ -80,6 +108,10 @@ abstract final class DocumentErrorMapper {
       return const NetworkFailure(
         'Impossibile generare il collegamento al documento. Riprova.',
       );
+    }
+    if (operation == DocumentOperation.deleteDocumentStorage ||
+        operation == DocumentOperation.deleteDocument) {
+      return const DocumentStorageDeleteNoOpFailure();
     }
     return UnknownFailure(_fallbackMessage(operation));
   }
@@ -101,9 +133,20 @@ abstract final class DocumentErrorMapper {
     if (code == 'PGRST116' ||
         combined.contains('0 rows') ||
         combined.contains('cannot coerce')) {
+      if (operation == DocumentOperation.deleteDocument) {
+        return const ValidationFailure('Il documento risulta già eliminato.');
+      }
       if (operation == DocumentOperation.getDocuments ||
           operation == DocumentOperation.createSignedUrl) {
         return const ValidationFailure('Documento non trovato.');
+      }
+      if (operation == DocumentOperation.updateLinks) {
+        return const AuthFailure(
+          'Non hai i permessi per modificare i collegamenti di questo documento.',
+        );
+      }
+      if (operation == DocumentOperation.deleteDocumentMetadata) {
+        return const IncompleteDocumentDeletionFailure();
       }
       return const AuthFailure(
         'Non hai i permessi per modificare questo documento.',
@@ -114,8 +157,38 @@ abstract final class DocumentErrorMapper {
         combined.contains('row-level security') ||
         combined.contains('violates row-level security') ||
         combined.contains('insufficient permissions')) {
+      if (operation == DocumentOperation.deleteDocument ||
+          operation == DocumentOperation.deleteDocumentMetadata ||
+          operation == DocumentOperation.deleteDocumentStorage) {
+        return const DocumentMetadataDeleteNoOpFailure();
+      }
       return const AuthFailure(
         'Non hai i permessi per gestire i documenti di questa azienda.',
+      );
+    }
+
+    if (combined.contains('documents_company_client_fkey') ||
+        (combined.contains('client') &&
+            (combined.contains('foreign key') ||
+                combined.contains('violates foreign key')))) {
+      return const ValidationFailure(
+        'Cliente non trovato o appartenente a un\'altra azienda.',
+      );
+    }
+
+    if (combined.contains('documents_company_transaction_fkey') ||
+        (combined.contains('transaction') &&
+            (combined.contains('foreign key') ||
+                combined.contains('violates foreign key')))) {
+      return const ValidationFailure(
+        'Movimento non trovato o appartenente a un\'altra azienda.',
+      );
+    }
+
+    if (combined.contains('foreign key') ||
+        combined.contains('violates foreign key')) {
+      return const ValidationFailure(
+        'Collegamento non più valido. Aggiorna la selezione e riprova.',
       );
     }
 
@@ -137,6 +210,17 @@ abstract final class DocumentErrorMapper {
       );
     }
 
+    if (operation == DocumentOperation.deleteDocumentMetadata ||
+        operation == DocumentOperation.deleteDocument) {
+      return const IncompleteDocumentDeletionFailure();
+    }
+
+    if (operation == DocumentOperation.updateLinks) {
+      return const UnknownFailure(
+        'Aggiornamento collegamenti non riuscito. Riprova.',
+      );
+    }
+
     return UnknownFailure(_fallbackMessage(operation));
   }
 
@@ -152,6 +236,15 @@ abstract final class DocumentErrorMapper {
         'Aggiornamento titolo non riuscito. Riprova.',
       DocumentOperation.setArchived =>
         'Aggiornamento archivio non riuscito. Riprova.',
+      DocumentOperation.updateLinks =>
+        'Aggiornamento collegamenti non riuscito. Riprova.',
+      DocumentOperation.deleteDocumentStorage =>
+        'Non è stato possibile eliminare il file.',
+      DocumentOperation.deleteDocumentMetadata =>
+        'Il file è stato rimosso, ma i dati del documento non sono stati '
+            'eliminati. Riprova.',
+      DocumentOperation.deleteDocument =>
+        'Eliminazione documento non riuscita. Riprova.',
     };
   }
 }

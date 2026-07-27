@@ -1,11 +1,15 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:project_atlas/core/errors/failures.dart';
 import 'package:project_atlas/features/documents/data/models/company_document_model.dart';
 import 'package:project_atlas/features/documents/data/repositories/document_repository_impl.dart';
+import 'package:project_atlas/features/documents/domain/entities/document_link_summaries.dart';
 import 'package:project_atlas/features/documents/domain/services/document_file_validator.dart';
 import 'package:project_atlas/features/documents/domain/value_objects/document_file_rules.dart';
 import 'package:project_atlas/features/documents/data/datasource/document_remote_datasource.dart';
+import 'package:project_atlas/core/errors/exceptions.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 Uint8List _pdfBytes() =>
@@ -231,6 +235,7 @@ void main() {
               ({required path, required bytes, required mimeType}) async {},
           deleteExecutor: (_) async {
             deleted = true;
+            return DocumentStorageDeleteResult.deleted;
           },
         ),
       );
@@ -394,6 +399,373 @@ void main() {
       );
       expect(archived.isSuccess, isTrue);
       expect(lastValues, {'is_archived': true});
+    });
+
+    test('update links invia sempre entrambe le colonne', () async {
+      Map<String, dynamic>? lastValues;
+      final repo = DocumentRepositoryImpl(
+        DocumentRemoteDataSource.test(
+          updateExecutor:
+              ({
+                required companyId,
+                required documentId,
+                required values,
+              }) async {
+                lastValues = values;
+                return {
+                  'id': documentId,
+                  'company_id': companyId,
+                  'uploaded_by': 'u1',
+                  'title': 'Doc',
+                  'original_file_name': 'doc.pdf',
+                  'storage_path': '$companyId/$documentId/o1.pdf',
+                  'mime_type': 'application/pdf',
+                  'size_bytes': 10,
+                  'is_archived': false,
+                  'created_at': '2026-07-26T10:00:00Z',
+                  'updated_at': '2026-07-26T11:00:00Z',
+                  'client_id': values['client_id'],
+                  'transaction_id': values['transaction_id'],
+                };
+              },
+        ),
+        DocumentStorageDataSource.test(),
+      );
+
+      final linked = await repo.updateDocumentLinks(
+        companyId: 'c1',
+        documentId: 'd1',
+        clientId: 'cl1',
+        transactionId: null,
+      );
+      expect(linked.isSuccess, isTrue);
+      expect(lastValues, {'client_id': 'cl1', 'transaction_id': null});
+    });
+
+    test('delete: storage prima, metadata dopo', () async {
+      final order = <String>[];
+      final repo = DocumentRepositoryImpl(
+        DocumentRemoteDataSource.test(
+          getExecutor: ({required companyId, required documentId}) async {
+            return {
+              'id': documentId,
+              'company_id': companyId,
+              'uploaded_by': 'u1',
+              'title': 'Doc',
+              'original_file_name': 'doc.pdf',
+              'storage_path': '$companyId/$documentId/o1.pdf',
+              'mime_type': 'application/pdf',
+              'size_bytes': 10,
+              'is_archived': false,
+              'created_at': '2026-07-26T10:00:00Z',
+              'updated_at': '2026-07-26T10:00:00Z',
+            };
+          },
+          deleteMetadataExecutor:
+              ({required companyId, required documentId}) async {
+                order.add('metadata');
+                return DocumentMetadataDeleteResult.deleted;
+              },
+        ),
+        DocumentStorageDataSource.test(
+          deleteExecutor: (_) async {
+            order.add('storage');
+            return DocumentStorageDeleteResult.deleted;
+          },
+        ),
+      );
+
+      final result = await repo.deleteDocumentPermanently(
+        companyId: 'c1',
+        documentId: 'd1',
+      );
+      expect(result.isSuccess, isTrue);
+      expect(order, ['storage', 'metadata']);
+    });
+
+    test('delete: storage no-op non elimina metadata', () async {
+      var metadataCalled = false;
+      final repo = DocumentRepositoryImpl(
+        DocumentRemoteDataSource.test(
+          getExecutor: ({required companyId, required documentId}) async {
+            return {
+              'id': documentId,
+              'company_id': companyId,
+              'uploaded_by': 'u1',
+              'title': 'Doc',
+              'original_file_name': 'doc.pdf',
+              'storage_path': '$companyId/$documentId/o1.pdf',
+              'mime_type': 'application/pdf',
+              'size_bytes': 10,
+              'is_archived': false,
+              'created_at': '2026-07-26T10:00:00Z',
+              'updated_at': '2026-07-26T10:00:00Z',
+            };
+          },
+          deleteMetadataExecutor:
+              ({required companyId, required documentId}) async {
+                metadataCalled = true;
+                return DocumentMetadataDeleteResult.deleted;
+              },
+        ),
+        DocumentStorageDataSource.test(
+          deleteExecutor: (_) async {
+            throw const DocumentStorageDeleteNoOpException();
+          },
+        ),
+      );
+
+      final result = await repo.deleteDocumentPermanently(
+        companyId: 'c1',
+        documentId: 'd1',
+      );
+      expect(result.isError, isTrue);
+      expect(metadataCalled, isFalse);
+      result.when(
+        success: (_) => fail('expected error'),
+        error: (failure) {
+          expect(failure, isA<DocumentStorageDeleteNoOpFailure>());
+        },
+      );
+    });
+
+    test('delete: storage alreadyAbsent continua su metadata', () async {
+      var metadataCalled = false;
+      final repo = DocumentRepositoryImpl(
+        DocumentRemoteDataSource.test(
+          getExecutor: ({required companyId, required documentId}) async {
+            return {
+              'id': documentId,
+              'company_id': companyId,
+              'uploaded_by': 'u1',
+              'title': 'Doc',
+              'original_file_name': 'doc.pdf',
+              'storage_path': '$companyId/$documentId/o1.pdf',
+              'mime_type': 'application/pdf',
+              'size_bytes': 10,
+              'is_archived': false,
+              'created_at': '2026-07-26T10:00:00Z',
+              'updated_at': '2026-07-26T10:00:00Z',
+            };
+          },
+          deleteMetadataExecutor:
+              ({required companyId, required documentId}) async {
+                metadataCalled = true;
+                return DocumentMetadataDeleteResult.deleted;
+              },
+        ),
+        DocumentStorageDataSource.test(
+          deleteExecutor: (_) async =>
+              DocumentStorageDeleteResult.alreadyAbsent,
+        ),
+      );
+
+      final result = await repo.deleteDocumentPermanently(
+        companyId: 'c1',
+        documentId: 'd1',
+      );
+      expect(result.isSuccess, isTrue);
+      expect(metadataCalled, isTrue);
+    });
+
+    test('delete: metadata no-op dopo storage → incomplete', () async {
+      final repo = DocumentRepositoryImpl(
+        DocumentRemoteDataSource.test(
+          getExecutor: ({required companyId, required documentId}) async {
+            return {
+              'id': documentId,
+              'company_id': companyId,
+              'uploaded_by': 'u1',
+              'title': 'Doc',
+              'original_file_name': 'doc.pdf',
+              'storage_path': '$companyId/$documentId/o1.pdf',
+              'mime_type': 'application/pdf',
+              'size_bytes': 10,
+              'is_archived': false,
+              'created_at': '2026-07-26T10:00:00Z',
+              'updated_at': '2026-07-26T10:00:00Z',
+            };
+          },
+          deleteMetadataExecutor:
+              ({required companyId, required documentId}) async {
+                throw const DocumentMetadataDeleteNoOpException();
+              },
+        ),
+        DocumentStorageDataSource.test(
+          deleteExecutor: (_) async => DocumentStorageDeleteResult.deleted,
+        ),
+      );
+
+      final result = await repo.deleteDocumentPermanently(
+        companyId: 'c1',
+        documentId: 'd1',
+      );
+      expect(result.isError, isTrue);
+      result.when(
+        success: (_) => fail('expected error'),
+        error: (failure) {
+          expect(failure, isA<IncompleteDocumentDeletionFailure>());
+        },
+      );
+    });
+
+    test('delete: retry dopo incomplete completa', () async {
+      var storageCalls = 0;
+      var metadataCalls = 0;
+      final repo = DocumentRepositoryImpl(
+        DocumentRemoteDataSource.test(
+          getExecutor: ({required companyId, required documentId}) async {
+            return {
+              'id': documentId,
+              'company_id': companyId,
+              'uploaded_by': 'u1',
+              'title': 'Doc',
+              'original_file_name': 'doc.pdf',
+              'storage_path': '$companyId/$documentId/o1.pdf',
+              'mime_type': 'application/pdf',
+              'size_bytes': 10,
+              'is_archived': false,
+              'created_at': '2026-07-26T10:00:00Z',
+              'updated_at': '2026-07-26T10:00:00Z',
+            };
+          },
+          deleteMetadataExecutor:
+              ({required companyId, required documentId}) async {
+                metadataCalls++;
+                if (metadataCalls == 1) {
+                  throw const DocumentMetadataDeleteNoOpException();
+                }
+                return DocumentMetadataDeleteResult.deleted;
+              },
+        ),
+        DocumentStorageDataSource.test(
+          deleteExecutor: (_) async {
+            storageCalls++;
+            return storageCalls == 1
+                ? DocumentStorageDeleteResult.deleted
+                : DocumentStorageDeleteResult.alreadyAbsent;
+          },
+        ),
+      );
+
+      final first = await repo.deleteDocumentPermanently(
+        companyId: 'c1',
+        documentId: 'd1',
+      );
+      expect(first.isError, isTrue);
+
+      final second = await repo.deleteDocumentPermanently(
+        companyId: 'c1',
+        documentId: 'd1',
+      );
+      expect(second.isSuccess, isTrue);
+      expect(storageCalls, 2);
+      expect(metadataCalls, 2);
+    });
+
+    test('delete: metadata già assenti al get = successo', () async {
+      final repo = DocumentRepositoryImpl(
+        DocumentRemoteDataSource.test(
+          getExecutor: ({required companyId, required documentId}) async {
+            throw const PostgrestException(
+              message: 'JSON object requested, multiple (or no) rows returned',
+              code: 'PGRST116',
+            );
+          },
+        ),
+        DocumentStorageDataSource.test(),
+      );
+
+      final result = await repo.deleteDocumentPermanently(
+        companyId: 'c1',
+        documentId: 'd1',
+      );
+      expect(result.isSuccess, isTrue);
+    });
+  });
+
+  group('CompanyDocumentModel embeds', () {
+    Map<String, dynamic> baseJson() => {
+      'id': 'd1',
+      'company_id': 'c1',
+      'uploaded_by': 'u1',
+      'title': 'Doc',
+      'original_file_name': 'doc.pdf',
+      'storage_path': 'c1/d1/o1.pdf',
+      'mime_type': 'application/pdf',
+      'size_bytes': 12,
+      'is_archived': false,
+      'created_at': '2026-07-26T10:00:00Z',
+      'updated_at': '2026-07-26T10:00:00Z',
+    };
+
+    test('senza link', () {
+      final entity = CompanyDocumentModel.fromJson({
+        ...baseJson(),
+        'client_id': null,
+        'transaction_id': null,
+        'clients': null,
+        'transactions': null,
+      }).toEntity();
+      expect(entity.clientId, isNull);
+      expect(entity.transactionId, isNull);
+      expect(entity.clientSummary, isNull);
+      expect(entity.transactionSummary, isNull);
+    });
+
+    test('solo cliente', () {
+      final entity = CompanyDocumentModel.fromJson({
+        ...baseJson(),
+        'client_id': 'cl1',
+        'transaction_id': null,
+        'clients': {'id': 'cl1', 'name': 'Rossi'},
+        'transactions': null,
+      }).toEntity();
+      expect(entity.clientSummary?.name, 'Rossi');
+      expect(entity.transactionSummary, isNull);
+    });
+
+    test('solo movimento', () {
+      final entity = CompanyDocumentModel.fromJson({
+        ...baseJson(),
+        'client_id': null,
+        'transaction_id': 't1',
+        'clients': null,
+        'transactions': {
+          'id': 't1',
+          'description': 'Affitto',
+          'amount': '12.50',
+          'occurred_on': '2026-07-02',
+          'kind': 'expense',
+        },
+      }).toEntity();
+      expect(entity.transactionSummary?.description, 'Affitto');
+      expect(entity.transactionSummary?.amountCents, 1250);
+      expect(entity.transactionSummary?.kind, DocumentTransactionKind.expense);
+      expect(entity.transactionSummary?.occurredOn, DateTime(2026, 7, 2));
+    });
+
+    test('entrambi e embed lista', () {
+      final entity = CompanyDocumentModel.fromJson({
+        ...baseJson(),
+        'client_id': 'cl1',
+        'transaction_id': 't1',
+        'clients': [
+          {'id': 'cl1', 'name': 'Bianchi'},
+        ],
+        'transactions': [
+          {
+            'id': 't1',
+            'description': 'Vendita',
+            'amount': '100.00',
+            'occurred_on': '2026-07-03',
+            'kind': 'income',
+          },
+        ],
+      }).toEntity();
+      expect(entity.clientSummary?.name, 'Bianchi');
+      expect(entity.transactionSummary?.kind, DocumentTransactionKind.income);
+      expect(entity.transactionSummary?.amountCents, 10000);
     });
   });
 }

@@ -31,4 +31,17 @@ abstract class DocumentRepository {
     required String documentId,
     required bool isArchived,
   });
+
+  Future<Result<CompanyDocument>> updateDocumentLinks({
+    required String companyId,
+    required String documentId,
+    required String? clientId,
+    required String? transactionId,
+  });
+
+  /// Eliminazione definitiva: Storage prima, poi metadata. Idempotente.
+  Future<Result<void>> deleteDocumentPermanently({
+    required String companyId,
+    required String documentId,
+  });
 }

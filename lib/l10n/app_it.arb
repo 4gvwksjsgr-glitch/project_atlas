@@ -71,6 +71,41 @@
   "documentRestoreSuccess": "Documento ripristinato.",
   "documentArchiveError": "Aggiornamento archivio non riuscito. Riprova.",
   "documentReadOnlyMessage": "Non hai i permessi per caricare o modificare i documenti. Puoi solo visualizzarli e aprirli.",
+  "documentManageLinks": "Gestisci collegamenti",
+  "documentLinksClient": "Cliente",
+  "documentLinksTransaction": "Movimento",
+  "documentLinksNoClient": "Nessun cliente",
+  "documentLinksNoTransaction": "Nessun movimento",
+  "documentLinksSave": "Salva collegamenti",
+  "documentLinksSuccess": "Collegamenti aggiornati.",
+  "documentLinksError": "Aggiornamento collegamenti non riuscito. Riprova.",
+  "documentLinksSearchClient": "Cerca cliente",
+  "documentLinksSearchTransaction": "Cerca movimento",
+  "documentLinksEmptyClients": "Nessun cliente disponibile.",
+  "documentLinksEmptyTransactions": "Nessun movimento disponibile.",
+  "documentDeletePermanently": "Elimina definitivamente",
+  "documentDeleteConfirmTitle": "Elimina definitivamente",
+  "documentDeleteIrreversible": "Questa operazione è irreversibile. Il documento e il file associato verranno eliminati.",
+  "documentDeleteConfirmAction": "Elimina definitivamente",
+  "documentDeleteSuccess": "Documento eliminato.",
+  "documentDeleteError": "Eliminazione documento non riuscita. Riprova.",
+  "documentDeleteIncomplete": "Eliminazione incompleta. Il file è stato rimosso ma i dati restano. Riprova.",
+  "documentLinkedClient": "Cliente: {name}",
+  "@documentLinkedClient": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "documentLinkedTransaction": "Movimento: {summary}",
+  "@documentLinkedTransaction": {
+    "placeholders": {
+      "summary": {
+        "type": "String"
+      }
+    }
+  },
   "customersTitle": "Clienti",
   "customersSubtitle": "Anagrafica clienti dell'azienda attiva",
   "customersNoActiveCompany": "Nessuna azienda attiva. Seleziona un'azienda per continuare.",

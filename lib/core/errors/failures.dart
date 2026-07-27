@@ -22,3 +22,26 @@ final class UnknownFailure extends Failure {
     super.message = 'Si è verificato un errore imprevisto.',
   ]);
 }
+
+/// Storage eliminato (o già assente) ma metadata ancora presenti.
+final class IncompleteDocumentDeletionFailure extends Failure {
+  const IncompleteDocumentDeletionFailure([
+    super.message =
+        'Il file è stato rimosso, ma i dati del documento non sono stati '
+        'eliminati. Riprova.',
+  ]);
+}
+
+/// Storage DELETE no-op: HTTP ok ma oggetto ancora presente.
+final class DocumentStorageDeleteNoOpFailure extends Failure {
+  const DocumentStorageDeleteNoOpFailure([
+    super.message = 'Non è stato possibile eliminare il file.',
+  ]);
+}
+
+/// Metadata DELETE no-op / permesso insufficiente.
+final class DocumentMetadataDeleteNoOpFailure extends Failure {
+  const DocumentMetadataDeleteNoOpFailure([
+    super.message = 'Non hai i permessi per eliminare questo documento.',
+  ]);
+}

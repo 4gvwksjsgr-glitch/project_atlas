@@ -220,6 +220,77 @@ class AppLocalizationsIt extends AppLocalizations {
       'Non hai i permessi per caricare o modificare i documenti. Puoi solo visualizzarli e aprirli.';
 
   @override
+  String get documentManageLinks => 'Gestisci collegamenti';
+
+  @override
+  String get documentLinksClient => 'Cliente';
+
+  @override
+  String get documentLinksTransaction => 'Movimento';
+
+  @override
+  String get documentLinksNoClient => 'Nessun cliente';
+
+  @override
+  String get documentLinksNoTransaction => 'Nessun movimento';
+
+  @override
+  String get documentLinksSave => 'Salva collegamenti';
+
+  @override
+  String get documentLinksSuccess => 'Collegamenti aggiornati.';
+
+  @override
+  String get documentLinksError =>
+      'Aggiornamento collegamenti non riuscito. Riprova.';
+
+  @override
+  String get documentLinksSearchClient => 'Cerca cliente';
+
+  @override
+  String get documentLinksSearchTransaction => 'Cerca movimento';
+
+  @override
+  String get documentLinksEmptyClients => 'Nessun cliente disponibile.';
+
+  @override
+  String get documentLinksEmptyTransactions => 'Nessun movimento disponibile.';
+
+  @override
+  String get documentDeletePermanently => 'Elimina definitivamente';
+
+  @override
+  String get documentDeleteConfirmTitle => 'Elimina definitivamente';
+
+  @override
+  String get documentDeleteIrreversible =>
+      'Questa operazione è irreversibile. Il documento e il file associato verranno eliminati.';
+
+  @override
+  String get documentDeleteConfirmAction => 'Elimina definitivamente';
+
+  @override
+  String get documentDeleteSuccess => 'Documento eliminato.';
+
+  @override
+  String get documentDeleteError =>
+      'Eliminazione documento non riuscita. Riprova.';
+
+  @override
+  String get documentDeleteIncomplete =>
+      'Eliminazione incompleta. Il file è stato rimosso ma i dati restano. Riprova.';
+
+  @override
+  String documentLinkedClient(String name) {
+    return 'Cliente: $name';
+  }
+
+  @override
+  String documentLinkedTransaction(String summary) {
+    return 'Movimento: $summary';
+  }
+
+  @override
   String get customersTitle => 'Clienti';
 
   @override

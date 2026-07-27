@@ -478,6 +478,132 @@ abstract class AppLocalizations {
   /// **'Non hai i permessi per caricare o modificare i documenti. Puoi solo visualizzarli e aprirli.'**
   String get documentReadOnlyMessage;
 
+  /// No description provided for @documentManageLinks.
+  ///
+  /// In it, this message translates to:
+  /// **'Gestisci collegamenti'**
+  String get documentManageLinks;
+
+  /// No description provided for @documentLinksClient.
+  ///
+  /// In it, this message translates to:
+  /// **'Cliente'**
+  String get documentLinksClient;
+
+  /// No description provided for @documentLinksTransaction.
+  ///
+  /// In it, this message translates to:
+  /// **'Movimento'**
+  String get documentLinksTransaction;
+
+  /// No description provided for @documentLinksNoClient.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun cliente'**
+  String get documentLinksNoClient;
+
+  /// No description provided for @documentLinksNoTransaction.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun movimento'**
+  String get documentLinksNoTransaction;
+
+  /// No description provided for @documentLinksSave.
+  ///
+  /// In it, this message translates to:
+  /// **'Salva collegamenti'**
+  String get documentLinksSave;
+
+  /// No description provided for @documentLinksSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Collegamenti aggiornati.'**
+  String get documentLinksSuccess;
+
+  /// No description provided for @documentLinksError.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiornamento collegamenti non riuscito. Riprova.'**
+  String get documentLinksError;
+
+  /// No description provided for @documentLinksSearchClient.
+  ///
+  /// In it, this message translates to:
+  /// **'Cerca cliente'**
+  String get documentLinksSearchClient;
+
+  /// No description provided for @documentLinksSearchTransaction.
+  ///
+  /// In it, this message translates to:
+  /// **'Cerca movimento'**
+  String get documentLinksSearchTransaction;
+
+  /// No description provided for @documentLinksEmptyClients.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun cliente disponibile.'**
+  String get documentLinksEmptyClients;
+
+  /// No description provided for @documentLinksEmptyTransactions.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun movimento disponibile.'**
+  String get documentLinksEmptyTransactions;
+
+  /// No description provided for @documentDeletePermanently.
+  ///
+  /// In it, this message translates to:
+  /// **'Elimina definitivamente'**
+  String get documentDeletePermanently;
+
+  /// No description provided for @documentDeleteConfirmTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Elimina definitivamente'**
+  String get documentDeleteConfirmTitle;
+
+  /// No description provided for @documentDeleteIrreversible.
+  ///
+  /// In it, this message translates to:
+  /// **'Questa operazione è irreversibile. Il documento e il file associato verranno eliminati.'**
+  String get documentDeleteIrreversible;
+
+  /// No description provided for @documentDeleteConfirmAction.
+  ///
+  /// In it, this message translates to:
+  /// **'Elimina definitivamente'**
+  String get documentDeleteConfirmAction;
+
+  /// No description provided for @documentDeleteSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Documento eliminato.'**
+  String get documentDeleteSuccess;
+
+  /// No description provided for @documentDeleteError.
+  ///
+  /// In it, this message translates to:
+  /// **'Eliminazione documento non riuscita. Riprova.'**
+  String get documentDeleteError;
+
+  /// No description provided for @documentDeleteIncomplete.
+  ///
+  /// In it, this message translates to:
+  /// **'Eliminazione incompleta. Il file è stato rimosso ma i dati restano. Riprova.'**
+  String get documentDeleteIncomplete;
+
+  /// No description provided for @documentLinkedClient.
+  ///
+  /// In it, this message translates to:
+  /// **'Cliente: {name}'**
+  String documentLinkedClient(String name);
+
+  /// No description provided for @documentLinkedTransaction.
+  ///
+  /// In it, this message translates to:
+  /// **'Movimento: {summary}'**
+  String documentLinkedTransaction(String summary);
+
   /// No description provided for @customersTitle.
   ///
   /// In it, this message translates to:

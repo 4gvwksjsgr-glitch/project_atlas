@@ -344,5 +344,41 @@
   "updatePasswordTitle": "Nuova password",
   "updatePasswordSubtitle": "Scegli una nuova password per il tuo account",
   "updatePasswordButton": "Aggiorna password",
-  "updatePasswordSuccessMessage": "Password aggiornata. Accedi con le nuove credenziali."
+  "updatePasswordSuccessMessage": "Password aggiornata. Accedi con le nuove credenziali.",
+  "subscriptionPlanSectionTitle": "Piano e utilizzo",
+  "subscriptionPlanFree": "Piano Free",
+  "subscriptionPlanPremium": "Piano Premium",
+  "subscriptionPlanTrialPremium": "Prova Premium",
+  "subscriptionDocumentsMonthlyLimit": "{count} documenti al mese",
+  "@subscriptionDocumentsMonthlyLimit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "subscriptionDocumentsUnlimited": "Documenti illimitati",
+  "subscriptionStatusLabel": "Stato: {status}",
+  "@subscriptionStatusLabel": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionStatusFree": "Free",
+  "subscriptionStatusTrialing": "Prova in corso",
+  "subscriptionStatusActive": "Attivo",
+  "subscriptionStatusUnknown": "Sconosciuto",
+  "subscriptionTrialValidUntil": "Prova valida fino al {date}",
+  "@subscriptionTrialValidUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionPlanManagementComingSoon": "La gestione del piano sarà disponibile prossimamente.",
+  "subscriptionLoading": "Caricamento piano...",
+  "subscriptionLoadError": "Caricamento piano non riuscito. Riprova."
 }

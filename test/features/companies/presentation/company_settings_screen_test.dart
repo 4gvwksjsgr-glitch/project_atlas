@@ -24,6 +24,8 @@ import 'package:project_atlas/features/companies/presentation/screens/company_se
 import 'package:project_atlas/features/companies/presentation/screens/company_settings_screen.dart';
 import 'package:project_atlas/features/companies/presentation/widgets/active_company_chip.dart';
 import 'package:project_atlas/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:project_atlas/features/subscription/domain/entities/company_subscription_overview.dart';
+import 'package:project_atlas/features/subscription/presentation/providers/subscription_providers.dart';
 import 'package:project_atlas/features/transactions/domain/usecases/get_transactions.dart';
 import 'package:project_atlas/features/transactions/presentation/providers/transaction_providers.dart';
 import 'package:project_atlas/features/transactions/presentation/screens/transactions_screen.dart';
@@ -173,6 +175,21 @@ Future<(ProviderContainer, GoRouter)> _pumpSettings({
           getTransactionsUseCaseProvider.overrideWithValue(
             GetTransactions(const EmptyTransactionRepository()),
           ),
+          companySubscriptionOverviewProvider.overrideWith((ref, id) async {
+            return CompanySubscriptionOverview(
+              companyId: id,
+              configuredPlanCode: 'free',
+              configuredPlanName: 'Free',
+              status: SubscriptionStatus.free,
+              effectivePlanCode: 'free',
+              effectivePlanName: 'Free',
+              documentMonthlyLimit: 30,
+              trialStartedAt: null,
+              trialEndsAt: null,
+              trialUsedAt: null,
+              isTrialActive: false,
+            );
+          }),
         ],
       ),
       child: Consumer(
@@ -267,6 +284,13 @@ Future<(ProviderContainer, GoRouter)> _pumpSettings({
   return (container, router!);
 }
 
+Future<void> _tapSave(WidgetTester tester) async {
+  final save = find.text('Salva modifiche');
+  await tester.ensureVisible(save);
+  await tester.pumpAndSettle();
+  await tester.tap(save);
+}
+
 void main() {
   setUp(() async {
     await setUpMockSharedPreferences();
@@ -288,6 +312,8 @@ void main() {
 
       expect(find.text('Acme · Proprietario'), findsOneWidget);
       expect(find.text('Salva modifiche'), findsOneWidget);
+      expect(find.text('Piano e utilizzo'), findsOneWidget);
+      expect(find.text('Piano Free'), findsOneWidget);
 
       await tester.enterText(
         find.byType(TextFormField).at(0),
@@ -297,7 +323,7 @@ void main() {
         find.byType(TextFormField).at(1),
         'acme-aggiornata',
       );
-      await tester.tap(find.text('Salva modifiche'));
+      await _tapSave(tester);
       await tester.pumpAndSettle();
 
       expect(find.text('Azienda aggiornata correttamente.'), findsOneWidget);
@@ -348,7 +374,7 @@ void main() {
       addTearDown(container.dispose);
 
       await tester.enterText(find.byType(TextFormField).at(0), 'Nuovo');
-      await tester.tap(find.text('Salva modifiche'));
+      await _tapSave(tester);
       await tester.pump();
 
       final button = tester.widget<FilledButton>(find.byType(FilledButton));
@@ -373,7 +399,12 @@ void main() {
 
       await tester.enterText(find.byType(TextFormField).at(0), 'Tentativo');
       await tester.enterText(find.byType(TextFormField).at(1), 'slug-preso');
-      await tester.tap(find.text('Salva modifiche'));
+      await _tapSave(tester);
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(
+        find.text('Questo slug è già in uso. Scegline un altro.'),
+      );
       await tester.pumpAndSettle();
 
       expect(

@@ -45,3 +45,13 @@ final class DocumentMetadataDeleteNoOpFailure extends Failure {
     super.message = 'Non hai i permessi per eliminare questo documento.',
   ]);
 }
+
+final class SubscriptionNotFoundFailure extends Failure {
+  const SubscriptionNotFoundFailure([
+    super.message = 'Abbonamento non trovato per questa azienda.',
+  ]);
+}
+
+final class SubscriptionPlanNotFoundFailure extends Failure {
+  const SubscriptionPlanNotFoundFailure([super.message = 'Piano non trovato.']);
+}

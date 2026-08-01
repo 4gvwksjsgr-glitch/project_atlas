@@ -33,20 +33,28 @@ class ShellScaffold extends ConsumerWidget {
       orElse: () => false,
     );
 
+    // Top SafeArea keeps the chip below status bar / notch so taps are not
+    // stolen by system UI on Android portrait. Bottom stays false so the
+    // NavigationBar keeps owning bottom insets.
     final companyHeader = activeCompany == null
         ? null
-        : Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppUiConstants.spacingLarge,
-              AppUiConstants.spacingMedium,
-              AppUiConstants.spacingLarge,
-              0,
-            ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: ActiveCompanyChip(
-                activeCompany: activeCompany,
-                canSwitch: canSwitchCompanies,
+        : SafeArea(
+            bottom: false,
+            left: false,
+            right: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppUiConstants.spacingLarge,
+                AppUiConstants.spacingMedium,
+                AppUiConstants.spacingLarge,
+                0,
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: ActiveCompanyChip(
+                  activeCompany: activeCompany,
+                  canSwitch: canSwitchCompanies,
+                ),
               ),
             ),
           );

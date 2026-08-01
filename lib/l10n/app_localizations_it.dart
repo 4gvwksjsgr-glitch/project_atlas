@@ -901,4 +901,57 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get updatePasswordSuccessMessage =>
       'Password aggiornata. Accedi con le nuove credenziali.';
+
+  @override
+  String get subscriptionPlanSectionTitle => 'Piano e utilizzo';
+
+  @override
+  String get subscriptionPlanFree => 'Piano Free';
+
+  @override
+  String get subscriptionPlanPremium => 'Piano Premium';
+
+  @override
+  String get subscriptionPlanTrialPremium => 'Prova Premium';
+
+  @override
+  String subscriptionDocumentsMonthlyLimit(int count) {
+    return '$count documenti al mese';
+  }
+
+  @override
+  String get subscriptionDocumentsUnlimited => 'Documenti illimitati';
+
+  @override
+  String subscriptionStatusLabel(String status) {
+    return 'Stato: $status';
+  }
+
+  @override
+  String get subscriptionStatusFree => 'Free';
+
+  @override
+  String get subscriptionStatusTrialing => 'Prova in corso';
+
+  @override
+  String get subscriptionStatusActive => 'Attivo';
+
+  @override
+  String get subscriptionStatusUnknown => 'Sconosciuto';
+
+  @override
+  String subscriptionTrialValidUntil(String date) {
+    return 'Prova valida fino al $date';
+  }
+
+  @override
+  String get subscriptionPlanManagementComingSoon =>
+      'La gestione del piano sarà disponibile prossimamente.';
+
+  @override
+  String get subscriptionLoading => 'Caricamento piano...';
+
+  @override
+  String get subscriptionLoadError =>
+      'Caricamento piano non riuscito. Riprova.';
 }

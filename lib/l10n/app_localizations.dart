@@ -1677,6 +1677,96 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Password aggiornata. Accedi con le nuove credenziali.'**
   String get updatePasswordSuccessMessage;
+
+  /// No description provided for @subscriptionPlanSectionTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Piano e utilizzo'**
+  String get subscriptionPlanSectionTitle;
+
+  /// No description provided for @subscriptionPlanFree.
+  ///
+  /// In it, this message translates to:
+  /// **'Piano Free'**
+  String get subscriptionPlanFree;
+
+  /// No description provided for @subscriptionPlanPremium.
+  ///
+  /// In it, this message translates to:
+  /// **'Piano Premium'**
+  String get subscriptionPlanPremium;
+
+  /// No description provided for @subscriptionPlanTrialPremium.
+  ///
+  /// In it, this message translates to:
+  /// **'Prova Premium'**
+  String get subscriptionPlanTrialPremium;
+
+  /// No description provided for @subscriptionDocumentsMonthlyLimit.
+  ///
+  /// In it, this message translates to:
+  /// **'{count} documenti al mese'**
+  String subscriptionDocumentsMonthlyLimit(int count);
+
+  /// No description provided for @subscriptionDocumentsUnlimited.
+  ///
+  /// In it, this message translates to:
+  /// **'Documenti illimitati'**
+  String get subscriptionDocumentsUnlimited;
+
+  /// No description provided for @subscriptionStatusLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Stato: {status}'**
+  String subscriptionStatusLabel(String status);
+
+  /// No description provided for @subscriptionStatusFree.
+  ///
+  /// In it, this message translates to:
+  /// **'Free'**
+  String get subscriptionStatusFree;
+
+  /// No description provided for @subscriptionStatusTrialing.
+  ///
+  /// In it, this message translates to:
+  /// **'Prova in corso'**
+  String get subscriptionStatusTrialing;
+
+  /// No description provided for @subscriptionStatusActive.
+  ///
+  /// In it, this message translates to:
+  /// **'Attivo'**
+  String get subscriptionStatusActive;
+
+  /// No description provided for @subscriptionStatusUnknown.
+  ///
+  /// In it, this message translates to:
+  /// **'Sconosciuto'**
+  String get subscriptionStatusUnknown;
+
+  /// No description provided for @subscriptionTrialValidUntil.
+  ///
+  /// In it, this message translates to:
+  /// **'Prova valida fino al {date}'**
+  String subscriptionTrialValidUntil(String date);
+
+  /// No description provided for @subscriptionPlanManagementComingSoon.
+  ///
+  /// In it, this message translates to:
+  /// **'La gestione del piano sarà disponibile prossimamente.'**
+  String get subscriptionPlanManagementComingSoon;
+
+  /// No description provided for @subscriptionLoading.
+  ///
+  /// In it, this message translates to:
+  /// **'Caricamento piano...'**
+  String get subscriptionLoading;
+
+  /// No description provided for @subscriptionLoadError.
+  ///
+  /// In it, this message translates to:
+  /// **'Caricamento piano non riuscito. Riprova.'**
+  String get subscriptionLoadError;
 }
 
 class _AppLocalizationsDelegate

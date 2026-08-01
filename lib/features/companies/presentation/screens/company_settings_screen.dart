@@ -7,6 +7,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/constants/app_ui_constants.dart';
 import '../../../../shared/helpers/validators.dart';
 import '../../domain/entities/active_company_context.dart';
+import '../../../subscription/presentation/widgets/company_plan_card.dart';
 import '../controllers/active_company_controller.dart';
 import '../controllers/company_onboarding_controller.dart';
 import '../controllers/company_settings_controller.dart';
@@ -140,100 +141,105 @@ class _CompanySettingsFormState extends ConsumerState<CompanySettingsForm> {
       padding: const EdgeInsets.all(AppUiConstants.spacingLarge),
       child: Form(
         key: _formKey,
-        child: ListView(
-          children: [
-            Text(
-              l10n.companySettingsTitle,
-              style: theme.textTheme.headlineMedium,
-            ),
-            const SizedBox(height: AppUiConstants.spacingSmall),
-            Text(
-              l10n.companySettingsSubtitle,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: AppUiConstants.spacingLarge),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.category_outlined),
-              title: Text(l10n.categoriesTitle),
-              subtitle: Text(l10n.categoriesSettingsLinkSubtitle),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push(RoutePaths.settingsCategories),
-            ),
-            const SizedBox(height: AppUiConstants.spacingLarge),
-            Text(
-              l10n.dashboardActiveRole(_company.role.label),
-              style: theme.textTheme.titleMedium,
-            ),
-            if (!_canEdit) ...[
-              const SizedBox(height: AppUiConstants.spacingMedium),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
               Text(
-                l10n.companySettingsReadOnlyMessage,
-                style: theme.textTheme.bodyMedium?.copyWith(
+                l10n.companySettingsTitle,
+                style: theme.textTheme.headlineMedium,
+              ),
+              const SizedBox(height: AppUiConstants.spacingSmall),
+              Text(
+                l10n.companySettingsSubtitle,
+                style: theme.textTheme.bodyLarge?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-            ],
-            const SizedBox(height: AppUiConstants.spacingLarge),
-            TextFormField(
-              controller: _nameController,
-              enabled: _canEdit && !isLoading,
-              textInputAction: TextInputAction.next,
-              decoration: InputDecoration(
-                labelText: l10n.companyNameLabel,
-                border: const OutlineInputBorder(),
+              const SizedBox(height: AppUiConstants.spacingLarge),
+              CompanyPlanCard(companyId: _company.companyId),
+              const SizedBox(height: AppUiConstants.spacingLarge),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.category_outlined),
+                title: Text(l10n.categoriesTitle),
+                subtitle: Text(l10n.categoriesSettingsLinkSubtitle),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(RoutePaths.settingsCategories),
               ),
-              validator: (value) => Validators.requiredField(
-                value,
-                message: l10n.companyNameRequired,
-              ),
-            ),
-            const SizedBox(height: AppUiConstants.spacingMedium),
-            TextFormField(
-              controller: _slugController,
-              enabled: _canEdit && !isLoading,
-              textInputAction: TextInputAction.done,
-              onFieldSubmitted: (_) {
-                if (_canEdit && !isLoading) {
-                  _submit();
-                }
-              },
-              decoration: InputDecoration(
-                labelText: l10n.companySlugLabel,
-                helperText: l10n.companySlugHelper,
-                border: const OutlineInputBorder(),
-              ),
-              validator: (value) => Validators.slug(
-                value,
-                emptyMessage: l10n.companySlugRequired,
-                invalidMessage: l10n.companySlugInvalid,
-              ),
-            ),
-            if (settingsState.errorMessage != null) ...[
-              const SizedBox(height: AppUiConstants.spacingMedium),
+              const SizedBox(height: AppUiConstants.spacingLarge),
               Text(
-                settingsState.errorMessage!,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.error,
+                l10n.dashboardActiveRole(_company.role.label),
+                style: theme.textTheme.titleMedium,
+              ),
+              if (!_canEdit) ...[
+                const SizedBox(height: AppUiConstants.spacingMedium),
+                Text(
+                  l10n.companySettingsReadOnlyMessage,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+              const SizedBox(height: AppUiConstants.spacingLarge),
+              TextFormField(
+                controller: _nameController,
+                enabled: _canEdit && !isLoading,
+                textInputAction: TextInputAction.next,
+                decoration: InputDecoration(
+                  labelText: l10n.companyNameLabel,
+                  border: const OutlineInputBorder(),
+                ),
+                validator: (value) => Validators.requiredField(
+                  value,
+                  message: l10n.companyNameRequired,
                 ),
               ),
-            ],
-            if (_canEdit) ...[
-              const SizedBox(height: AppUiConstants.spacingLarge),
-              FilledButton(
-                onPressed: isLoading ? null : _submit,
-                child: isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(l10n.companySettingsSaveButton),
+              const SizedBox(height: AppUiConstants.spacingMedium),
+              TextFormField(
+                controller: _slugController,
+                enabled: _canEdit && !isLoading,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) {
+                  if (_canEdit && !isLoading) {
+                    _submit();
+                  }
+                },
+                decoration: InputDecoration(
+                  labelText: l10n.companySlugLabel,
+                  helperText: l10n.companySlugHelper,
+                  border: const OutlineInputBorder(),
+                ),
+                validator: (value) => Validators.slug(
+                  value,
+                  emptyMessage: l10n.companySlugRequired,
+                  invalidMessage: l10n.companySlugInvalid,
+                ),
               ),
+              if (settingsState.errorMessage != null) ...[
+                const SizedBox(height: AppUiConstants.spacingMedium),
+                Text(
+                  settingsState.errorMessage!,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+              ],
+              if (_canEdit) ...[
+                const SizedBox(height: AppUiConstants.spacingLarge),
+                FilledButton(
+                  onPressed: isLoading ? null : _submit,
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(l10n.companySettingsSaveButton),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

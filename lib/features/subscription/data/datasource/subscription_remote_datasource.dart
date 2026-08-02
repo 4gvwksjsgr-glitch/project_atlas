@@ -23,6 +23,17 @@ class SubscriptionRemoteDataSource {
     return CompanySubscriptionOverviewModel.fromJson(row);
   }
 
+  Future<void> activateCompanyPremiumTrial({required String companyId}) async {
+    if (companyId.isEmpty) {
+      throw ArgumentError.value(companyId, 'companyId', 'obbligatorio');
+    }
+
+    await _client.rpc(
+      'activate_company_premium_trial',
+      params: {'p_company_id': companyId},
+    );
+  }
+
   static Map<String, dynamic> _singleRow(Object? response) {
     if (response is List) {
       if (response.isEmpty) {

@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/utils/result.dart';
+import '../../../subscription/domain/usecases/get_company_subscription_overview.dart';
 import '../entities/company_document.dart';
 import '../repositories/document_repository.dart';
 import '../services/document_file_validator.dart';
@@ -18,9 +19,10 @@ class GetDocuments {
 }
 
 class UploadDocument {
-  const UploadDocument(this._repository);
+  const UploadDocument(this._repository, this._getOverview);
 
   final DocumentRepository _repository;
+  final GetCompanySubscriptionOverview _getOverview;
 
   Future<Result<CompanyDocument>> call({
     required String companyId,
@@ -56,6 +58,19 @@ class UploadDocument {
         :final canonicalExtension,
         :final bytes,
       ):
+        final overviewResult = await _getOverview.call(companyId: companyId);
+        switch (overviewResult) {
+          case Error(:final failure):
+            return Error(failure);
+          case Success(:final value):
+            if (!value.isUnlimited) {
+              final limit = value.documentMonthlyLimit;
+              if (limit != null && value.documentsUsed >= limit) {
+                return const Error(DocumentQuotaExceededFailure());
+              }
+            }
+        }
+
         return _repository.uploadDocument(
           companyId: companyId,
           title: normalizedTitle,

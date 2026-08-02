@@ -1714,6 +1714,33 @@ abstract class AppLocalizations {
   /// **'Documenti illimitati'**
   String get subscriptionDocumentsUnlimited;
 
+  /// No description provided for @subscriptionDocumentsUsedThisMonth.
+  ///
+  /// In it, this message translates to:
+  /// **'{documentsUsed} di {documentMonthlyLimit} documenti utilizzati questo mese'**
+  String subscriptionDocumentsUsedThisMonth(
+    int documentsUsed,
+    int documentMonthlyLimit,
+  );
+
+  /// No description provided for @subscriptionDocumentsUsedInfo.
+  ///
+  /// In it, this message translates to:
+  /// **'{documentsUsed} documenti caricati questo mese'**
+  String subscriptionDocumentsUsedInfo(int documentsUsed);
+
+  /// No description provided for @subscriptionQuotaExhausted.
+  ///
+  /// In it, this message translates to:
+  /// **'Quota mensile esaurita'**
+  String get subscriptionQuotaExhausted;
+
+  /// No description provided for @subscriptionTrialActiveLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Prova Premium attiva'**
+  String get subscriptionTrialActiveLabel;
+
   /// No description provided for @subscriptionStatusLabel.
   ///
   /// In it, this message translates to:
@@ -1747,8 +1774,110 @@ abstract class AppLocalizations {
   /// No description provided for @subscriptionTrialValidUntil.
   ///
   /// In it, this message translates to:
-  /// **'Prova valida fino al {date}'**
-  String subscriptionTrialValidUntil(String date);
+  /// **'Prova valida fino al {trialEndDate}'**
+  String subscriptionTrialValidUntil(String trialEndDate);
+
+  /// No description provided for @subscriptionActivateTrialCta.
+  ///
+  /// In it, this message translates to:
+  /// **'Attiva la prova Premium'**
+  String get subscriptionActivateTrialCta;
+
+  /// No description provided for @subscriptionActivateTrialDialogTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Attivare la prova Premium?'**
+  String get subscriptionActivateTrialDialogTitle;
+
+  /// No description provided for @subscriptionActivateTrialDialogBody.
+  ///
+  /// In it, this message translates to:
+  /// **'La prova dura un mese e può essere attivata una sola volta per questa azienda.'**
+  String get subscriptionActivateTrialDialogBody;
+
+  /// No description provided for @subscriptionActivateTrialCancel.
+  ///
+  /// In it, this message translates to:
+  /// **'Annulla'**
+  String get subscriptionActivateTrialCancel;
+
+  /// No description provided for @subscriptionActivateTrialConfirm.
+  ///
+  /// In it, this message translates to:
+  /// **'Attiva prova'**
+  String get subscriptionActivateTrialConfirm;
+
+  /// No description provided for @subscriptionTrialActivatedSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Prova Premium attivata.'**
+  String get subscriptionTrialActivatedSuccess;
+
+  /// No description provided for @atlasDocumentQuotaExceeded.
+  ///
+  /// In it, this message translates to:
+  /// **'Hai raggiunto il limite di documenti del mese.'**
+  String get atlasDocumentQuotaExceeded;
+
+  /// No description provided for @atlasSubscriptionNotFound.
+  ///
+  /// In it, this message translates to:
+  /// **'Non è stato possibile trovare l\'abbonamento dell\'azienda.'**
+  String get atlasSubscriptionNotFound;
+
+  /// No description provided for @atlasPlanNotFound.
+  ///
+  /// In it, this message translates to:
+  /// **'Il piano associato all\'azienda non è disponibile.'**
+  String get atlasPlanNotFound;
+
+  /// No description provided for @atlasCompanyIdRequired.
+  ///
+  /// In it, this message translates to:
+  /// **'Non è stata selezionata un\'azienda valida.'**
+  String get atlasCompanyIdRequired;
+
+  /// No description provided for @atlasNotAuthenticated.
+  ///
+  /// In it, this message translates to:
+  /// **'La sessione non è valida. Accedi nuovamente.'**
+  String get atlasNotAuthenticated;
+
+  /// No description provided for @atlasNotCompanyMember.
+  ///
+  /// In it, this message translates to:
+  /// **'Non fai parte di questa azienda.'**
+  String get atlasNotCompanyMember;
+
+  /// No description provided for @atlasNotCompanyOwner.
+  ///
+  /// In it, this message translates to:
+  /// **'Solo il proprietario può attivare la prova Premium.'**
+  String get atlasNotCompanyOwner;
+
+  /// No description provided for @atlasTrialAlreadyActive.
+  ///
+  /// In it, this message translates to:
+  /// **'La prova Premium è già attiva.'**
+  String get atlasTrialAlreadyActive;
+
+  /// No description provided for @atlasAlreadyPremium.
+  ///
+  /// In it, this message translates to:
+  /// **'L\'azienda utilizza già il piano Premium.'**
+  String get atlasAlreadyPremium;
+
+  /// No description provided for @atlasTrialAlreadyUsed.
+  ///
+  /// In it, this message translates to:
+  /// **'La prova Premium è già stata utilizzata.'**
+  String get atlasTrialAlreadyUsed;
+
+  /// No description provided for @atlasPremiumUnavailable.
+  ///
+  /// In it, this message translates to:
+  /// **'La prova Premium non è disponibile in questo momento.'**
+  String get atlasPremiumUnavailable;
 
   /// No description provided for @subscriptionPlanManagementComingSoon.
   ///

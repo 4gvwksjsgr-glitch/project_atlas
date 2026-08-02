@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import 'package:uuid/uuid.dart';
 
+import '../../../../core/errors/atlas_error_codes.dart';
 import '../../../../core/errors/document_error_mapper.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -76,20 +77,41 @@ class DocumentRepositoryImpl implements DocumentRepository {
       );
       return Success(model.toEntity());
     } catch (error) {
+      final isQuota = AtlasErrorCodes.isCode(
+        error,
+        AtlasErrorCodes.documentQuotaExceeded,
+      );
       final primary = DocumentErrorMapper.mapException(
         error,
         DocumentOperation.uploadDocument,
       );
+
       try {
         await _storage.deleteObject(storagePath);
+        if (isQuota) {
+          return const Error(DocumentQuotaExceededFailure());
+        }
+        return Error(primary);
+      } on DocumentStorageDeleteNoOpException {
+        if (isQuota) {
+          return const Error(DocumentQuotaExceededCleanupFailedFailure());
+        }
+        developer.log(
+          'Document storage cleanup no-op',
+          name: 'DocumentRepositoryImpl',
+        );
+        return Error(primary);
       } catch (cleanupError) {
         developer.log(
           'Document storage cleanup failed',
           name: 'DocumentRepositoryImpl',
           error: cleanupError,
         );
+        if (isQuota) {
+          return const Error(DocumentQuotaExceededCleanupFailedFailure());
+        }
+        return Error(primary);
       }
-      return Error(primary);
     }
   }
 

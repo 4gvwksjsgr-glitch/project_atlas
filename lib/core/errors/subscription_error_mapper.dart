@@ -1,9 +1,10 @@
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
+import 'atlas_error_codes.dart';
 import 'exceptions.dart';
 import 'failures.dart';
 
-enum SubscriptionOperation { getOverview }
+enum SubscriptionOperation { getOverview, activatePremiumTrial }
 
 abstract final class SubscriptionErrorMapper {
   static Failure mapException(
@@ -25,8 +26,13 @@ abstract final class SubscriptionErrorMapper {
       return error;
     }
 
+    final atlasCode = AtlasErrorCodes.extract(error);
+    if (atlasCode != null) {
+      return mapAtlasCode(atlasCode);
+    }
+
     if (error is supabase.PostgrestException) {
-      return _mapPostgrest(error);
+      return _mapPostgrest(error, operation);
     }
 
     final text = error.toString().toLowerCase();
@@ -40,7 +46,36 @@ abstract final class SubscriptionErrorMapper {
     return UnknownFailure(_fallback(operation));
   }
 
-  static Failure _mapPostgrest(supabase.PostgrestException error) {
+  static Failure mapAtlasCode(String code) {
+    return switch (code) {
+      AtlasErrorCodes.documentQuotaExceeded =>
+        const DocumentQuotaExceededFailure(),
+      AtlasErrorCodes.subscriptionNotFound =>
+        const SubscriptionNotFoundFailure(),
+      AtlasErrorCodes.planNotFound => const SubscriptionPlanNotFoundFailure(),
+      AtlasErrorCodes.companyIdRequired =>
+        const AtlasCompanyIdRequiredFailure(),
+      AtlasErrorCodes.notAuthenticated => const AuthFailure(
+        'La sessione non è valida. Accedi nuovamente.',
+      ),
+      AtlasErrorCodes.notCompanyMember => const AuthFailure(
+        'Non fai parte di questa azienda.',
+      ),
+      AtlasErrorCodes.notCompanyOwner => const AtlasNotCompanyOwnerFailure(),
+      AtlasErrorCodes.trialAlreadyActive =>
+        const AtlasTrialAlreadyActiveFailure(),
+      AtlasErrorCodes.alreadyPremium => const AtlasAlreadyPremiumFailure(),
+      AtlasErrorCodes.trialAlreadyUsed => const AtlasTrialAlreadyUsedFailure(),
+      AtlasErrorCodes.premiumUnavailable =>
+        const AtlasPremiumUnavailableFailure(),
+      _ => const UnknownFailure(),
+    };
+  }
+
+  static Failure _mapPostgrest(
+    supabase.PostgrestException error,
+    SubscriptionOperation operation,
+  ) {
     final combined =
         '${error.message} ${error.details ?? ''} ${error.hint ?? ''}'
             .toLowerCase();
@@ -50,6 +85,9 @@ abstract final class SubscriptionErrorMapper {
       return const AuthFailure('Sessione scaduta. Accedi di nuovo.');
     }
     if (combined.contains('not a company member') || code == '42501') {
+      if (operation == SubscriptionOperation.activatePremiumTrial) {
+        return const AuthFailure('Non fai parte di questa azienda.');
+      }
       return const AuthFailure(
         'Non hai i permessi per visualizzare il piano di questa azienda.',
       );
@@ -68,13 +106,15 @@ abstract final class SubscriptionErrorMapper {
       return const SubscriptionNotFoundFailure();
     }
 
-    return UnknownFailure(_fallback(SubscriptionOperation.getOverview));
+    return UnknownFailure(_fallback(operation));
   }
 
   static String _fallback(SubscriptionOperation operation) {
     return switch (operation) {
       SubscriptionOperation.getOverview =>
         'Caricamento piano non riuscito. Riprova.',
+      SubscriptionOperation.activatePremiumTrial =>
+        'Attivazione prova Premium non riuscita. Riprova.',
     };
   }
 }

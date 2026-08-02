@@ -27,4 +27,21 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
       );
     }
   }
+
+  @override
+  Future<Result<void>> activateCompanyPremiumTrial({
+    required String companyId,
+  }) async {
+    try {
+      await _remote.activateCompanyPremiumTrial(companyId: companyId);
+      return const Success(null);
+    } catch (error) {
+      return Error(
+        SubscriptionErrorMapper.mapException(
+          error,
+          SubscriptionOperation.activatePremiumTrial,
+        ),
+      );
+    }
+  }
 }

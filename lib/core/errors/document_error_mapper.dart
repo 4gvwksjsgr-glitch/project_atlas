@@ -1,7 +1,9 @@
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
+import '../errors/atlas_error_codes.dart';
 import '../errors/exceptions.dart';
 import '../errors/failures.dart';
+import '../errors/subscription_error_mapper.dart';
 
 enum DocumentOperation {
   getDocuments,
@@ -46,6 +48,11 @@ abstract final class DocumentErrorMapper {
     }
     if (error is Failure) {
       return error;
+    }
+
+    final atlasCode = AtlasErrorCodes.extract(error);
+    if (atlasCode != null) {
+      return SubscriptionErrorMapper.mapAtlasCode(atlasCode);
     }
 
     if (error is supabase.StorageException) {

@@ -358,6 +358,27 @@
     }
   },
   "subscriptionDocumentsUnlimited": "Documenti illimitati",
+  "subscriptionDocumentsUsedThisMonth": "{documentsUsed} di {documentMonthlyLimit} documenti utilizzati questo mese",
+  "@subscriptionDocumentsUsedThisMonth": {
+    "placeholders": {
+      "documentsUsed": {
+        "type": "int"
+      },
+      "documentMonthlyLimit": {
+        "type": "int"
+      }
+    }
+  },
+  "subscriptionDocumentsUsedInfo": "{documentsUsed} documenti caricati questo mese",
+  "@subscriptionDocumentsUsedInfo": {
+    "placeholders": {
+      "documentsUsed": {
+        "type": "int"
+      }
+    }
+  },
+  "subscriptionQuotaExhausted": "Quota mensile esaurita",
+  "subscriptionTrialActiveLabel": "Prova Premium attiva",
   "subscriptionStatusLabel": "Stato: {status}",
   "@subscriptionStatusLabel": {
     "placeholders": {
@@ -370,14 +391,31 @@
   "subscriptionStatusTrialing": "Prova in corso",
   "subscriptionStatusActive": "Attivo",
   "subscriptionStatusUnknown": "Sconosciuto",
-  "subscriptionTrialValidUntil": "Prova valida fino al {date}",
+  "subscriptionTrialValidUntil": "Prova valida fino al {trialEndDate}",
   "@subscriptionTrialValidUntil": {
     "placeholders": {
-      "date": {
+      "trialEndDate": {
         "type": "String"
       }
     }
   },
+  "subscriptionActivateTrialCta": "Attiva la prova Premium",
+  "subscriptionActivateTrialDialogTitle": "Attivare la prova Premium?",
+  "subscriptionActivateTrialDialogBody": "La prova dura un mese e può essere attivata una sola volta per questa azienda.",
+  "subscriptionActivateTrialCancel": "Annulla",
+  "subscriptionActivateTrialConfirm": "Attiva prova",
+  "subscriptionTrialActivatedSuccess": "Prova Premium attivata.",
+  "atlasDocumentQuotaExceeded": "Hai raggiunto il limite di documenti del mese.",
+  "atlasSubscriptionNotFound": "Non è stato possibile trovare l'abbonamento dell'azienda.",
+  "atlasPlanNotFound": "Il piano associato all'azienda non è disponibile.",
+  "atlasCompanyIdRequired": "Non è stata selezionata un'azienda valida.",
+  "atlasNotAuthenticated": "La sessione non è valida. Accedi nuovamente.",
+  "atlasNotCompanyMember": "Non fai parte di questa azienda.",
+  "atlasNotCompanyOwner": "Solo il proprietario può attivare la prova Premium.",
+  "atlasTrialAlreadyActive": "La prova Premium è già attiva.",
+  "atlasAlreadyPremium": "L'azienda utilizza già il piano Premium.",
+  "atlasTrialAlreadyUsed": "La prova Premium è già stata utilizzata.",
+  "atlasPremiumUnavailable": "La prova Premium non è disponibile in questo momento.",
   "subscriptionPlanManagementComingSoon": "La gestione del piano sarà disponibile prossimamente.",
   "subscriptionLoading": "Caricamento piano...",
   "subscriptionLoadError": "Caricamento piano non riuscito. Riprova."

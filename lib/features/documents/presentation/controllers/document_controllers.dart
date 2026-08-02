@@ -2,8 +2,29 @@ import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/errors/failures.dart';
 import '../../../companies/presentation/controllers/company_onboarding_controller.dart';
+import '../../../subscription/presentation/providers/subscription_providers.dart';
 import '../providers/document_providers.dart';
+
+/// Esito immutabile di [DocumentUploadController.upload].
+///
+/// La UI deve usare questo valore per lo SnackBar: non rileggere lo stato
+/// del provider `autoDispose` dopo l'`await`.
+final class DocumentUploadOutcome {
+  const DocumentUploadOutcome._({required this.isSuccess, this.failure});
+
+  const DocumentUploadOutcome.success() : this._(isSuccess: true);
+
+  const DocumentUploadOutcome.failure(Failure failure)
+    : this._(isSuccess: false, failure: failure);
+
+  /// Chiamata ignorata (anti-doppio tap mentre è già in corso un upload).
+  const DocumentUploadOutcome.ignored() : this._(isSuccess: false);
+
+  final bool isSuccess;
+  final Failure? failure;
+}
 
 class DocumentUploadState {
   const DocumentUploadState({
@@ -35,14 +56,14 @@ class DocumentUploadController
     return const DocumentUploadState();
   }
 
-  Future<bool> upload({
+  Future<DocumentUploadOutcome> upload({
     required String title,
     required String originalFileName,
     required String? declaredMimeType,
     required Uint8List? bytes,
   }) async {
     if (state.isLoading) {
-      return false;
+      return const DocumentUploadOutcome.ignored();
     }
 
     state = state.copyWith(
@@ -63,18 +84,20 @@ class DocumentUploadController
     return result.when(
       success: (_) {
         ref.invalidate(documentsProvider(arg));
+        ref.invalidate(companySubscriptionOverviewProvider(arg));
         state = state.copyWith(
           actionStatus: CompanyActionStatus.success,
           clearError: true,
         );
-        return true;
+        return const DocumentUploadOutcome.success();
       },
       error: (failure) {
+        ref.invalidate(companySubscriptionOverviewProvider(arg));
         state = state.copyWith(
           actionStatus: CompanyActionStatus.error,
           errorMessage: failure.message,
         );
-        return false;
+        return DocumentUploadOutcome.failure(failure);
       },
     );
   }

@@ -923,6 +923,25 @@ class AppLocalizationsIt extends AppLocalizations {
   String get subscriptionDocumentsUnlimited => 'Documenti illimitati';
 
   @override
+  String subscriptionDocumentsUsedThisMonth(
+    int documentsUsed,
+    int documentMonthlyLimit,
+  ) {
+    return '$documentsUsed di $documentMonthlyLimit documenti utilizzati questo mese';
+  }
+
+  @override
+  String subscriptionDocumentsUsedInfo(int documentsUsed) {
+    return '$documentsUsed documenti caricati questo mese';
+  }
+
+  @override
+  String get subscriptionQuotaExhausted => 'Quota mensile esaurita';
+
+  @override
+  String get subscriptionTrialActiveLabel => 'Prova Premium attiva';
+
+  @override
   String subscriptionStatusLabel(String status) {
     return 'Stato: $status';
   }
@@ -940,9 +959,70 @@ class AppLocalizationsIt extends AppLocalizations {
   String get subscriptionStatusUnknown => 'Sconosciuto';
 
   @override
-  String subscriptionTrialValidUntil(String date) {
-    return 'Prova valida fino al $date';
+  String subscriptionTrialValidUntil(String trialEndDate) {
+    return 'Prova valida fino al $trialEndDate';
   }
+
+  @override
+  String get subscriptionActivateTrialCta => 'Attiva la prova Premium';
+
+  @override
+  String get subscriptionActivateTrialDialogTitle =>
+      'Attivare la prova Premium?';
+
+  @override
+  String get subscriptionActivateTrialDialogBody =>
+      'La prova dura un mese e può essere attivata una sola volta per questa azienda.';
+
+  @override
+  String get subscriptionActivateTrialCancel => 'Annulla';
+
+  @override
+  String get subscriptionActivateTrialConfirm => 'Attiva prova';
+
+  @override
+  String get subscriptionTrialActivatedSuccess => 'Prova Premium attivata.';
+
+  @override
+  String get atlasDocumentQuotaExceeded =>
+      'Hai raggiunto il limite di documenti del mese.';
+
+  @override
+  String get atlasSubscriptionNotFound =>
+      'Non è stato possibile trovare l\'abbonamento dell\'azienda.';
+
+  @override
+  String get atlasPlanNotFound =>
+      'Il piano associato all\'azienda non è disponibile.';
+
+  @override
+  String get atlasCompanyIdRequired =>
+      'Non è stata selezionata un\'azienda valida.';
+
+  @override
+  String get atlasNotAuthenticated =>
+      'La sessione non è valida. Accedi nuovamente.';
+
+  @override
+  String get atlasNotCompanyMember => 'Non fai parte di questa azienda.';
+
+  @override
+  String get atlasNotCompanyOwner =>
+      'Solo il proprietario può attivare la prova Premium.';
+
+  @override
+  String get atlasTrialAlreadyActive => 'La prova Premium è già attiva.';
+
+  @override
+  String get atlasAlreadyPremium => 'L\'azienda utilizza già il piano Premium.';
+
+  @override
+  String get atlasTrialAlreadyUsed =>
+      'La prova Premium è già stata utilizzata.';
+
+  @override
+  String get atlasPremiumUnavailable =>
+      'La prova Premium non è disponibile in questo momento.';
 
   @override
   String get subscriptionPlanManagementComingSoon =>

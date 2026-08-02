@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/di/providers.dart';
+import '../../../subscription/presentation/providers/subscription_providers.dart';
 import '../../data/datasource/document_remote_datasource.dart';
 import '../../data/repositories/document_repository_impl.dart';
 import '../../data/services/url_launcher_document_url_launcher.dart';
@@ -37,7 +38,10 @@ final getDocumentsUseCaseProvider = Provider<GetDocuments>((ref) {
 });
 
 final uploadDocumentUseCaseProvider = Provider<UploadDocument>((ref) {
-  return UploadDocument(ref.watch(documentRepositoryProvider));
+  return UploadDocument(
+    ref.watch(documentRepositoryProvider),
+    ref.watch(getCompanySubscriptionOverviewUseCaseProvider),
+  );
 });
 
 final createDocumentSignedUrlUseCaseProvider =

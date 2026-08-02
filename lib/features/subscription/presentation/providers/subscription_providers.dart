@@ -5,6 +5,7 @@ import '../../data/datasource/subscription_remote_datasource.dart';
 import '../../data/repositories/subscription_repository_impl.dart';
 import '../../domain/entities/company_subscription_overview.dart';
 import '../../domain/repositories/subscription_repository.dart';
+import '../../domain/usecases/activate_company_premium_trial.dart';
 import '../../domain/usecases/get_company_subscription_overview.dart';
 
 final subscriptionRemoteDataSourceProvider =
@@ -21,6 +22,13 @@ final subscriptionRepositoryProvider = Provider<SubscriptionRepository>((ref) {
 final getCompanySubscriptionOverviewUseCaseProvider =
     Provider<GetCompanySubscriptionOverview>((ref) {
       return GetCompanySubscriptionOverview(
+        ref.watch(subscriptionRepositoryProvider),
+      );
+    });
+
+final activateCompanyPremiumTrialUseCaseProvider =
+    Provider<ActivateCompanyPremiumTrial>((ref) {
+      return ActivateCompanyPremiumTrial(
         ref.watch(subscriptionRepositoryProvider),
       );
     });

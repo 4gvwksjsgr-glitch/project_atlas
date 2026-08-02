@@ -19,7 +19,67 @@ import 'package:project_atlas/features/documents/domain/repositories/document_re
 import 'package:project_atlas/features/documents/domain/services/document_file_validator.dart';
 import 'package:project_atlas/features/documents/presentation/providers/document_providers.dart';
 import 'package:project_atlas/features/documents/presentation/screens/documents_screen.dart';
+import 'package:project_atlas/features/subscription/domain/entities/company_subscription_overview.dart';
+import 'package:project_atlas/features/subscription/domain/repositories/subscription_repository.dart';
+import 'package:project_atlas/features/subscription/domain/usecases/get_company_subscription_overview.dart';
+import 'package:project_atlas/features/subscription/presentation/providers/subscription_providers.dart';
 import 'package:project_atlas/l10n/app_localizations.dart';
+
+CompanySubscriptionOverview _freeOverviewUnderQuota() {
+  return const CompanySubscriptionOverview(
+    companyId: 'c1',
+    configuredPlanCode: 'free',
+    configuredPlanName: 'Free',
+    status: SubscriptionStatus.free,
+    effectivePlanCode: 'free',
+    effectivePlanName: 'Free',
+    documentMonthlyLimit: 30,
+    trialStartedAt: null,
+    trialEndsAt: null,
+    trialUsedAt: null,
+    isTrialActive: false,
+    documentsUsed: 0,
+    isUnlimited: false,
+  );
+}
+
+CompanySubscriptionOverview _freeOverviewAtQuota() {
+  return const CompanySubscriptionOverview(
+    companyId: 'c1',
+    configuredPlanCode: 'free',
+    configuredPlanName: 'Free',
+    status: SubscriptionStatus.free,
+    effectivePlanCode: 'free',
+    effectivePlanName: 'Free',
+    documentMonthlyLimit: 30,
+    trialStartedAt: null,
+    trialEndsAt: null,
+    trialUsedAt: null,
+    isTrialActive: false,
+    documentsUsed: 30,
+    isUnlimited: false,
+  );
+}
+
+class _OverviewRepo implements SubscriptionRepository {
+  _OverviewRepo([this.overview]);
+
+  final CompanySubscriptionOverview? overview;
+
+  @override
+  Future<Result<CompanySubscriptionOverview>> getCompanySubscriptionOverview({
+    required String companyId,
+  }) async {
+    return Success(overview ?? _freeOverviewUnderQuota());
+  }
+
+  @override
+  Future<Result<void>> activateCompanyPremiumTrial({
+    required String companyId,
+  }) async {
+    return const Success(null);
+  }
+}
 
 class _FakePicker implements AppFilePicker {
   _FakePicker(this.result);
@@ -39,6 +99,8 @@ class _RecordingRepo implements DocumentRepository {
   String? lastOriginalFileName;
   String? lastMimeType;
   List<int>? lastBytes;
+  void Function()? onUploadHook;
+  Failure? forceUploadFailure;
 
   @override
   Future<Result<List<CompanyDocument>>> getDocuments({
@@ -56,6 +118,10 @@ class _RecordingRepo implements DocumentRepository {
     required String canonicalExtension,
     required List<int> bytes,
   }) async {
+    onUploadHook?.call();
+    if (forceUploadFailure != null) {
+      return Error(forceUploadFailure!);
+    }
     lastOriginalFileName = originalFileName;
     lastMimeType = mimeType;
     lastBytes = bytes;
@@ -206,6 +272,9 @@ void main() {
         overrides: [
           activeCompanyProvider.overrideWithValue(_owner()),
           documentRepositoryProvider.overrideWithValue(repo),
+          getCompanySubscriptionOverviewUseCaseProvider.overrideWithValue(
+            GetCompanySubscriptionOverview(_OverviewRepo()),
+          ),
           appFilePickerProvider.overrideWithValue(
             _FakePicker(
               AppFilePickSuccess(
@@ -241,6 +310,126 @@ void main() {
     expect(repo.lastMimeType, 'application/pdf');
     expect(repo.lastBytes, bytes);
     expect(find.text('Documento caricato.'), findsOneWidget);
+    expect(
+      find.text('Caricamento documento non riuscito. Riprova.'),
+      findsNothing,
+    );
+  });
+
+  testWidgets(
+    'documenti: quota raggiunta mostra SnackBar specifico, non generico',
+    (tester) async {
+      final bytes = _pdfBytes();
+      var storageCalled = false;
+      final repo = _RecordingRepo()
+        ..onUploadHook = () {
+          storageCalled = true;
+        };
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            activeCompanyProvider.overrideWithValue(_owner()),
+            documentRepositoryProvider.overrideWithValue(repo),
+            getCompanySubscriptionOverviewUseCaseProvider.overrideWithValue(
+              GetCompanySubscriptionOverview(
+                _OverviewRepo(_freeOverviewAtQuota()),
+              ),
+            ),
+            appFilePickerProvider.overrideWithValue(
+              _FakePicker(
+                AppFilePickSuccess(
+                  SelectedAppFile(
+                    name: 'extra.pdf',
+                    extension: 'pdf',
+                    mimeType: 'application/pdf',
+                    size: bytes.length,
+                    bytes: bytes,
+                  ),
+                ),
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('it'),
+            home: DocumentsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('documents-upload-fab')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('documents-upload-confirm')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Hai raggiunto il limite di documenti del mese.'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Caricamento documento non riuscito. Riprova.'),
+        findsNothing,
+      );
+      expect(storageCalled, isFalse);
+      expect(repo.lastBytes, isNull);
+    },
+  );
+
+  testWidgets('documenti: errore generico reale mostra fallback upload', (
+    tester,
+  ) async {
+    final bytes = _pdfBytes();
+    final repo = _RecordingRepo()
+      ..forceUploadFailure = const UnknownFailure(
+        'Caricamento documento non riuscito. Riprova.',
+      );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          activeCompanyProvider.overrideWithValue(_owner()),
+          documentRepositoryProvider.overrideWithValue(repo),
+          getCompanySubscriptionOverviewUseCaseProvider.overrideWithValue(
+            GetCompanySubscriptionOverview(_OverviewRepo()),
+          ),
+          appFilePickerProvider.overrideWithValue(
+            _FakePicker(
+              AppFilePickSuccess(
+                SelectedAppFile(
+                  name: 'x.pdf',
+                  extension: 'pdf',
+                  mimeType: 'application/pdf',
+                  size: bytes.length,
+                  bytes: bytes,
+                ),
+              ),
+            ),
+          ),
+        ],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: Locale('it'),
+          home: DocumentsScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('documents-upload-fab')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('documents-upload-confirm')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Caricamento documento non riuscito. Riprova.'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('Hai raggiunto il limite di documenti del mese.'),
+      findsNothing,
+    );
   });
 
   test('documenti: oversize rifiutato prima di readAsBytes', () async {

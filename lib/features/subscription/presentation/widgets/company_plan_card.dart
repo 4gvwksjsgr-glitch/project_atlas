@@ -4,7 +4,9 @@ import 'package:intl/intl.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/constants/app_ui_constants.dart';
+import '../../../companies/presentation/controllers/company_onboarding_controller.dart';
 import '../../domain/entities/company_subscription_overview.dart';
+import '../controllers/activate_premium_trial_controller.dart';
 import '../providers/subscription_providers.dart';
 
 class CompanyPlanCard extends ConsumerWidget {
@@ -17,6 +19,27 @@ class CompanyPlanCard extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final async = ref.watch(companySubscriptionOverviewProvider(companyId));
+
+    ref.listen(activatePremiumTrialControllerProvider(companyId), (
+      previous,
+      next,
+    ) {
+      if (next.actionStatus == CompanyActionStatus.success &&
+          previous?.actionStatus != CompanyActionStatus.success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.subscriptionTrialActivatedSuccess)),
+        );
+        ref
+            .read(activatePremiumTrialControllerProvider(companyId).notifier)
+            .clearFeedback();
+      } else if (next.actionStatus == CompanyActionStatus.error &&
+          next.errorMessage != null &&
+          next.errorMessage != previous?.errorMessage) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.errorMessage!)));
+      }
+    });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,22 +70,27 @@ class CompanyPlanCard extends ConsumerWidget {
               ),
             );
           },
-          data: (overview) => _PlanDetails(overview: overview),
+          data: (overview) =>
+              _PlanDetails(companyId: companyId, overview: overview),
         ),
       ],
     );
   }
 }
 
-class _PlanDetails extends StatelessWidget {
-  const _PlanDetails({required this.overview});
+class _PlanDetails extends ConsumerWidget {
+  const _PlanDetails({required this.companyId, required this.overview});
 
+  final String companyId;
   final CompanySubscriptionOverview overview;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final trialState = ref.watch(
+      activatePremiumTrialControllerProvider(companyId),
+    );
 
     final planTitle = overview.isTrialActive
         ? l10n.subscriptionPlanTrialPremium
@@ -70,12 +98,7 @@ class _PlanDetails extends StatelessWidget {
         ? l10n.subscriptionPlanPremium
         : l10n.subscriptionPlanFree;
 
-    // Limit comes from server effective plan only; null means unlimited.
-    // Do not invent "30" for incomplete/unknown payloads.
-    final limit = overview.documentMonthlyLimit;
-    final limitLabel = limit == null
-        ? l10n.subscriptionDocumentsUnlimited
-        : l10n.subscriptionDocumentsMonthlyLimit(limit);
+    final usageLines = _usageLines(l10n);
 
     final statusLabel = switch (overview.status) {
       SubscriptionStatus.free => l10n.subscriptionStatusFree,
@@ -91,14 +114,25 @@ class _PlanDetails extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(planTitle, style: theme.textTheme.titleMedium),
-        const SizedBox(height: AppUiConstants.spacingSmall),
-        Text(
-          limitLabel,
-          style: theme.textTheme.bodyLarge?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+        if (overview.isTrialActive) ...[
+          const SizedBox(height: AppUiConstants.spacingSmall),
+          Text(
+            l10n.subscriptionTrialActiveLabel,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
-        ),
+        ],
         const SizedBox(height: AppUiConstants.spacingSmall),
+        for (final line in usageLines) ...[
+          Text(
+            line,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: AppUiConstants.spacingSmall),
+        ],
         Text(
           l10n.subscriptionStatusLabel(statusLabel),
           style: theme.textTheme.bodyMedium?.copyWith(
@@ -117,13 +151,99 @@ class _PlanDetails extends StatelessWidget {
           ),
         ],
         const SizedBox(height: AppUiConstants.spacingMedium),
-        Text(
-          l10n.subscriptionPlanManagementComingSoon,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+        if (overview.canActivateTrial)
+          _ActivateTrialButton(
+            companyId: companyId,
+            isLoading: trialState.isLoading,
+          )
+        else
+          Text(
+            l10n.subscriptionPlanManagementComingSoon,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
-        ),
       ],
+    );
+  }
+
+  List<String> _usageLines(AppLocalizations l10n) {
+    if (overview.isUnlimited) {
+      final lines = <String>[l10n.subscriptionDocumentsUnlimited];
+      if (overview.documentsUsed > 0) {
+        lines.add(l10n.subscriptionDocumentsUsedInfo(overview.documentsUsed));
+      }
+      return lines;
+    }
+
+    final limit = overview.documentMonthlyLimit;
+    if (limit == null) {
+      return [l10n.subscriptionDocumentsUnlimited];
+    }
+
+    final lines = <String>[];
+    if (overview.isQuotaExhausted) {
+      lines.add(l10n.subscriptionQuotaExhausted);
+    }
+    lines.add(
+      l10n.subscriptionDocumentsUsedThisMonth(overview.documentsUsed, limit),
+    );
+    return lines;
+  }
+}
+
+class _ActivateTrialButton extends ConsumerWidget {
+  const _ActivateTrialButton({
+    required this.companyId,
+    required this.isLoading,
+  });
+
+  final String companyId;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+
+    return FilledButton(
+      onPressed: isLoading
+          ? null
+          : () async {
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: Text(l10n.subscriptionActivateTrialDialogTitle),
+                    content: Text(l10n.subscriptionActivateTrialDialogBody),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: Text(l10n.subscriptionActivateTrialCancel),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: Text(l10n.subscriptionActivateTrialConfirm),
+                      ),
+                    ],
+                  );
+                },
+              );
+              if (confirmed != true || !context.mounted) {
+                return;
+              }
+              await ref
+                  .read(
+                    activatePremiumTrialControllerProvider(companyId).notifier,
+                  )
+                  .activate();
+            },
+      child: isLoading
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Text(l10n.subscriptionActivateTrialCta),
     );
   }
 }

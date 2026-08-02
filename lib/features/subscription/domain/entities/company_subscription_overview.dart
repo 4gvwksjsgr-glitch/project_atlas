@@ -52,6 +52,11 @@ class CompanySubscriptionOverview {
     required this.trialEndsAt,
     required this.trialUsedAt,
     required this.isTrialActive,
+    this.documentsUsed = 0,
+    this.periodStart,
+    this.periodEnd,
+    this.isUnlimited = false,
+    this.canActivateTrial = false,
   });
 
   final String companyId;
@@ -65,10 +70,23 @@ class CompanySubscriptionOverview {
   final DateTime? trialEndsAt;
   final DateTime? trialUsedAt;
   final bool isTrialActive;
+  final int documentsUsed;
+  final DateTime? periodStart;
+  final DateTime? periodEnd;
+  final bool isUnlimited;
+  final bool canActivateTrial;
 
-  bool get isEffectiveUnlimited => documentMonthlyLimit == null;
+  bool get isEffectiveUnlimited => isUnlimited;
 
   bool get isEffectivePremium => effectivePlanCode == 'premium';
 
   bool get isEffectiveFree => effectivePlanCode == 'free';
+
+  bool get isQuotaExhausted {
+    final limit = documentMonthlyLimit;
+    if (isUnlimited || limit == null) {
+      return false;
+    }
+    return documentsUsed >= limit;
+  }
 }

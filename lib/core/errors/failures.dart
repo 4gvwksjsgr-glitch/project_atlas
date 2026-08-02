@@ -48,10 +48,64 @@ final class DocumentMetadataDeleteNoOpFailure extends Failure {
 
 final class SubscriptionNotFoundFailure extends Failure {
   const SubscriptionNotFoundFailure([
-    super.message = 'Abbonamento non trovato per questa azienda.',
+    super.message =
+        'Non è stato possibile trovare l\'abbonamento dell\'azienda.',
   ]);
 }
 
 final class SubscriptionPlanNotFoundFailure extends Failure {
-  const SubscriptionPlanNotFoundFailure([super.message = 'Piano non trovato.']);
+  const SubscriptionPlanNotFoundFailure([
+    super.message = 'Il piano associato all\'azienda non è disponibile.',
+  ]);
+}
+
+final class DocumentQuotaExceededFailure extends Failure {
+  const DocumentQuotaExceededFailure([
+    super.message = 'Hai raggiunto il limite di documenti del mese.',
+  ]);
+}
+
+/// Quota rifiutata dal DB e cleanup Storage non riuscito / no-op.
+final class DocumentQuotaExceededCleanupFailedFailure extends Failure {
+  const DocumentQuotaExceededCleanupFailedFailure([
+    super.message =
+        'Hai raggiunto il limite di documenti del mese. '
+        'Il file caricato non è stato rimosso completamente. Riprova.',
+  ]);
+}
+
+final class AtlasCompanyIdRequiredFailure extends Failure {
+  const AtlasCompanyIdRequiredFailure([
+    super.message = 'Non è stata selezionata un\'azienda valida.',
+  ]);
+}
+
+final class AtlasNotCompanyOwnerFailure extends Failure {
+  const AtlasNotCompanyOwnerFailure([
+    super.message = 'Solo il proprietario può attivare la prova Premium.',
+  ]);
+}
+
+final class AtlasTrialAlreadyActiveFailure extends Failure {
+  const AtlasTrialAlreadyActiveFailure([
+    super.message = 'La prova Premium è già attiva.',
+  ]);
+}
+
+final class AtlasAlreadyPremiumFailure extends Failure {
+  const AtlasAlreadyPremiumFailure([
+    super.message = 'L\'azienda utilizza già il piano Premium.',
+  ]);
+}
+
+final class AtlasTrialAlreadyUsedFailure extends Failure {
+  const AtlasTrialAlreadyUsedFailure([
+    super.message = 'La prova Premium è già stata utilizzata.',
+  ]);
+}
+
+final class AtlasPremiumUnavailableFailure extends Failure {
+  const AtlasPremiumUnavailableFailure([
+    super.message = 'La prova Premium non è disponibile in questo momento.',
+  ]);
 }

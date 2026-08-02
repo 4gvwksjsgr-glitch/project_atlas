@@ -196,7 +196,7 @@ class DocumentsScreen extends ConsumerWidget {
       builder: (_) => const Center(child: CircularProgressIndicator()),
     );
 
-    final ok = await uploadController.upload(
+    final outcome = await uploadController.upload(
       title: titleController.text,
       originalFileName: picked.name,
       declaredMimeType: picked.mimeType,
@@ -206,16 +206,12 @@ class DocumentsScreen extends ConsumerWidget {
 
     if (context.mounted) {
       Navigator.of(context, rootNavigator: true).pop();
-      final state = ref.read(documentUploadControllerProvider(companyId));
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            ok
-                ? l10n.documentsUploadSuccess
-                : (state.errorMessage ?? l10n.documentsUploadError),
-          ),
-        ),
-      );
+      final message = outcome.isSuccess
+          ? l10n.documentsUploadSuccess
+          : (outcome.failure?.message ?? l10n.documentsUploadError);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
       uploadController.clearFeedback();
     }
   }

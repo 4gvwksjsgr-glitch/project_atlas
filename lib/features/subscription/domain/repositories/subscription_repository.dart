@@ -5,4 +5,6 @@ abstract class SubscriptionRepository {
   Future<Result<CompanySubscriptionOverview>> getCompanySubscriptionOverview({
     required String companyId,
   });
+
+  Future<Result<void>> activateCompanyPremiumTrial({required String companyId});
 }

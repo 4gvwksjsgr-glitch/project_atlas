@@ -43,6 +43,11 @@ void main() {
       expect(entity.canActivateTrial, isFalse);
       expect(entity.isEffectiveUnlimited, isFalse);
       expect(entity.isTrialActive, isFalse);
+      expect(entity.entitlementOrigin, EntitlementOrigin.none);
+      expect(entity.billingSubscriptionStatus, BillingSubscriptionStatus.none);
+      expect(entity.syncStatus, BillingSyncStatus.idle);
+      expect(entity.canOpenBillingPortal, isFalse);
+      expect(entity.billingSyncPending, isFalse);
     });
 
     test('maps Premium unlimited 14A deriving isUnlimited', () {
@@ -84,6 +89,67 @@ void main() {
       expect(entity.periodEnd, DateTime.utc(2026, 9, 1));
       expect(entity.isUnlimited, isFalse);
       expect(entity.canActivateTrial, isTrue);
+      expect(entity.entitlementOrigin, EntitlementOrigin.none);
+      expect(entity.canOpenBillingPortal, isFalse);
+    });
+
+    test('maps 14C-1 payload complete', () {
+      final entity = CompanySubscriptionOverviewModel.fromJson({
+        ..._baseJson(),
+        'documents_used': 3,
+        'period_start': '2026-08-01T00:00:00Z',
+        'period_end': '2026-09-01T00:00:00Z',
+        'is_unlimited': false,
+        'can_activate_trial': false,
+        'entitlement_origin': 'provider',
+        'billing_subscription_status': 'active',
+        'billing_payment_status': 'past_due',
+        'sync_status': 'reconcile_required',
+        'last_sync_result': 'failed',
+        'cancel_at_period_end': true,
+        'billing_period_start': '2026-08-01T00:00:00Z',
+        'billing_period_end': '2026-09-01T00:00:00Z',
+        'provider_access_status': 'grace',
+        'provider_access_ends_at': null,
+        'is_provider_grace': true,
+        'grace_ends_at': '2026-08-10T00:00:00Z',
+        'has_payment_issue': true,
+        'billing_linked': true,
+        'can_open_billing_portal': false,
+        'billing_sync_pending': true,
+      }).toEntity();
+
+      expect(entity.entitlementOrigin, EntitlementOrigin.provider);
+      expect(entity.billingSubscriptionStatus, BillingSubscriptionStatus.active);
+      expect(entity.billingPaymentStatus, BillingPaymentStatus.pastDue);
+      expect(entity.syncStatus, BillingSyncStatus.reconcileRequired);
+      expect(entity.lastSyncResult, BillingLastSyncResult.failed);
+      expect(entity.cancelAtPeriodEnd, isTrue);
+      expect(entity.providerAccessStatus, ProviderAccessStatus.grace);
+      expect(entity.isProviderGrace, isTrue);
+      expect(entity.hasPaymentIssue, isTrue);
+      expect(entity.billingLinked, isTrue);
+      expect(entity.canOpenBillingPortal, isFalse);
+      expect(entity.billingSyncPending, isTrue);
+    });
+
+    test('unknown billing enums fall back safely', () {
+      final entity = CompanySubscriptionOverviewModel.fromJson({
+        ..._baseJson(),
+        'entitlement_origin': 'weird_origin',
+        'billing_subscription_status': 'weird_sub',
+        'billing_payment_status': 'weird_pay',
+        'sync_status': 'weird_sync',
+        'last_sync_result': 'weird_result',
+        'provider_access_status': 'weird_access',
+      }).toEntity();
+
+      expect(entity.entitlementOrigin, EntitlementOrigin.unknown);
+      expect(entity.billingSubscriptionStatus, BillingSubscriptionStatus.unknown);
+      expect(entity.billingPaymentStatus, BillingPaymentStatus.unknown);
+      expect(entity.syncStatus, BillingSyncStatus.unknown);
+      expect(entity.lastSyncResult, BillingLastSyncResult.unknown);
+      expect(entity.providerAccessStatus, ProviderAccessStatus.unknown);
     });
 
     test('documents_used accepts num and string', () {
@@ -193,6 +259,8 @@ void main() {
       AtlasErrorCodes.alreadyPremium: AtlasAlreadyPremiumFailure,
       AtlasErrorCodes.trialAlreadyUsed: AtlasTrialAlreadyUsedFailure,
       AtlasErrorCodes.premiumUnavailable: AtlasPremiumUnavailableFailure,
+      AtlasErrorCodes.billingLinked: AtlasBillingLinkedFailure,
+      AtlasErrorCodes.billingSyncPending: AtlasBillingSyncPendingFailure,
     }.entries) {
       test('maps ${entry.key}', () {
         final failure = SubscriptionErrorMapper.mapException(

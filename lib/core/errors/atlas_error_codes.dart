@@ -13,6 +13,8 @@ abstract final class AtlasErrorCodes {
   static const alreadyPremium = 'ATLAS_ALREADY_PREMIUM';
   static const trialAlreadyUsed = 'ATLAS_TRIAL_ALREADY_USED';
   static const premiumUnavailable = 'ATLAS_PREMIUM_UNAVAILABLE';
+  static const billingLinked = 'ATLAS_BILLING_LINKED';
+  static const billingSyncPending = 'ATLAS_BILLING_SYNC_PENDING';
 
   static const Set<String> all = {
     documentQuotaExceeded,
@@ -26,6 +28,8 @@ abstract final class AtlasErrorCodes {
     alreadyPremium,
     trialAlreadyUsed,
     premiumUnavailable,
+    billingLinked,
+    billingSyncPending,
   };
 
   /// Estrae il primo codice `ATLAS_*` noto da eccezione PostgREST o testo.

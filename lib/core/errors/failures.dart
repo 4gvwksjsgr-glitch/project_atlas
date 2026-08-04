@@ -109,3 +109,18 @@ final class AtlasPremiumUnavailableFailure extends Failure {
     super.message = 'La prova Premium non è disponibile in questo momento.',
   ]);
 }
+
+final class AtlasBillingLinkedFailure extends Failure {
+  const AtlasBillingLinkedFailure([
+    super.message =
+        'La prova Premium non è disponibile perché risulta un collegamento '
+        'di fatturazione per questa azienda.',
+  ]);
+}
+
+final class AtlasBillingSyncPendingFailure extends Failure {
+  const AtlasBillingSyncPendingFailure([
+    super.message =
+        'Sincronizzazione fatturazione in corso. Riprova tra poco.',
+  ]);
+}

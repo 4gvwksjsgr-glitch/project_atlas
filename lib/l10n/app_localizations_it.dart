@@ -1025,6 +1025,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'La prova Premium non è disponibile in questo momento.';
 
   @override
+  String get atlasBillingLinked =>
+      'La prova Premium non è disponibile perché risulta un collegamento di fatturazione per questa azienda.';
+
+  @override
+  String get atlasBillingSyncPending =>
+      'Sincronizzazione fatturazione in corso. Riprova tra poco.';
+
+  @override
   String get subscriptionPlanManagementComingSoon =>
       'La gestione del piano sarà disponibile prossimamente.';
 

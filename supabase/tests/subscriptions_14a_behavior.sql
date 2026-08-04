@@ -97,8 +97,12 @@ BEGIN
   -- Backfill already ran in migration for companies present at migrate time.
   -- These companies were inserted after migration in this transaction: seed Free manually
   -- to mirror production backfill semantics for late inserts outside create_company.
-  INSERT INTO public.company_subscriptions (company_id, plan_code, status)
-  VALUES (v_company_a, 'free', 'free'), (v_company_b, 'free', 'free')
+  INSERT INTO public.company_subscriptions (company_id, plan_code, status, entitlement_origin)
+  VALUES (v_company_a, 'free', 'free', 'none'), (v_company_b, 'free', 'free', 'none')
+  ON CONFLICT (company_id) DO NOTHING;
+
+  INSERT INTO private.company_billing (company_id)
+  VALUES (v_company_a), (v_company_b)
   ON CONFLICT (company_id) DO NOTHING;
 
   -- Plans seed
@@ -126,8 +130,8 @@ BEGIN
   );
 
   -- Idempotent conflict
-  INSERT INTO public.company_subscriptions (company_id, plan_code, status)
-  VALUES (v_company_a, 'free', 'free')
+  INSERT INTO public.company_subscriptions (company_id, plan_code, status, entitlement_origin)
+  VALUES (v_company_a, 'free', 'free', 'none')
   ON CONFLICT (company_id) DO NOTHING;
   SELECT count(*) INTO v_count FROM public.company_subscriptions WHERE company_id = v_company_a;
   PERFORM pg_temp.record_result('backfill_idempotent', v_count = 1, NULL, v_count::text);
@@ -300,6 +304,7 @@ BEGIN
   UPDATE public.company_subscriptions
   SET plan_code = 'premium',
       status = 'trialing',
+      entitlement_origin = 'internal_trial',
       trial_started_at = now() - interval '1 day',
       trial_ends_at = now() + interval '10 days',
       trial_used_at = now() - interval '1 day'
@@ -349,6 +354,7 @@ BEGIN
   UPDATE public.company_subscriptions
   SET status = 'active',
       plan_code = 'premium',
+      entitlement_origin = 'manual',
       trial_started_at = NULL,
       trial_ends_at = NULL,
       trial_used_at = now()
@@ -472,6 +478,7 @@ BEGIN
   UPDATE public.company_subscriptions
   SET plan_code = 'free',
       status = 'free',
+      entitlement_origin = 'none',
       trial_started_at = NULL,
       trial_ends_at = NULL,
       trial_used_at = now()
@@ -485,6 +492,7 @@ BEGIN
   UPDATE public.company_subscriptions
   SET plan_code = 'premium',
       status = 'active',
+      entitlement_origin = 'manual',
       trial_started_at = NULL,
       trial_ends_at = NULL,
       trial_used_at = now()
@@ -576,6 +584,7 @@ BEGIN
   UPDATE public.company_subscriptions
   SET status = 'trialing',
       plan_code = 'premium',
+      entitlement_origin = 'internal_trial',
       trial_started_at = now() - interval '1 day',
       trial_ends_at = now() + interval '10 days',
       trial_used_at = now() - interval '1 day'
@@ -638,12 +647,14 @@ BEGIN
   -- Physical Plan not found: effective Free row missing
   UPDATE public.company_subscriptions
   SET plan_code = 'premium', status = 'trialing',
+      entitlement_origin = 'internal_trial',
       trial_started_at = now() - interval '10 days',
       trial_ends_at = now() - interval '1 day',
       trial_used_at = now() - interval '10 days'
   WHERE company_id = v_company_a;
   UPDATE public.company_subscriptions
   SET plan_code = 'premium', status = 'active',
+      entitlement_origin = 'manual',
       trial_started_at = NULL, trial_ends_at = NULL
   WHERE plan_code = 'free';
   DELETE FROM public.plans WHERE code = 'free';
@@ -662,7 +673,7 @@ BEGIN
     GET STACKED DIAGNOSTICS v_sqlstate = RETURNED_SQLSTATE, v_err = MESSAGE_TEXT;
     PERFORM pg_temp.record_result(
       'missing_effective_plan_not_found',
-      v_err ILIKE '%Plan not found%',
+      v_err = 'ATLAS_PLAN_NOT_FOUND',
       v_sqlstate,
       v_err
     );
@@ -679,6 +690,7 @@ BEGIN
   -- create_company fails atomically when Free plan missing
   UPDATE public.company_subscriptions
   SET plan_code = 'premium', status = 'active',
+      entitlement_origin = 'manual',
       trial_started_at = NULL, trial_ends_at = NULL
   WHERE plan_code = 'free';
   DELETE FROM public.plans WHERE code = 'free';

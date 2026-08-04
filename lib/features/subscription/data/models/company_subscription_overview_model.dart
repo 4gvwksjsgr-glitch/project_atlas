@@ -18,6 +18,22 @@ class CompanySubscriptionOverviewModel {
     required this.periodEnd,
     required this.isUnlimited,
     required this.canActivateTrial,
+    required this.entitlementOrigin,
+    required this.billingSubscriptionStatus,
+    required this.billingPaymentStatus,
+    required this.syncStatus,
+    required this.lastSyncResult,
+    required this.cancelAtPeriodEnd,
+    required this.billingPeriodStart,
+    required this.billingPeriodEnd,
+    required this.providerAccessStatus,
+    required this.providerAccessEndsAt,
+    required this.isProviderGrace,
+    required this.graceEndsAt,
+    required this.hasPaymentIssue,
+    required this.billingLinked,
+    required this.canOpenBillingPortal,
+    required this.billingSyncPending,
   });
 
   final String companyId;
@@ -36,6 +52,22 @@ class CompanySubscriptionOverviewModel {
   final DateTime? periodEnd;
   final bool isUnlimited;
   final bool canActivateTrial;
+  final String entitlementOrigin;
+  final String billingSubscriptionStatus;
+  final String billingPaymentStatus;
+  final String syncStatus;
+  final String lastSyncResult;
+  final bool cancelAtPeriodEnd;
+  final DateTime? billingPeriodStart;
+  final DateTime? billingPeriodEnd;
+  final String providerAccessStatus;
+  final DateTime? providerAccessEndsAt;
+  final bool isProviderGrace;
+  final DateTime? graceEndsAt;
+  final bool hasPaymentIssue;
+  final bool billingLinked;
+  final bool canOpenBillingPortal;
+  final bool billingSyncPending;
 
   factory CompanySubscriptionOverviewModel.fromJson(Map<String, dynamic> json) {
     final companyId = json['company_id']?.toString();
@@ -86,6 +118,26 @@ class CompanySubscriptionOverviewModel {
       periodEnd: _parseNullableDateTime(json['period_end']),
       isUnlimited: isUnlimited,
       canActivateTrial: json['can_activate_trial'] == true,
+      entitlementOrigin: json['entitlement_origin']?.toString() ?? 'none',
+      billingSubscriptionStatus:
+          json['billing_subscription_status']?.toString() ?? 'none',
+      billingPaymentStatus: json['billing_payment_status']?.toString() ?? 'none',
+      syncStatus: json['sync_status']?.toString() ?? 'idle',
+      lastSyncResult: json['last_sync_result']?.toString() ?? 'none',
+      cancelAtPeriodEnd: json['cancel_at_period_end'] == true,
+      billingPeriodStart: _parseNullableDateTime(json['billing_period_start']),
+      billingPeriodEnd: _parseNullableDateTime(json['billing_period_end']),
+      providerAccessStatus:
+          json['provider_access_status']?.toString() ?? 'none',
+      providerAccessEndsAt: _parseNullableDateTime(
+        json['provider_access_ends_at'],
+      ),
+      isProviderGrace: json['is_provider_grace'] == true,
+      graceEndsAt: _parseNullableDateTime(json['grace_ends_at']),
+      hasPaymentIssue: json['has_payment_issue'] == true,
+      billingLinked: json['billing_linked'] == true,
+      canOpenBillingPortal: json['can_open_billing_portal'] == true,
+      billingSyncPending: json['billing_sync_pending'] == true,
     );
   }
 
@@ -107,6 +159,24 @@ class CompanySubscriptionOverviewModel {
       periodEnd: periodEnd,
       isUnlimited: isUnlimited,
       canActivateTrial: canActivateTrial,
+      entitlementOrigin: EntitlementOrigin.fromDb(entitlementOrigin),
+      billingSubscriptionStatus: BillingSubscriptionStatus.fromDb(
+        billingSubscriptionStatus,
+      ),
+      billingPaymentStatus: BillingPaymentStatus.fromDb(billingPaymentStatus),
+      syncStatus: BillingSyncStatus.fromDb(syncStatus),
+      lastSyncResult: BillingLastSyncResult.fromDb(lastSyncResult),
+      cancelAtPeriodEnd: cancelAtPeriodEnd,
+      billingPeriodStart: billingPeriodStart,
+      billingPeriodEnd: billingPeriodEnd,
+      providerAccessStatus: ProviderAccessStatus.fromDb(providerAccessStatus),
+      providerAccessEndsAt: providerAccessEndsAt,
+      isProviderGrace: isProviderGrace,
+      graceEndsAt: graceEndsAt,
+      hasPaymentIssue: hasPaymentIssue,
+      billingLinked: billingLinked,
+      canOpenBillingPortal: canOpenBillingPortal,
+      billingSyncPending: billingSyncPending,
     );
   }
 

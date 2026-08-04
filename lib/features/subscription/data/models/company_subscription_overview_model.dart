@@ -34,6 +34,7 @@ class CompanySubscriptionOverviewModel {
     required this.billingLinked,
     required this.canOpenBillingPortal,
     required this.billingSyncPending,
+    required this.isCheckoutEligible,
   });
 
   final String companyId;
@@ -68,6 +69,7 @@ class CompanySubscriptionOverviewModel {
   final bool billingLinked;
   final bool canOpenBillingPortal;
   final bool billingSyncPending;
+  final bool isCheckoutEligible;
 
   factory CompanySubscriptionOverviewModel.fromJson(Map<String, dynamic> json) {
     final companyId = json['company_id']?.toString();
@@ -138,6 +140,7 @@ class CompanySubscriptionOverviewModel {
       billingLinked: json['billing_linked'] == true,
       canOpenBillingPortal: json['can_open_billing_portal'] == true,
       billingSyncPending: json['billing_sync_pending'] == true,
+      isCheckoutEligible: json['is_checkout_eligible'] == true,
     );
   }
 
@@ -177,6 +180,7 @@ class CompanySubscriptionOverviewModel {
       billingLinked: billingLinked,
       canOpenBillingPortal: canOpenBillingPortal,
       billingSyncPending: billingSyncPending,
+      isCheckoutEligible: isCheckoutEligible,
     );
   }
 

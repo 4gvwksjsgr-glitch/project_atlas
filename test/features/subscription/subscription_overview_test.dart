@@ -48,6 +48,7 @@ void main() {
       expect(entity.syncStatus, BillingSyncStatus.idle);
       expect(entity.canOpenBillingPortal, isFalse);
       expect(entity.billingSyncPending, isFalse);
+      expect(entity.isCheckoutEligible, isFalse);
     });
 
     test('maps Premium unlimited 14A deriving isUnlimited', () {
@@ -131,6 +132,17 @@ void main() {
       expect(entity.billingLinked, isTrue);
       expect(entity.canOpenBillingPortal, isFalse);
       expect(entity.billingSyncPending, isTrue);
+      expect(entity.isCheckoutEligible, isFalse);
+    });
+
+    test('maps 14C-2B is_checkout_eligible', () {
+      final entity = CompanySubscriptionOverviewModel.fromJson({
+        ..._baseJson(),
+        'is_checkout_eligible': true,
+      }).toEntity();
+
+      expect(entity.isCheckoutEligible, isTrue);
+      expect(entity.canOpenBillingPortal, isFalse);
     });
 
     test('unknown billing enums fall back safely', () {

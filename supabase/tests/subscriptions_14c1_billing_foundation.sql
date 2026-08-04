@@ -258,13 +258,13 @@ BEGIN
   VALUES
     (v_uniq_a, 'free', 'free', 'none'),
     (v_uniq_b, 'free', 'free', 'none');
-  INSERT INTO private.company_billing (company_id, provider_code, external_subscription_id, external_customer_id)
-  VALUES (v_uniq_a, 'stripe', 'sub_shared', 'cus_shared');
+  INSERT INTO private.company_billing (company_id, provider_code, provider_environment, external_subscription_id, external_customer_id)
+  VALUES (v_uniq_a, 'stripe', 'test', 'sub_shared', 'cus_shared');
   INSERT INTO private.company_billing (company_id) VALUES (v_uniq_b);
 
   BEGIN
     UPDATE private.company_billing
-    SET provider_code = 'stripe', external_subscription_id = 'sub_shared'
+    SET provider_code = 'stripe', provider_environment = 'test', external_subscription_id = 'sub_shared'
     WHERE company_id = v_uniq_b;
     PERFORM pg_temp.record_result('uniq_subscription_id_blocks', false, NULL, 'expected unique');
   EXCEPTION WHEN unique_violation THEN
@@ -276,7 +276,7 @@ BEGIN
 
   BEGIN
     UPDATE private.company_billing
-    SET provider_code = 'stripe', external_customer_id = 'cus_shared'
+    SET provider_code = 'stripe', provider_environment = 'test', external_customer_id = 'cus_shared'
     WHERE company_id = v_uniq_b;
     PERFORM pg_temp.record_result('uniq_customer_id_blocks', false, NULL, 'expected unique');
   EXCEPTION WHEN unique_violation THEN
@@ -289,6 +289,7 @@ BEGIN
   BEGIN
     UPDATE private.company_billing
     SET provider_code = 'paddle',
+        provider_environment = 'test',
         external_subscription_id = 'sub_shared',
         external_customer_id = 'cus_shared'
     WHERE company_id = v_uniq_b;
@@ -300,6 +301,7 @@ BEGIN
 
   UPDATE private.company_billing
   SET provider_code = NULL,
+      provider_environment = NULL,
       external_subscription_id = NULL,
       external_customer_id = NULL
   WHERE company_id IN (v_uniq_a, v_uniq_b);
@@ -307,6 +309,7 @@ BEGIN
   BEGIN
     UPDATE private.company_billing
     SET provider_code = NULL,
+        provider_environment = NULL,
         external_subscription_id = NULL,
         external_customer_id = NULL
     WHERE company_id IN (v_uniq_a, v_uniq_b);
@@ -384,10 +387,10 @@ BEGIN
     company_id, plan_code, status, entitlement_origin
   ) VALUES (v_prov, 'premium', 'active', 'provider');
   INSERT INTO private.company_billing (
-    company_id, provider_code, external_customer_id, external_subscription_id,
+    company_id, provider_code, provider_environment, external_customer_id, external_subscription_id,
     subscription_status, provider_access_status, provider_access_ends_at
   ) VALUES (
-    v_prov, 'stripe', 'cus_prov', 'sub_prov',
+    v_prov, 'stripe', 'test', 'cus_prov', 'sub_prov',
     'active', 'entitled', now() + interval '30 days'
   );
 
@@ -517,10 +520,10 @@ BEGIN
     PERFORM pg_temp.record_result('resolve_without_billing_row', false, v_sqlstate, v_err);
   END;
   INSERT INTO private.company_billing (
-    company_id, provider_code, external_customer_id, external_subscription_id,
+    company_id, provider_code, provider_environment, external_customer_id, external_subscription_id,
     subscription_status, provider_access_status
   ) VALUES (
-    v_prov, 'stripe', 'cus_prov', 'sub_prov', 'ended', 'ended'
+    v_prov, 'stripe', 'test', 'cus_prov', 'sub_prov', 'ended', 'ended'
   );
   PERFORM pg_temp.record_result(
     'billing_row_reinserted',
@@ -544,15 +547,15 @@ BEGIN
     (v_trial_sync, 'free', 'free', 'none'),
     (v_trial_prov, 'free', 'free', 'provider');
   INSERT INTO private.company_billing (
-    company_id, provider_code, external_customer_id, sync_status
+    company_id, provider_code, provider_environment, external_customer_id, sync_status
   ) VALUES
-    (v_trial_linked, 'stripe', 'cus_linked', 'idle'),
-    (v_trial_sync, NULL, NULL, 'pending');
+    (v_trial_linked, 'stripe', 'test', 'cus_linked', 'idle'),
+    (v_trial_sync, NULL, NULL, NULL, 'pending');
   INSERT INTO private.company_billing (
-    company_id, provider_code, external_customer_id, external_subscription_id,
+    company_id, provider_code, provider_environment, external_customer_id, external_subscription_id,
     provider_access_status
   ) VALUES (
-    v_trial_prov, 'stripe', 'cus_tprov', 'sub_tprov', 'blocked'
+    v_trial_prov, 'stripe', 'test', 'cus_tprov', 'sub_tprov', 'blocked'
   );
 
   PERFORM pg_temp.set_auth(v_owner);
@@ -631,6 +634,7 @@ BEGIN
   WHERE company_id = v_trial;
   UPDATE private.company_billing
   SET provider_code = NULL,
+      provider_environment = NULL,
       external_customer_id = NULL,
       external_subscription_id = NULL,
       sync_status = 'idle',
@@ -684,6 +688,7 @@ BEGIN
   -- ensure billing clean for free company
   UPDATE private.company_billing
   SET provider_code = NULL,
+      provider_environment = NULL,
       external_customer_id = NULL,
       external_subscription_id = NULL,
       sync_status = 'idle'
@@ -745,10 +750,10 @@ BEGIN
     (v_quota_prov, 'premium', 'active', 'provider');
   INSERT INTO private.company_billing (company_id) VALUES (v_quota_free), (v_quota_manual);
   INSERT INTO private.company_billing (
-    company_id, provider_code, external_customer_id, external_subscription_id,
+    company_id, provider_code, provider_environment, external_customer_id, external_subscription_id,
     subscription_status, provider_access_status, provider_access_ends_at
   ) VALUES (
-    v_quota_prov, 'stripe', 'cus_q', 'sub_q',
+    v_quota_prov, 'stripe', 'test', 'cus_q', 'sub_q',
     'active', 'entitled', now() + interval '30 days'
   );
 
@@ -837,11 +842,11 @@ BEGIN
 
   BEGIN
     INSERT INTO private.billing_provider_events (
-      provider_code, external_event_id, event_type, company_id,
+      provider_code, provider_environment, external_event_id, event_type, company_id,
       verification_status, signature_verified_at, payload_hash,
       payload_json, retention_expires_at
     ) VALUES (
-      'stripe', 'evt_14c1_ok', 'customer.updated', v_evt_co,
+      'stripe', 'test', 'evt_14c1_ok', 'customer.updated', v_evt_co,
       'verified', now(), 'hash_ok', '{"a":1}'::jsonb, now() + interval '30 days'
     )
     RETURNING id INTO v_event_id;
@@ -860,11 +865,11 @@ BEGIN
 
   BEGIN
     INSERT INTO private.billing_provider_events (
-      provider_code, external_event_id, event_type, company_id,
+      provider_code, provider_environment, external_event_id, event_type, company_id,
       verification_status, signature_verified_at, payload_hash,
       payload_json, retention_expires_at
     ) VALUES (
-      'stripe', 'evt_14c1_nosig', 'invoice.paid', v_evt_co,
+      'stripe', 'test', 'evt_14c1_nosig', 'invoice.paid', v_evt_co,
       'verified', NULL, 'hash_nosig', '{}'::jsonb, now() + interval '30 days'
     );
     PERFORM pg_temp.record_result(
@@ -883,11 +888,11 @@ BEGIN
 
   BEGIN
     INSERT INTO private.billing_provider_events (
-      provider_code, external_event_id, event_type, company_id,
+      provider_code, provider_environment, external_event_id, event_type, company_id,
       processing_status, verification_status, signature_verified_at,
       payload_hash, payload_json, retention_expires_at
     ) VALUES (
-      'stripe', 'evt_14c1_proc', 'invoice.paid', v_evt_co,
+      'stripe', 'test', 'evt_14c1_proc', 'invoice.paid', v_evt_co,
       'processed', 'unverified', NULL,
       'hash_proc', '{}'::jsonb, now() + interval '30 days'
     );
@@ -911,11 +916,11 @@ BEGIN
 
   BEGIN
     INSERT INTO private.billing_provider_events (
-      provider_code, external_event_id, event_type, company_id,
+      provider_code, provider_environment, external_event_id, event_type, company_id,
       verification_status, signature_verified_at, payload_hash,
       payload_json, retention_expires_at
     ) VALUES (
-      'stripe', 'evt_14c1_ok', 'customer.updated', v_evt_co,
+      'stripe', 'test', 'evt_14c1_ok', 'customer.updated', v_evt_co,
       'verified', now(), 'hash_dup', NULL, now() + interval '30 days'
     );
     PERFORM pg_temp.record_result(

@@ -906,6 +906,8 @@ BEGIN
       trial_ends_at = NULL
   WHERE plan_code = 'premium';
   -- keep trial_used_at as-is (allowed on free)
+  -- 14C-2B: billing_offers FK blocks plan delete; remove logical offer for this probe.
+  DELETE FROM private.billing_offers WHERE atlas_plan_code = 'premium';
   DELETE FROM public.plans WHERE code = 'premium';
   SET LOCAL ROLE authenticated;
   PERFORM set_config('request.jwt.claim.sub', v_owner::text, true);
@@ -933,6 +935,10 @@ BEGIN
   SET name = EXCLUDED.name,
       document_monthly_limit = EXCLUDED.document_monthly_limit,
       is_active = TRUE;
+  INSERT INTO private.billing_offers (
+    offer_code, atlas_plan_code, billing_interval, interval_count, is_active
+  ) VALUES ('premium_monthly', 'premium', 'month', 1, TRUE)
+  ON CONFLICT (offer_code) DO NOTHING;
 
   -- Admin can_activate_trial false
   SET LOCAL ROLE authenticated;

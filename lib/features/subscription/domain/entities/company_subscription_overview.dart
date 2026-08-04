@@ -229,6 +229,7 @@ class CompanySubscriptionOverview {
     this.billingLinked = false,
     this.canOpenBillingPortal = false,
     this.billingSyncPending = false,
+    this.isCheckoutEligible = false,
   });
 
   final String companyId;
@@ -263,6 +264,7 @@ class CompanySubscriptionOverview {
   final bool billingLinked;
   final bool canOpenBillingPortal;
   final bool billingSyncPending;
+  final bool isCheckoutEligible;
 
   bool get isEffectiveUnlimited => isUnlimited;
 

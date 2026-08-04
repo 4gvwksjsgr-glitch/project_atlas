@@ -68,6 +68,9 @@ abstract final class SubscriptionErrorMapper {
       AtlasErrorCodes.trialAlreadyUsed => const AtlasTrialAlreadyUsedFailure(),
       AtlasErrorCodes.premiumUnavailable =>
         const AtlasPremiumUnavailableFailure(),
+      AtlasErrorCodes.billingLinked => const AtlasBillingLinkedFailure(),
+      AtlasErrorCodes.billingSyncPending =>
+        const AtlasBillingSyncPendingFailure(),
       _ => const UnknownFailure(),
     };
   }

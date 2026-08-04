@@ -137,11 +137,15 @@ BEGIN
     (v_company_b, v_outsider, 'owner'),
     (v_company_c, v_owner, 'owner');
 
-  INSERT INTO public.company_subscriptions (company_id, plan_code, status)
+  INSERT INTO public.company_subscriptions (company_id, plan_code, status, entitlement_origin)
   VALUES
-    (v_company_a, 'free', 'free'),
-    (v_company_b, 'free', 'free'),
-    (v_company_c, 'free', 'free')
+    (v_company_a, 'free', 'free', 'none'),
+    (v_company_b, 'free', 'free', 'none'),
+    (v_company_c, 'free', 'free', 'none')
+  ON CONFLICT (company_id) DO NOTHING;
+
+  INSERT INTO private.company_billing (company_id)
+  VALUES (v_company_a), (v_company_b), (v_company_c)
   ON CONFLICT (company_id) DO NOTHING;
 
   v_period_start :=
@@ -475,7 +479,7 @@ BEGIN
   -- Premium unlimited still increments
   -- -------------------------------------------------------------------------
   UPDATE public.company_subscriptions
-  SET status = 'active', plan_code = 'premium',
+  SET status = 'active', plan_code = 'premium', entitlement_origin = 'manual',
       trial_started_at = NULL, trial_ends_at = NULL, trial_used_at = NULL
   WHERE company_id = v_company_c;
 
@@ -511,7 +515,7 @@ BEGIN
   -- Active trial unlimited + increments
   -- -------------------------------------------------------------------------
   UPDATE public.company_subscriptions
-  SET status = 'trialing', plan_code = 'premium',
+  SET status = 'trialing', plan_code = 'premium', entitlement_origin = 'internal_trial',
       trial_started_at = now() - interval '1 day',
       trial_ends_at = now() + interval '10 days',
       trial_used_at = now() - interval '1 day'
@@ -533,7 +537,7 @@ BEGIN
 
   -- Expired trial → effective Free; usage retained
   UPDATE public.company_subscriptions
-  SET status = 'trialing', plan_code = 'premium',
+  SET status = 'trialing', plan_code = 'premium', entitlement_origin = 'internal_trial',
       trial_started_at = now() - interval '40 days',
       trial_ends_at = now() - interval '10 days',
       trial_used_at = now() - interval '40 days'
@@ -591,8 +595,10 @@ BEGIN
   RESET ROLE;
 
   -- Restore B for later
-  INSERT INTO public.company_subscriptions (company_id, plan_code, status)
-  VALUES (v_company_b, 'free', 'free');
+  INSERT INTO public.company_subscriptions (company_id, plan_code, status, entitlement_origin)
+  VALUES (v_company_b, 'free', 'free', 'none');
+  INSERT INTO private.company_billing (company_id) VALUES (v_company_b)
+  ON CONFLICT (company_id) DO NOTHING;
 
   -- -------------------------------------------------------------------------
   -- Inactive plan semantics (14A): configured inactive still readable by overview
@@ -626,7 +632,7 @@ BEGIN
   -- -------------------------------------------------------------------------
   -- Reset company A to free unused trial for activation tests
   UPDATE public.company_subscriptions
-  SET status = 'free', plan_code = 'free',
+  SET status = 'free', plan_code = 'free', entitlement_origin = 'none',
       trial_started_at = NULL, trial_ends_at = NULL, trial_used_at = NULL
   WHERE company_id = v_company_a;
 
@@ -787,7 +793,7 @@ BEGIN
   -- Already premium
   RESET ROLE;
   UPDATE public.company_subscriptions
-  SET status = 'active', plan_code = 'premium',
+  SET status = 'active', plan_code = 'premium', entitlement_origin = 'manual',
       trial_started_at = NULL, trial_ends_at = NULL, trial_used_at = NULL
   WHERE company_id = v_company_a;
   SET LOCAL ROLE authenticated;
@@ -813,7 +819,7 @@ BEGIN
   -- Expired trial → already used
   RESET ROLE;
   UPDATE public.company_subscriptions
-  SET status = 'trialing', plan_code = 'premium',
+  SET status = 'trialing', plan_code = 'premium', entitlement_origin = 'internal_trial',
       trial_started_at = now() - interval '60 days',
       trial_ends_at = now() - interval '30 days',
       trial_used_at = now() - interval '60 days'
@@ -861,10 +867,12 @@ BEGIN
     );
   END;
   RESET ROLE;
-  INSERT INTO public.company_subscriptions (company_id, plan_code, status)
-  VALUES (v_company_a, 'free', 'free');
+  INSERT INTO public.company_subscriptions (company_id, plan_code, status, entitlement_origin)
+  VALUES (v_company_a, 'free', 'free', 'none');
+  INSERT INTO private.company_billing (company_id) VALUES (v_company_a)
+  ON CONFLICT (company_id) DO NOTHING;
 
-  -- Premium inactive
+  -- Premium inactive (row present, is_active=false)
   UPDATE public.plans SET is_active = FALSE WHERE code = 'premium';
   SET LOCAL ROLE authenticated;
   PERFORM set_config('request.jwt.claim.sub', v_owner::text, true);
@@ -888,13 +896,43 @@ BEGIN
   RESET ROLE;
   UPDATE public.plans SET is_active = TRUE WHERE code = 'premium';
 
-  -- Premium missing covered by inactive test (FK prevents renaming seed row).
-  PERFORM pg_temp.record_result(
-    'premium_missing_covered_by_inactive',
-    true,
-    NULL,
-    'ATLAS_PREMIUM_UNAVAILABLE via is_active=false'
+  -- Premium plan row absent → ATLAS_PLAN_NOT_FOUND
+  -- Move every subscription off premium so the catalog row can be deleted.
+  UPDATE public.company_subscriptions
+  SET plan_code = 'free',
+      status = 'free',
+      entitlement_origin = 'none',
+      trial_started_at = NULL,
+      trial_ends_at = NULL
+  WHERE plan_code = 'premium';
+  -- keep trial_used_at as-is (allowed on free)
+  DELETE FROM public.plans WHERE code = 'premium';
+  SET LOCAL ROLE authenticated;
+  PERFORM set_config('request.jwt.claim.sub', v_owner::text, true);
+  PERFORM set_config(
+    'request.jwt.claims',
+    json_build_object('sub', v_owner::text, 'role', 'authenticated')::text,
+    true
   );
+  BEGIN
+    PERFORM public.activate_company_premium_trial(v_company_a);
+    PERFORM pg_temp.record_result('premium_missing_denied', false, NULL, 'expected');
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_sqlstate = RETURNED_SQLSTATE, v_err = MESSAGE_TEXT;
+    PERFORM pg_temp.record_result(
+      'premium_missing_denied',
+      v_err = 'ATLAS_PLAN_NOT_FOUND',
+      v_sqlstate,
+      v_err
+    );
+  END;
+  RESET ROLE;
+  INSERT INTO public.plans (code, name, document_monthly_limit, is_active)
+  VALUES ('premium', 'Premium', NULL, TRUE)
+  ON CONFLICT (code) DO UPDATE
+  SET name = EXCLUDED.name,
+      document_monthly_limit = EXCLUDED.document_monthly_limit,
+      is_active = TRUE;
 
   -- Admin can_activate_trial false
   SET LOCAL ROLE authenticated;
@@ -977,7 +1015,7 @@ BEGIN
   END;
 
   BEGIN
-    UPDATE public.company_subscriptions SET status = 'active', plan_code = 'premium'
+    UPDATE public.company_subscriptions SET status = 'active', plan_code = 'premium', entitlement_origin = 'manual'
     WHERE company_id = v_company_a;
     PERFORM pg_temp.record_result('auth_direct_sub_update_denied', false, NULL, 'expected');
   EXCEPTION WHEN insufficient_privilege THEN

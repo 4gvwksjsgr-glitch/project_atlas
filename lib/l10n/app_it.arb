@@ -416,6 +416,8 @@
   "atlasAlreadyPremium": "L'azienda utilizza già il piano Premium.",
   "atlasTrialAlreadyUsed": "La prova Premium è già stata utilizzata.",
   "atlasPremiumUnavailable": "La prova Premium non è disponibile in questo momento.",
+  "atlasBillingLinked": "La prova Premium non è disponibile perché risulta un collegamento di fatturazione per questa azienda.",
+  "atlasBillingSyncPending": "Sincronizzazione fatturazione in corso. Riprova tra poco.",
   "subscriptionPlanManagementComingSoon": "La gestione del piano sarà disponibile prossimamente.",
   "subscriptionLoading": "Caricamento piano...",
   "subscriptionLoadError": "Caricamento piano non riuscito. Riprova."

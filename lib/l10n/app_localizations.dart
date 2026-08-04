@@ -1879,6 +1879,18 @@ abstract class AppLocalizations {
   /// **'La prova Premium non è disponibile in questo momento.'**
   String get atlasPremiumUnavailable;
 
+  /// No description provided for @atlasBillingLinked.
+  ///
+  /// In it, this message translates to:
+  /// **'La prova Premium non è disponibile perché risulta un collegamento di fatturazione per questa azienda.'**
+  String get atlasBillingLinked;
+
+  /// No description provided for @atlasBillingSyncPending.
+  ///
+  /// In it, this message translates to:
+  /// **'Sincronizzazione fatturazione in corso. Riprova tra poco.'**
+  String get atlasBillingSyncPending;
+
   /// No description provided for @subscriptionPlanManagementComingSoon.
   ///
   /// In it, this message translates to:

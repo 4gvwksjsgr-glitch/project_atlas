@@ -23,3 +23,6 @@ site_url = "http://localhost:3000"
 
 [storage]
 enabled = true
+
+[functions.billing-checkout-create]
+verify_jwt = true

@@ -1282,7 +1282,7 @@ BEGIN
   SELECT is_checkout_eligible INTO v_bool
   FROM public.get_company_subscription_overview(v_ended_ov);
   PERFORM pg_temp.record_result(
-    'checkout_eligible_true_ended_subscription', v_bool = TRUE, NULL, v_bool::text
+    'checkout_eligible_false_ended_but_linked', v_bool = FALSE, NULL, v_bool::text
   );
   RESET ROLE;
 
@@ -1293,18 +1293,25 @@ BEGIN
       v_ended_ov, v_owner, 'premium_monthly', 'idem-ended-1', now()
     );
     PERFORM pg_temp.record_result(
-      'reserve_on_ended_company_ok', v_reserve.session_id IS NOT NULL
+      'reserve_on_ended_linked_denied', false, NULL, 'expected exception'
     );
   EXCEPTION WHEN OTHERS THEN
     GET STACKED DIAGNOSTICS v_sqlstate = RETURNED_SQLSTATE, v_err = MESSAGE_TEXT;
-    PERFORM pg_temp.record_result('reserve_on_ended_company_ok', false, v_sqlstate, v_err);
+    PERFORM pg_temp.record_result(
+      'reserve_on_ended_linked_denied',
+      v_err = 'ATLAS_CHECKOUT_NOT_ELIGIBLE',
+      v_sqlstate,
+      v_err
+    );
   END;
   RESET ROLE;
 
+  -- Open non-expired session on checkout company (created earlier in suite)
+  -- still blocks eligibility.
   PERFORM pg_temp.set_auth(v_owner);
   SET LOCAL ROLE authenticated;
   SELECT is_checkout_eligible INTO v_bool
-  FROM public.get_company_subscription_overview(v_ended_ov);
+  FROM public.get_company_subscription_overview(v_checkout_co);
   PERFORM pg_temp.record_result(
     'checkout_eligible_false_open_session', v_bool = FALSE, NULL, v_bool::text
   );

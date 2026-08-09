@@ -53,3 +53,6 @@ app.*.map.json
 supabase/functions/.env
 supabase/functions/.env.*
 !supabase/functions/.env.example
+
+# Dedicated Paddle payment site build output (never commit)
+billing_web/dist/

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <!--
+    Sandbox-only CSP.
+    - cdn.paddle.com: official Paddle.js v2 script
+    - sandbox-cdn / sandbox-api / sandbox-buy / sandbox-checkout: sandbox overlay + API
+    - style-src 'unsafe-inline': retained because Paddle Checkout overlay injects inline styles
+    Live Paddle hosts intentionally omitted.
+  -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data: https://cdn.paddle.com https://sandbox-cdn.paddle.com; style-src 'self' 'unsafe-inline' https://cdn.paddle.com https://sandbox-cdn.paddle.com; script-src 'self' https://cdn.paddle.com; connect-src 'self' https://cdn.paddle.com https://sandbox-cdn.paddle.com https://sandbox-api.paddle.com; frame-src https://sandbox-buy.paddle.com https://sandbox-checkout.paddle.com; worker-src 'self' blob:; upgrade-insecure-requests">
+  <title>Checkout</title>
+  <link rel="stylesheet" href="/assets/billing.css">
+</head>
+<body>
+  <main>
+    <section class="panel" aria-live="polite" aria-labelledby="checkout-title">
+      <h1 id="checkout-title">Caricamento</h1>
+      <p id="checkout-body" class="status">Preparazione del pagamento…</p>
+    </section>
+  </main>
+  <script src="/assets/runtime-config.js"></script>
+  <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+  <script src="/assets/checkout.js"></script>
+</body>
+</html>

@@ -262,6 +262,17 @@ BEGIN
 
   -- Fail-closed: no active config
   DELETE FROM private.billing_runtime_config;
+
+  -- 14C-2E seed installs one current active paddle/test price. End it so this
+  -- suite can insert isolated fixture prices (transaction rolls back).
+  UPDATE private.billing_provider_prices p
+  SET is_active = false,
+      valid_to = now()
+  WHERE p.provider_code = 'paddle'
+    AND p.provider_environment = 'test'
+    AND p.is_active IS TRUE
+    AND p.valid_to IS NULL;
+
   PERFORM pg_temp.set_auth(v_owner);
   SET LOCAL ROLE authenticated;
   SELECT is_checkout_eligible INTO v_bool

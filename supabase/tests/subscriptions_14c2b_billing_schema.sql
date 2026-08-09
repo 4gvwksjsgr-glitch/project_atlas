@@ -403,6 +403,11 @@ BEGIN
   -- =========================================================================
   -- RUNTIME CONFIG
   -- =========================================================================
+  -- 14C-2E seed installs one active fail-closed runtime row. Fixture tests that
+  -- insert their own active config must clear/deactivate it first (ROLLBACK).
+  UPDATE private.billing_runtime_config
+  SET is_active = false;
+
   PERFORM pg_temp.set_auth(v_owner);
   SET LOCAL ROLE authenticated;
   BEGIN
@@ -606,6 +611,17 @@ BEGIN
 
   SELECT count(*)::int INTO v_int FROM private.billing_offers;
   PERFORM pg_temp.record_result('no_annual_offer', v_int = 1, NULL, v_int::text);
+
+  -- 14C-2E seed installs one current active paddle/test price. End it so
+  -- catalog fixture inserts remain isolated (transaction rolls back).
+  UPDATE private.billing_provider_prices p
+  SET is_active = false,
+      valid_to = now()
+  WHERE p.offer_id = v_offer_id
+    AND p.provider_code = 'paddle'
+    AND p.provider_environment = 'test'
+    AND p.is_active IS TRUE
+    AND p.valid_to IS NULL;
 
   BEGIN
     INSERT INTO private.billing_provider_prices (

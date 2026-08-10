@@ -343,6 +343,70 @@ test("checkout CSP is sandbox-only without live Paddle hosts", () => {
   assert.doesNotMatch(cspMatch[1], /\*/);
 });
 
+function assertCloudflareHeadersPolicy(headersText) {
+  assert.match(headersText, /^\/\*\s*$/m);
+  assert.match(headersText, /Content-Security-Policy:/);
+  assert.match(headersText, /frame-ancestors 'none'/);
+  assert.match(headersText, /X-Frame-Options:\s*DENY/);
+  assert.match(headersText, /X-Content-Type-Options:\s*nosniff/);
+  assert.match(
+    headersText,
+    /Referrer-Policy:\s*strict-origin-when-cross-origin/,
+  );
+  assert.match(
+    headersText,
+    /Permissions-Policy:\s*camera=\(\),\s*microphone=\(\),\s*geolocation=\(\)/,
+  );
+
+  const cspLine = headersText
+    .split(/\r?\n/)
+    .find((line) => /Content-Security-Policy:/i.test(line));
+  assert.ok(cspLine, "Content-Security-Policy line missing");
+  assert.match(cspLine, /frame-ancestors 'none'/);
+  assert.match(cspLine, /https:\/\/cdn\.paddle\.com/);
+  assert.match(cspLine, /https:\/\/sandbox-cdn\.paddle\.com/);
+  assert.match(cspLine, /https:\/\/sandbox-api\.paddle\.com/);
+  assert.match(cspLine, /https:\/\/sandbox-buy\.paddle\.com/);
+  assert.match(cspLine, /https:\/\/sandbox-checkout\.paddle\.com/);
+  assert.doesNotMatch(cspLine, /https:\/\/api\.paddle\.com/);
+  assert.doesNotMatch(cspLine, /https:\/\/buy\.paddle\.com/);
+  assert.doesNotMatch(cspLine, /https:\/\/checkout\.paddle\.com(?!-)/);
+  assert.doesNotMatch(cspLine, /\*/);
+  assert.doesNotMatch(cspLine, /unsafe-eval/);
+
+  assert.doesNotMatch(headersText, /PADDLE_SANDBOX_API_KEY/);
+  assert.doesNotMatch(headersText, /SUPABASE_SERVICE_ROLE_KEY/);
+  assert.doesNotMatch(headersText, /eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]+\./);
+  assert.doesNotMatch(headersText, /test_[a-zA-Z0-9]{27}/);
+}
+
+test("src/_headers exists with required Cloudflare security policy", () => {
+  const headersPath = path.join(BILLING_WEB, "src", "_headers");
+  assert.ok(fs.existsSync(headersPath), "billing_web/src/_headers missing");
+  assertCloudflareHeadersPolicy(read(headersPath));
+});
+
+test("production build copies _headers to dist/_headers", () => {
+  withTempRoot((root) => {
+    const result = build({
+      root,
+      env: { PADDLE_SANDBOX_CLIENT_TOKEN: VALID_TOKEN },
+    });
+    const distHeaders = path.join(result.dist, "_headers");
+    assert.ok(fs.existsSync(distHeaders), "dist/_headers missing after production build");
+    assertCloudflareHeadersPolicy(read(distHeaders));
+  });
+});
+
+test("dev build copies _headers to dist/_headers", () => {
+  withTempRoot((root) => {
+    const result = build({ root, dev: true, env: {} });
+    const distHeaders = path.join(result.dist, "_headers");
+    assert.ok(fs.existsSync(distHeaders), "dist/_headers missing after dev build");
+    assertCloudflareHeadersPolicy(read(distHeaders));
+  });
+});
+
 test("source and docs do not contain forbidden secret assignments", () => {
   const roots = [
     path.join(BILLING_WEB, "src"),

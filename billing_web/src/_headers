@@ -1,0 +1,6 @@
+/*
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data: https://cdn.paddle.com https://sandbox-cdn.paddle.com; style-src 'self' 'unsafe-inline' https://cdn.paddle.com https://sandbox-cdn.paddle.com; script-src 'self' https://cdn.paddle.com; connect-src 'self' https://cdn.paddle.com https://sandbox-cdn.paddle.com https://sandbox-api.paddle.com; frame-src https://sandbox-buy.paddle.com https://sandbox-checkout.paddle.com; worker-src 'self' blob:; upgrade-insecure-requests
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()

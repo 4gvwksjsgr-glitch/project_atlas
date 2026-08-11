@@ -26,3 +26,6 @@ enabled = true
 
 [functions.billing-checkout-create]
 verify_jwt = true
+
+[functions.billing-webhook-paddle]
+verify_jwt = false

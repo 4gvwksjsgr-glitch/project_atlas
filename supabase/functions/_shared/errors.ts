@@ -119,6 +119,12 @@ export function defaultMessageForCode(code: string): string {
       return "Offer not found";
     case "ATLAS_PRICE_UNAVAILABLE":
       return "Price unavailable";
+    case "ATLAS_WEBHOOK_SECRET_MISSING":
+      return "Webhook unavailable";
+    case "ATLAS_WEBHOOK_SIGNATURE_INVALID":
+      return "Invalid webhook signature";
+    case "ATLAS_PROVIDER_EVENT_PAYLOAD_CONFLICT":
+      return "Provider event conflict";
     default:
       return "Request failed";
   }
@@ -139,8 +145,14 @@ export function httpStatusForAtlasCode(code: string): number {
       return 413;
     case "ATLAS_NOT_AUTHENTICATED":
       return 401;
+    case "ATLAS_WEBHOOK_SIGNATURE_INVALID":
+      return 401;
     case "ATLAS_CORS_ORIGIN_DENIED":
       return 403;
+    case "ATLAS_WEBHOOK_SECRET_MISSING":
+      return 503;
+    case "ATLAS_PROVIDER_EVENT_PAYLOAD_CONFLICT":
+      return 500;
     case "ATLAS_CHECKOUT_IN_PROGRESS":
     case "ATLAS_PROVIDER_OUTCOME_UNKNOWN":
     case "ATLAS_CHECKOUT_ALREADY_OPEN":

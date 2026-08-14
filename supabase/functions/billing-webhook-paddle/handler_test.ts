@@ -20,6 +20,7 @@ import type {
   IngestPaddleSandboxWebhookEventRow,
 } from "./types.ts";
 import {
+  PADDLE_EVENT_ID_RE,
   WEBHOOK_MAX_BODY_BYTES,
   WEBHOOK_SECRET_ENV,
   WEBHOOK_SIGNATURE_TOLERANCE_SECONDS,
@@ -27,6 +28,7 @@ import {
 
 const SYNTH_SECRET = "test_paddle_sandbox_webhook_secret_value";
 const EVT = "evt_" + "a".repeat(26);
+const SIM_EVT = "ntfsimevt_" + "a".repeat(26);
 const SUB = "sub_" + "b".repeat(26);
 const NOW_MS = Date.parse("2026-08-10T12:00:00.000Z");
 
@@ -254,6 +256,61 @@ Deno.test("parseVerifiedWebhookPayload classifies supported and ignored", () => 
   assertEquals(parseVerifiedWebhookPayload("[]").ok, false);
 });
 
+Deno.test("PADDLE_EVENT_ID_RE accepts evt_ and ntfsimevt_ only", () => {
+  assertEquals(PADDLE_EVENT_ID_RE.test(EVT), true);
+  assertEquals(PADDLE_EVENT_ID_RE.test(SIM_EVT), true);
+  assertEquals(PADDLE_EVENT_ID_RE.test("xyz_" + "a".repeat(26)), false);
+  assertEquals(PADDLE_EVENT_ID_RE.test("ntfsimevt_" + "a".repeat(25)), false);
+  assertEquals(PADDLE_EVENT_ID_RE.test("ntfsimevt_" + "a".repeat(27)), false);
+  assertEquals(
+    PADDLE_EVENT_ID_RE.test("NTFSIMEVT_" + "a".repeat(26)),
+    false,
+  );
+  assertEquals(PADDLE_EVENT_ID_RE.test("ntfsimntf_" + "a".repeat(26)), false);
+});
+
+Deno.test("parseVerifiedWebhookPayload accepts simulator event id", () => {
+  const parsed = parseVerifiedWebhookPayload(
+    samplePayload({
+      event_id: SIM_EVT,
+      event_type: "transaction.completed",
+      data: {},
+    }),
+  );
+  assertEquals(parsed.ok, true);
+  if (parsed.ok) {
+    assertEquals(parsed.value.event_id, SIM_EVT);
+    assertEquals(parsed.value.classification, "supported");
+  }
+});
+
+Deno.test("parseVerifiedWebhookPayload rejects bad event id shapes", () => {
+  assertEquals(
+    parseVerifiedWebhookPayload(
+      samplePayload({ event_id: "xyz_" + "a".repeat(26) }),
+    ).ok,
+    false,
+  );
+  assertEquals(
+    parseVerifiedWebhookPayload(
+      samplePayload({ event_id: "ntfsimevt_" + "a".repeat(25) }),
+    ).ok,
+    false,
+  );
+  assertEquals(
+    parseVerifiedWebhookPayload(
+      samplePayload({ event_id: "NTFSIMEVT_" + "a".repeat(26) }),
+    ).ok,
+    false,
+  );
+  assertEquals(
+    parseVerifiedWebhookPayload(
+      samplePayload({ event_id: "ntfsimntf_" + "a".repeat(26) }),
+    ).ok,
+    false,
+  );
+});
+
 type RpcCall = {
   name: string;
   args: IngestPaddleSandboxWebhookEventArgs;
@@ -325,6 +382,30 @@ async function signedRequest(
     body,
   });
 }
+
+Deno.test(
+  "handler accepts signed simulator transaction.completed with ntfsimevt_",
+  async () => {
+    const { client, calls } = mockRpc(() => ({
+      outcome: "inserted",
+      inbox_event_id: "22222222-2222-4222-8222-222222222222",
+    }));
+    const handler = createHandler(makeDeps(client));
+    const body = samplePayload({
+      event_id: SIM_EVT,
+      event_type: "transaction.completed",
+      data: {},
+    });
+    const res = await handler(await signedRequest(body));
+    assertEquals(res.status, 200);
+    assertEquals(await res.json(), { ok: true });
+    assertEquals(calls.length, 1);
+    assertEquals(calls[0]!.name, "ingestPaddleSandboxWebhookEventServer");
+    assertEquals(calls[0]!.args.external_event_id, SIM_EVT);
+    assertEquals(calls[0]!.args.classification, "supported");
+    assertEquals(calls[0]!.args.event_type, "transaction.completed");
+  },
+);
 
 Deno.test("handler valid supported event returns 200 and calls inbox RPC", async () => {
   const { client, calls } = mockRpc(() => ({

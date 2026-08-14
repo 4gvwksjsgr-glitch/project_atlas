@@ -53,6 +53,7 @@ DECLARE
   v_evt TEXT := 'evt_' || repeat('a', 26);
   v_evt2 TEXT := 'evt_' || repeat('b', 26);
   v_evt3 TEXT := 'evt_' || repeat('c', 26);
+  v_sim_evt TEXT := 'ntfsimevt_' || repeat('e', 26);
   v_sub TEXT := 'sub_' || repeat('d', 26);
   v_now TIMESTAMPTZ := TIMESTAMPTZ '2026-08-10 12:00:00+00';
   v_outcome TEXT;
@@ -372,6 +373,201 @@ BEGIN
     );
   END;
   RESET ROLE;
+
+  -- Simulator event_id: ntfsimevt_ accepted (RPC as service_role)
+  SET LOCAL ROLE service_role;
+  SELECT outcome, inbox_event_id
+  INTO v_outcome, v_id
+  FROM public.ingest_paddle_sandbox_webhook_event_server(
+    v_sim_evt,
+    'transaction.completed',
+    v_now,
+    v_hash_a,
+    jsonb_build_object(
+      'event_id', v_sim_evt,
+      'event_type', 'transaction.completed',
+      'occurred_at', v_now
+    ),
+    'supported',
+    NULL
+  );
+  RESET ROLE;
+
+  PERFORM pg_temp.record_result(
+    'simulator_evt_insert_outcome',
+    v_outcome = 'inserted',
+    NULL,
+    v_outcome
+  );
+
+  SELECT * INTO v_row FROM private.billing_provider_events WHERE id = v_id;
+  PERFORM pg_temp.record_result(
+    'simulator_evt_shape',
+    v_row.provider_code = 'paddle'
+      AND v_row.provider_environment = 'test'
+      AND v_row.external_event_id = v_sim_evt
+      AND v_row.verification_status = 'verified'
+      AND v_row.processing_status = 'received'
+      AND v_row.company_id IS NULL
+      AND v_row.payload_hash = v_hash_a,
+    NULL,
+    NULL
+  );
+
+  -- Simulator exact duplicate
+  SET LOCAL ROLE service_role;
+  SELECT outcome, inbox_event_id
+  INTO v_outcome, v_id2
+  FROM public.ingest_paddle_sandbox_webhook_event_server(
+    v_sim_evt,
+    'transaction.completed',
+    v_now,
+    v_hash_a,
+    jsonb_build_object(
+      'event_id', v_sim_evt,
+      'event_type', 'transaction.completed',
+      'occurred_at', v_now
+    ),
+    'supported',
+    NULL
+  );
+  RESET ROLE;
+
+  PERFORM pg_temp.record_result(
+    'simulator_exact_duplicate',
+    v_outcome = 'duplicate' AND v_id2 = v_id,
+    NULL,
+    v_outcome
+  );
+
+  -- Simulator hash conflict
+  SET LOCAL ROLE service_role;
+  BEGIN
+    PERFORM * FROM public.ingest_paddle_sandbox_webhook_event_server(
+      v_sim_evt,
+      'transaction.completed',
+      v_now,
+      v_hash_b,
+      jsonb_build_object('event_id', v_sim_evt, 'event_type', 'transaction.completed'),
+      'supported',
+      NULL
+    );
+    PERFORM pg_temp.record_result(
+      'simulator_hash_conflict_fail_closed',
+      false,
+      NULL,
+      'unexpected success'
+    );
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_sqlstate = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    PERFORM pg_temp.record_result(
+      'simulator_hash_conflict_fail_closed',
+      v_msg = 'ATLAS_PROVIDER_EVENT_PAYLOAD_CONFLICT',
+      v_sqlstate,
+      v_msg
+    );
+  END;
+  RESET ROLE;
+
+  -- Reject arbitrary / wrong-length / uppercase / notification-id event ids
+  SET LOCAL ROLE service_role;
+  BEGIN
+    PERFORM * FROM public.ingest_paddle_sandbox_webhook_event_server(
+      'xyz_' || repeat('a', 26),
+      'transaction.completed',
+      v_now,
+      v_hash_a,
+      '{}'::jsonb,
+      'supported',
+      NULL
+    );
+    PERFORM pg_temp.record_result('reject_arbitrary_prefix', false, NULL, 'unexpected success');
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_sqlstate = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    PERFORM pg_temp.record_result(
+      'reject_arbitrary_prefix',
+      v_msg = 'ATLAS_INVALID_REQUEST',
+      v_sqlstate,
+      v_msg
+    );
+  END;
+
+  BEGIN
+    PERFORM * FROM public.ingest_paddle_sandbox_webhook_event_server(
+      'ntfsimevt_' || repeat('a', 25),
+      'transaction.completed',
+      v_now,
+      v_hash_a,
+      '{}'::jsonb,
+      'supported',
+      NULL
+    );
+    PERFORM pg_temp.record_result('reject_simulator_wrong_length', false, NULL, 'unexpected success');
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_sqlstate = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    PERFORM pg_temp.record_result(
+      'reject_simulator_wrong_length',
+      v_msg = 'ATLAS_INVALID_REQUEST',
+      v_sqlstate,
+      v_msg
+    );
+  END;
+
+  BEGIN
+    PERFORM * FROM public.ingest_paddle_sandbox_webhook_event_server(
+      'NTFSIMEVT_' || repeat('a', 26),
+      'transaction.completed',
+      v_now,
+      v_hash_a,
+      '{}'::jsonb,
+      'supported',
+      NULL
+    );
+    PERFORM pg_temp.record_result('reject_simulator_uppercase', false, NULL, 'unexpected success');
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_sqlstate = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    PERFORM pg_temp.record_result(
+      'reject_simulator_uppercase',
+      v_msg = 'ATLAS_INVALID_REQUEST',
+      v_sqlstate,
+      v_msg
+    );
+  END;
+
+  BEGIN
+    PERFORM * FROM public.ingest_paddle_sandbox_webhook_event_server(
+      'ntfsimntf_' || repeat('a', 26),
+      'transaction.completed',
+      v_now,
+      v_hash_a,
+      '{}'::jsonb,
+      'supported',
+      NULL
+    );
+    PERFORM pg_temp.record_result('reject_ntfsimntf_notification_id', false, NULL, 'unexpected success');
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_sqlstate = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    PERFORM pg_temp.record_result(
+      'reject_ntfsimntf_notification_id',
+      v_msg = 'ATLAS_INVALID_REQUEST',
+      v_sqlstate,
+      v_msg
+    );
+  END;
+  RESET ROLE;
+
+  -- Normal evt_ still accepted after simulator cases
+  PERFORM pg_temp.record_result(
+    'normal_evt_still_present',
+    EXISTS (
+      SELECT 1 FROM private.billing_provider_events
+      WHERE external_event_id = v_evt
+        AND provider_code = 'paddle'
+        AND provider_environment = 'test'
+    ),
+    NULL,
+    NULL
+  );
 
   SELECT count(*) INTO v_billing_after FROM private.company_billing;
   SELECT count(*) INTO v_subs_after FROM public.company_subscriptions;

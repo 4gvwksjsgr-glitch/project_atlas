@@ -6,7 +6,8 @@ export const WEBHOOK_MAX_BODY_BYTES = 256 * 1024;
 export const WEBHOOK_SIGNATURE_TOLERANCE_SECONDS = 5;
 export const WEBHOOK_SECRET_ENV = "PADDLE_SANDBOX_WEBHOOK_SECRET";
 
-export const PADDLE_EVENT_ID_RE = /^evt_[a-z\d]{26}$/;
+/** Sandbox/test only: live `evt_` plus Paddle Simulator `ntfsimevt_`. */
+export const PADDLE_EVENT_ID_RE = /^(?:evt|ntfsimevt)_[a-z\d]{26}$/;
 export const PADDLE_SUBSCRIPTION_ID_RE = /^sub_[a-z\d]{26}$/;
 
 export const SUPPORTED_EVENT_TYPES = [

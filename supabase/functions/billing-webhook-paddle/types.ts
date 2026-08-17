@@ -13,6 +13,7 @@ export const PADDLE_SUBSCRIPTION_ID_RE = /^sub_[a-z\d]{26}$/;
 export const SUPPORTED_EVENT_TYPES = [
   "subscription.created",
   "subscription.updated",
+  "subscription.activated",
   "subscription.canceled",
   "subscription.past_due",
   "transaction.completed",

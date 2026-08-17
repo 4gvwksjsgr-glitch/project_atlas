@@ -906,7 +906,11 @@ BEGIN
       trial_ends_at = NULL
   WHERE plan_code = 'premium';
   -- keep trial_used_at as-is (allowed on free)
-  -- 14C-2B: billing_offers FK blocks plan delete; remove logical offer for this probe.
+  -- 14C-2B/2E: provider prices FK → offers FK blocks plan delete; clear catalog first.
+  DELETE FROM private.billing_provider_prices p
+  USING private.billing_offers o
+  WHERE p.offer_id = o.id
+    AND o.atlas_plan_code = 'premium';
   DELETE FROM private.billing_offers WHERE atlas_plan_code = 'premium';
   DELETE FROM public.plans WHERE code = 'premium';
   SET LOCAL ROLE authenticated;

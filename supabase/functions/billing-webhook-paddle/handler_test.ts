@@ -244,6 +244,16 @@ Deno.test("parseVerifiedWebhookPayload classifies supported and ignored", () => 
     assertEquals(supported.value.external_subscription_id, SUB);
   }
 
+  const activated = parseVerifiedWebhookPayload(
+    samplePayload({ event_type: "subscription.activated" }),
+  );
+  assertEquals(activated.ok, true);
+  if (activated.ok) {
+    assertEquals(activated.value.classification, "supported");
+    assertEquals(activated.value.event_type, "subscription.activated");
+    assertEquals(activated.value.external_subscription_id, SUB);
+  }
+
   const ignored = parseVerifiedWebhookPayload(
     samplePayload({ event_type: "transaction.payment_failed", data: {} }),
   );

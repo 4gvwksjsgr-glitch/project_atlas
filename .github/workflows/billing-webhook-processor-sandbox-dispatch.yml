@@ -1,0 +1,92 @@
+# Sandbox-only: manual authenticated invoke of billing-webhook-processor-paddle.
+# Expects processor_enabled=false → HTTP 200 / outcome=disabled.
+# No schedule. No repository checkout. No elevated DB roles. Exactly one POST, zero retries.
+name: Billing Webhook Processor — Sandbox Manual Dispatch
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: billing-webhook-processor-sandbox
+  cancel-in-progress: false
+
+jobs:
+  invoke-sandbox-processor:
+    name: Invoke sandbox processor (disabled expected)
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      PROCESSOR_URL: https://onwctqltagegupyhwglf.supabase.co/functions/v1/billing-webhook-processor-paddle
+    steps:
+      - name: Single authenticated POST (no retry)
+        env:
+          ATLAS_BILLING_PROCESSOR_INVOKE_SECRET: ${{ secrets.ATLAS_BILLING_PROCESSOR_INVOKE_SECRET }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+
+          : "${ATLAS_BILLING_PROCESSOR_INVOKE_SECRET:?missing ATLAS_BILLING_PROCESSOR_INVOKE_SECRET}"
+          : "${SUPABASE_ANON_KEY:?missing SUPABASE_ANON_KEY}"
+          : "${PROCESSOR_URL:?missing PROCESSOR_URL}"
+
+          HTTP_POST_COUNT=1
+          HTTP_RETRY_COUNT=0
+
+          BODY="$(mktemp)"
+          cleanup() { rm -f "$BODY"; }
+          trap cleanup EXIT
+
+          set +e
+          HTTP_STATUS="$(
+            curl -sS \
+              -o "$BODY" \
+              -w '%{http_code}' \
+              --connect-timeout 10 \
+              --max-time 30 \
+              -X POST "$PROCESSOR_URL" \
+              -H 'Content-Type: application/json' \
+              -H "apikey: ${SUPABASE_ANON_KEY}" \
+              -H "x-atlas-processor-secret: ${ATLAS_BILLING_PROCESSOR_INVOKE_SECRET}" \
+              --data '{}'
+          )"
+          CURL_EC=$?
+          set -e
+
+          if [ "$CURL_EC" -ne 0 ]; then
+            echo "CURL_TRANSPORT_FAILED=${CURL_EC}"
+            echo "HTTP_POST_COUNT=${HTTP_POST_COUNT}"
+            echo "HTTP_RETRY_COUNT=${HTTP_RETRY_COUNT}"
+            exit 1
+          fi
+
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "HTTP_STATUS=${HTTP_STATUS}"
+            echo "PROCESSOR_RESPONSE_VALIDATION_FAILED=1"
+            echo "HTTP_POST_COUNT=${HTTP_POST_COUNT}"
+            echo "HTTP_RETRY_COUNT=${HTTP_RETRY_COUNT}"
+            exit 1
+          fi
+
+          if ! jq -e '
+            (type == "object")
+            and (.ok | type == "boolean") and (.ok == true)
+            and (.outcome | type == "string") and (.outcome == "disabled")
+            and (.correlation_id | type == "string") and ((.correlation_id | length) > 0)
+          ' "$BODY" >/dev/null; then
+            echo "HTTP_STATUS=${HTTP_STATUS}"
+            echo "PROCESSOR_RESPONSE_VALIDATION_FAILED=1"
+            echo "HTTP_POST_COUNT=${HTTP_POST_COUNT}"
+            echo "HTTP_RETRY_COUNT=${HTTP_RETRY_COUNT}"
+            exit 1
+          fi
+
+          CORRELATION_ID="$(jq -r '.correlation_id' "$BODY")"
+          echo "HTTP_STATUS=200"
+          echo "OUTCOME=disabled"
+          echo "CORRELATION_ID=${CORRELATION_ID}"
+          echo "HTTP_POST_COUNT=${HTTP_POST_COUNT}"
+          echo "HTTP_RETRY_COUNT=${HTTP_RETRY_COUNT}"

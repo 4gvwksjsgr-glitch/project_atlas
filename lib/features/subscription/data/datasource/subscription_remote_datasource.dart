@@ -1,11 +1,33 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/company_subscription_overview_model.dart';
+import '../models/premium_checkout_session_model.dart';
+
+typedef SubscriptionFunctionsInvoker =
+    Future<FunctionResponse> Function(
+      String functionName, {
+      Map<String, String>? headers,
+      Object? body,
+    });
 
 class SubscriptionRemoteDataSource {
-  SubscriptionRemoteDataSource(this._client);
+  SubscriptionRemoteDataSource(
+    this._client, {
+    SubscriptionFunctionsInvoker? functionsInvoker,
+  }) : _functionsInvoker =
+           functionsInvoker ??
+           ((functionName, {headers, body}) {
+             return _client.functions.invoke(
+               functionName,
+               headers: headers,
+               body: body,
+             );
+           });
 
   final SupabaseClient _client;
+  final SubscriptionFunctionsInvoker _functionsInvoker;
+
+  static const checkoutCreateFunctionName = 'billing-checkout-create';
 
   Future<CompanySubscriptionOverviewModel> getCompanySubscriptionOverview({
     required String companyId,
@@ -31,6 +53,39 @@ class SubscriptionRemoteDataSource {
     await _client.rpc(
       'activate_company_premium_trial',
       params: {'p_company_id': companyId},
+    );
+  }
+
+  Future<PremiumCheckoutSessionModel> createCompanyPremiumCheckout({
+    required String companyId,
+    required String idempotencyKey,
+  }) async {
+    if (companyId.isEmpty) {
+      throw ArgumentError.value(companyId, 'companyId', 'obbligatorio');
+    }
+    if (idempotencyKey.isEmpty) {
+      throw ArgumentError.value(
+        idempotencyKey,
+        'idempotencyKey',
+        'obbligatorio',
+      );
+    }
+
+    final response = await _functionsInvoker(
+      checkoutCreateFunctionName,
+      headers: {'Idempotency-Key': idempotencyKey},
+      body: {'company_id': companyId},
+    );
+
+    final data = response.data;
+    if (data is! Map) {
+      throw const FormatException(
+        'Risposta billing-checkout-create non valida',
+      );
+    }
+
+    return PremiumCheckoutSessionModel.fromJson(
+      Map<String, dynamic>.from(data),
     );
   }
 

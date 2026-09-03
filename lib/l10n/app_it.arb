@@ -420,5 +420,14 @@
   "atlasBillingSyncPending": "Sincronizzazione fatturazione in corso. Riprova tra poco.",
   "subscriptionPlanManagementComingSoon": "La gestione del piano sarà disponibile prossimamente.",
   "subscriptionLoading": "Caricamento piano...",
-  "subscriptionLoadError": "Caricamento piano non riuscito. Riprova."
+  "subscriptionLoadError": "Caricamento piano non riuscito. Riprova.",
+  "subscriptionUpgradeToPremiumCta": "Passa a Premium",
+  "subscriptionCheckoutPreparing": "Preparazione del checkout...",
+  "atlasCheckoutStartFailed": "Impossibile avviare il checkout.",
+  "atlasCheckoutUnavailable": "Checkout temporaneamente non disponibile.",
+  "atlasCheckoutNotEligible": "Non puoi avviare il checkout per questa azienda.",
+  "atlasCheckoutAlreadyOpen": "Esiste già un checkout aperto.",
+  "atlasCheckoutInProgress": "Checkout già in preparazione. Attendi qualche secondo.",
+  "atlasProviderOutcomeUnknown": "Stato del pagamento non ancora confermato.",
+  "atlasCheckoutOpenFailed": "Impossibile aprire la pagina di pagamento."
 }

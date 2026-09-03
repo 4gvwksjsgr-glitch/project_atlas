@@ -1,6 +1,7 @@
 import '../../../../core/errors/subscription_error_mapper.dart';
 import '../../../../core/utils/result.dart';
 import '../../domain/entities/company_subscription_overview.dart';
+import '../../domain/entities/premium_checkout_session.dart';
 import '../../domain/repositories/subscription_repository.dart';
 import '../datasource/subscription_remote_datasource.dart';
 
@@ -40,6 +41,27 @@ class SubscriptionRepositoryImpl implements SubscriptionRepository {
         SubscriptionErrorMapper.mapException(
           error,
           SubscriptionOperation.activatePremiumTrial,
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Result<PremiumCheckoutSession>> createCompanyPremiumCheckout({
+    required String companyId,
+    required String idempotencyKey,
+  }) async {
+    try {
+      final model = await _remote.createCompanyPremiumCheckout(
+        companyId: companyId,
+        idempotencyKey: idempotencyKey,
+      );
+      return Success(model.toEntity());
+    } catch (error) {
+      return Error(
+        SubscriptionErrorMapper.mapException(
+          error,
+          SubscriptionOperation.createPremiumCheckout,
         ),
       );
     }

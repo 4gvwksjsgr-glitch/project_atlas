@@ -1908,6 +1908,60 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Caricamento piano non riuscito. Riprova.'**
   String get subscriptionLoadError;
+
+  /// No description provided for @subscriptionUpgradeToPremiumCta.
+  ///
+  /// In it, this message translates to:
+  /// **'Passa a Premium'**
+  String get subscriptionUpgradeToPremiumCta;
+
+  /// No description provided for @subscriptionCheckoutPreparing.
+  ///
+  /// In it, this message translates to:
+  /// **'Preparazione del checkout...'**
+  String get subscriptionCheckoutPreparing;
+
+  /// No description provided for @atlasCheckoutStartFailed.
+  ///
+  /// In it, this message translates to:
+  /// **'Impossibile avviare il checkout.'**
+  String get atlasCheckoutStartFailed;
+
+  /// No description provided for @atlasCheckoutUnavailable.
+  ///
+  /// In it, this message translates to:
+  /// **'Checkout temporaneamente non disponibile.'**
+  String get atlasCheckoutUnavailable;
+
+  /// No description provided for @atlasCheckoutNotEligible.
+  ///
+  /// In it, this message translates to:
+  /// **'Non puoi avviare il checkout per questa azienda.'**
+  String get atlasCheckoutNotEligible;
+
+  /// No description provided for @atlasCheckoutAlreadyOpen.
+  ///
+  /// In it, this message translates to:
+  /// **'Esiste già un checkout aperto.'**
+  String get atlasCheckoutAlreadyOpen;
+
+  /// No description provided for @atlasCheckoutInProgress.
+  ///
+  /// In it, this message translates to:
+  /// **'Checkout già in preparazione. Attendi qualche secondo.'**
+  String get atlasCheckoutInProgress;
+
+  /// No description provided for @atlasProviderOutcomeUnknown.
+  ///
+  /// In it, this message translates to:
+  /// **'Stato del pagamento non ancora confermato.'**
+  String get atlasProviderOutcomeUnknown;
+
+  /// No description provided for @atlasCheckoutOpenFailed.
+  ///
+  /// In it, this message translates to:
+  /// **'Impossibile aprire la pagina di pagamento.'**
+  String get atlasCheckoutOpenFailed;
 }
 
 class _AppLocalizationsDelegate

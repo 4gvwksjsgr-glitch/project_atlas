@@ -14,6 +14,7 @@ import 'package:project_atlas/features/documents/domain/usecases/document_usecas
 import 'package:project_atlas/features/documents/presentation/controllers/document_controllers.dart';
 import 'package:project_atlas/features/documents/presentation/providers/document_providers.dart';
 import 'package:project_atlas/features/subscription/domain/entities/company_subscription_overview.dart';
+import 'package:project_atlas/features/subscription/domain/entities/premium_checkout_session.dart';
 import 'package:project_atlas/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:project_atlas/features/subscription/domain/usecases/get_company_subscription_overview.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -667,6 +668,14 @@ class _OverviewRepo implements SubscriptionRepository {
     required String companyId,
   }) async {
     return const Success(null);
+  }
+
+  @override
+  Future<Result<PremiumCheckoutSession>> createCompanyPremiumCheckout({
+    required String companyId,
+    required String idempotencyKey,
+  }) async {
+    return const Error(UnknownFailure('checkout not used in this test'));
   }
 }
 

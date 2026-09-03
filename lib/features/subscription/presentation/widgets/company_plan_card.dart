@@ -7,6 +7,7 @@ import '../../../../shared/constants/app_ui_constants.dart';
 import '../../../companies/presentation/controllers/company_onboarding_controller.dart';
 import '../../domain/entities/company_subscription_overview.dart';
 import '../controllers/activate_premium_trial_controller.dart';
+import '../controllers/create_premium_checkout_controller.dart';
 import '../providers/subscription_providers.dart';
 
 class CompanyPlanCard extends ConsumerWidget {
@@ -38,6 +39,27 @@ class CompanyPlanCard extends ConsumerWidget {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(next.errorMessage!)));
+      }
+    });
+
+    ref.listen(createPremiumCheckoutControllerProvider(companyId), (
+      previous,
+      next,
+    ) {
+      if (next.actionStatus == CompanyActionStatus.error &&
+          next.errorMessage != null &&
+          next.errorMessage != previous?.errorMessage) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.errorMessage!)));
+        ref
+            .read(createPremiumCheckoutControllerProvider(companyId).notifier)
+            .clearFeedback();
+      } else if (next.actionStatus == CompanyActionStatus.success &&
+          previous?.actionStatus != CompanyActionStatus.success) {
+        ref
+            .read(createPremiumCheckoutControllerProvider(companyId).notifier)
+            .clearFeedback();
       }
     });
 
@@ -91,6 +113,12 @@ class _PlanDetails extends ConsumerWidget {
     final trialState = ref.watch(
       activatePremiumTrialControllerProvider(companyId),
     );
+    final checkoutState = ref.watch(
+      createPremiumCheckoutControllerProvider(companyId),
+    );
+    final isWebCheckoutPlatform = ref.watch(
+      isBillingCheckoutWebPlatformProvider,
+    );
 
     final planTitle = overview.isTrialActive
         ? l10n.subscriptionPlanTrialPremium
@@ -109,6 +137,10 @@ class _PlanDetails extends ConsumerWidget {
       SubscriptionStatus.active => l10n.subscriptionStatusActive,
       SubscriptionStatus.unknown => l10n.subscriptionStatusUnknown,
     };
+
+    final showTrialCta = overview.canActivateTrial;
+    final showCheckoutCta =
+        !showTrialCta && isWebCheckoutPlatform && overview.isCheckoutEligible;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,10 +183,15 @@ class _PlanDetails extends ConsumerWidget {
           ),
         ],
         const SizedBox(height: AppUiConstants.spacingMedium),
-        if (overview.canActivateTrial)
+        if (showTrialCta)
           _ActivateTrialButton(
             companyId: companyId,
             isLoading: trialState.isLoading,
+          )
+        else if (showCheckoutCta)
+          _UpgradeToPremiumButton(
+            companyId: companyId,
+            isLoading: checkoutState.isLoading,
           )
         else
           Text(
@@ -244,6 +281,47 @@ class _ActivateTrialButton extends ConsumerWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : Text(l10n.subscriptionActivateTrialCta),
+    );
+  }
+}
+
+class _UpgradeToPremiumButton extends ConsumerWidget {
+  const _UpgradeToPremiumButton({
+    required this.companyId,
+    required this.isLoading,
+  });
+
+  final String companyId;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+
+    return FilledButton(
+      onPressed: isLoading
+          ? null
+          : () async {
+              await ref
+                  .read(
+                    createPremiumCheckoutControllerProvider(companyId).notifier,
+                  )
+                  .startCheckout();
+            },
+      child: isLoading
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                const SizedBox(width: AppUiConstants.spacingSmall),
+                Text(l10n.subscriptionCheckoutPreparing),
+              ],
+            )
+          : Text(l10n.subscriptionUpgradeToPremiumCta),
     );
   }
 }

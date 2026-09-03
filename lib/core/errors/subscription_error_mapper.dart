@@ -4,7 +4,11 @@ import 'atlas_error_codes.dart';
 import 'exceptions.dart';
 import 'failures.dart';
 
-enum SubscriptionOperation { getOverview, activatePremiumTrial }
+enum SubscriptionOperation {
+  getOverview,
+  activatePremiumTrial,
+  createPremiumCheckout,
+}
 
 abstract final class SubscriptionErrorMapper {
   static Failure mapException(
@@ -29,6 +33,10 @@ abstract final class SubscriptionErrorMapper {
     final atlasCode = AtlasErrorCodes.extract(error);
     if (atlasCode != null) {
       return mapAtlasCode(atlasCode);
+    }
+
+    if (error is supabase.FunctionException) {
+      return UnknownFailure(_fallback(operation));
     }
 
     if (error is supabase.PostgrestException) {
@@ -71,6 +79,20 @@ abstract final class SubscriptionErrorMapper {
       AtlasErrorCodes.billingLinked => const AtlasBillingLinkedFailure(),
       AtlasErrorCodes.billingSyncPending =>
         const AtlasBillingSyncPendingFailure(),
+      AtlasErrorCodes.checkoutUnavailable =>
+        const AtlasCheckoutUnavailableFailure(),
+      AtlasErrorCodes.checkoutNotEligible =>
+        const AtlasCheckoutNotEligibleFailure(),
+      AtlasErrorCodes.checkoutAlreadyOpen =>
+        const AtlasCheckoutAlreadyOpenFailure(),
+      AtlasErrorCodes.checkoutInProgress =>
+        const AtlasCheckoutInProgressFailure(),
+      AtlasErrorCodes.checkoutIdempotencyConflict =>
+        const AtlasCheckoutIdempotencyConflictFailure(),
+      AtlasErrorCodes.providerOutcomeUnknown =>
+        const AtlasProviderOutcomeUnknownFailure(),
+      AtlasErrorCodes.providerRequestRejected =>
+        const AtlasProviderRequestRejectedFailure(),
       _ => const UnknownFailure(),
     };
   }
@@ -88,7 +110,8 @@ abstract final class SubscriptionErrorMapper {
       return const AuthFailure('Sessione scaduta. Accedi di nuovo.');
     }
     if (combined.contains('not a company member') || code == '42501') {
-      if (operation == SubscriptionOperation.activatePremiumTrial) {
+      if (operation == SubscriptionOperation.activatePremiumTrial ||
+          operation == SubscriptionOperation.createPremiumCheckout) {
         return const AuthFailure('Non fai parte di questa azienda.');
       }
       return const AuthFailure(
@@ -118,6 +141,8 @@ abstract final class SubscriptionErrorMapper {
         'Caricamento piano non riuscito. Riprova.',
       SubscriptionOperation.activatePremiumTrial =>
         'Attivazione prova Premium non riuscita. Riprova.',
+      SubscriptionOperation.createPremiumCheckout =>
+        'Impossibile avviare il checkout.',
     };
   }
 }

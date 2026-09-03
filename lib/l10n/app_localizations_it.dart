@@ -1042,4 +1042,36 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get subscriptionLoadError =>
       'Caricamento piano non riuscito. Riprova.';
+
+  @override
+  String get subscriptionUpgradeToPremiumCta => 'Passa a Premium';
+
+  @override
+  String get subscriptionCheckoutPreparing => 'Preparazione del checkout...';
+
+  @override
+  String get atlasCheckoutStartFailed => 'Impossibile avviare il checkout.';
+
+  @override
+  String get atlasCheckoutUnavailable =>
+      'Checkout temporaneamente non disponibile.';
+
+  @override
+  String get atlasCheckoutNotEligible =>
+      'Non puoi avviare il checkout per questa azienda.';
+
+  @override
+  String get atlasCheckoutAlreadyOpen => 'Esiste già un checkout aperto.';
+
+  @override
+  String get atlasCheckoutInProgress =>
+      'Checkout già in preparazione. Attendi qualche secondo.';
+
+  @override
+  String get atlasProviderOutcomeUnknown =>
+      'Stato del pagamento non ancora confermato.';
+
+  @override
+  String get atlasCheckoutOpenFailed =>
+      'Impossibile aprire la pagina di pagamento.';
 }

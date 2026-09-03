@@ -120,7 +120,60 @@ final class AtlasBillingLinkedFailure extends Failure {
 
 final class AtlasBillingSyncPendingFailure extends Failure {
   const AtlasBillingSyncPendingFailure([
-    super.message =
-        'Sincronizzazione fatturazione in corso. Riprova tra poco.',
+    super.message = 'Sincronizzazione fatturazione in corso. Riprova tra poco.',
+  ]);
+}
+
+final class AtlasCheckoutUnavailableFailure extends Failure {
+  const AtlasCheckoutUnavailableFailure([
+    super.message = 'Checkout temporaneamente non disponibile.',
+  ]);
+}
+
+final class AtlasCheckoutNotEligibleFailure extends Failure {
+  const AtlasCheckoutNotEligibleFailure([
+    super.message = 'Non puoi avviare il checkout per questa azienda.',
+  ]);
+}
+
+final class AtlasCheckoutAlreadyOpenFailure extends Failure {
+  const AtlasCheckoutAlreadyOpenFailure([
+    super.message = 'Esiste già un checkout aperto.',
+  ]);
+}
+
+final class AtlasCheckoutInProgressFailure extends Failure {
+  const AtlasCheckoutInProgressFailure([
+    super.message = 'Checkout già in preparazione. Attendi qualche secondo.',
+  ]);
+}
+
+final class AtlasCheckoutIdempotencyConflictFailure extends Failure {
+  const AtlasCheckoutIdempotencyConflictFailure([
+    super.message = 'Impossibile avviare il checkout.',
+  ]);
+}
+
+final class AtlasProviderOutcomeUnknownFailure extends Failure {
+  const AtlasProviderOutcomeUnknownFailure([
+    super.message = 'Stato del pagamento non ancora confermato.',
+  ]);
+}
+
+final class AtlasProviderRequestRejectedFailure extends Failure {
+  const AtlasProviderRequestRejectedFailure([
+    super.message = 'Impossibile avviare il checkout.',
+  ]);
+}
+
+final class AtlasCheckoutInvalidUrlFailure extends Failure {
+  const AtlasCheckoutInvalidUrlFailure([
+    super.message = 'Impossibile avviare il checkout.',
+  ]);
+}
+
+final class AtlasCheckoutOpenFailure extends Failure {
+  const AtlasCheckoutOpenFailure([
+    super.message = 'Impossibile aprire la pagina di pagamento.',
   ]);
 }

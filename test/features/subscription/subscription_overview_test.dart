@@ -7,6 +7,7 @@ import 'package:project_atlas/core/errors/subscription_error_mapper.dart';
 import 'package:project_atlas/core/utils/result.dart';
 import 'package:project_atlas/features/subscription/data/models/company_subscription_overview_model.dart';
 import 'package:project_atlas/features/subscription/domain/entities/company_subscription_overview.dart';
+import 'package:project_atlas/features/subscription/domain/entities/premium_checkout_session.dart';
 import 'package:project_atlas/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:project_atlas/features/subscription/domain/usecases/activate_company_premium_trial.dart';
 import 'package:project_atlas/features/subscription/domain/usecases/get_company_subscription_overview.dart';
@@ -121,7 +122,10 @@ void main() {
       }).toEntity();
 
       expect(entity.entitlementOrigin, EntitlementOrigin.provider);
-      expect(entity.billingSubscriptionStatus, BillingSubscriptionStatus.active);
+      expect(
+        entity.billingSubscriptionStatus,
+        BillingSubscriptionStatus.active,
+      );
       expect(entity.billingPaymentStatus, BillingPaymentStatus.pastDue);
       expect(entity.syncStatus, BillingSyncStatus.reconcileRequired);
       expect(entity.lastSyncResult, BillingLastSyncResult.failed);
@@ -157,7 +161,10 @@ void main() {
       }).toEntity();
 
       expect(entity.entitlementOrigin, EntitlementOrigin.unknown);
-      expect(entity.billingSubscriptionStatus, BillingSubscriptionStatus.unknown);
+      expect(
+        entity.billingSubscriptionStatus,
+        BillingSubscriptionStatus.unknown,
+      );
       expect(entity.billingPaymentStatus, BillingPaymentStatus.unknown);
       expect(entity.syncStatus, BillingSyncStatus.unknown);
       expect(entity.lastSyncResult, BillingLastSyncResult.unknown);
@@ -758,6 +765,14 @@ class _FakeRepo implements SubscriptionRepository {
     }
     return const Success(null);
   }
+
+  @override
+  Future<Result<PremiumCheckoutSession>> createCompanyPremiumCheckout({
+    required String companyId,
+    required String idempotencyKey,
+  }) async {
+    return const Error(UnknownFailure('checkout not used in this test'));
+  }
 }
 
 class _TenantAwareRepo implements SubscriptionRepository {
@@ -787,5 +802,13 @@ class _TenantAwareRepo implements SubscriptionRepository {
     required String companyId,
   }) async {
     return const Success(null);
+  }
+
+  @override
+  Future<Result<PremiumCheckoutSession>> createCompanyPremiumCheckout({
+    required String companyId,
+    required String idempotencyKey,
+  }) async {
+    return const Error(UnknownFailure('checkout not used in this test'));
   }
 }

@@ -1,5 +1,7 @@
 # Sandbox-only: manual authenticated invoke of billing-webhook-processor-paddle.
-# Expects processor_enabled=false → HTTP 200 / outcome=disabled.
+# Accepts legitimate HTTP 200 processor outcomes (aligned with schedule workflow):
+#   disabled | empty | processed → Actions success
+#   failed_finalized → controlled Actions failure (no retry)
 # No schedule. No repository checkout. No elevated DB roles. Exactly one POST, zero retries.
 name: Billing Webhook Processor — Sandbox Manual Dispatch
 
@@ -14,7 +16,7 @@ concurrency:
 
 jobs:
   invoke-sandbox-processor:
-    name: Invoke sandbox processor (disabled expected)
+    name: Invoke sandbox processor (manual)
     runs-on: ubuntu-latest
     timeout-minutes: 2
     env:
@@ -71,22 +73,106 @@ jobs:
             exit 1
           fi
 
+          # Base contract: object, ok=true, allowed outcome,
+          # correlation_id = UUID syntax (processor uses crypto.randomUUID()).
           if ! jq -e '
             (type == "object")
             and (.ok | type == "boolean") and (.ok == true)
-            and (.outcome | type == "string") and (.outcome == "disabled")
-            and (.correlation_id | type == "string") and ((.correlation_id | length) > 0)
+            and (.outcome | type == "string")
+            and (.outcome == "disabled"
+                 or .outcome == "empty"
+                 or .outcome == "processed"
+                 or .outcome == "failed_finalized")
+            and (.correlation_id | type == "string")
+            and (.correlation_id | test("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"))
           ' "$BODY" >/dev/null; then
-            echo "HTTP_STATUS=${HTTP_STATUS}"
+            echo "HTTP_STATUS=200"
             echo "PROCESSOR_RESPONSE_VALIDATION_FAILED=1"
             echo "HTTP_POST_COUNT=${HTTP_POST_COUNT}"
             echo "HTTP_RETRY_COUNT=${HTTP_RETRY_COUNT}"
             exit 1
           fi
 
+          OUTCOME="$(jq -r '.outcome' "$BODY")"
           CORRELATION_ID="$(jq -r '.correlation_id' "$BODY")"
-          echo "HTTP_STATUS=200"
-          echo "OUTCOME=disabled"
-          echo "CORRELATION_ID=${CORRELATION_ID}"
-          echo "HTTP_POST_COUNT=${HTTP_POST_COUNT}"
-          echo "HTTP_RETRY_COUNT=${HTTP_RETRY_COUNT}"
+
+          case "$OUTCOME" in
+            disabled|empty)
+              echo "HTTP_STATUS=200"
+              echo "OUTCOME=${OUTCOME}"
+              echo "CORRELATION_ID=${CORRELATION_ID}"
+              echo "HTTP_POST_COUNT=${HTTP_POST_COUNT}"
+              echo "HTTP_RETRY_COUNT=${HTTP_RETRY_COUNT}"
+              exit 0
+              ;;
+            processed)
+              if ! jq -e '
+                (.inbox_event_id | type == "string")
+                and (.inbox_event_id | test("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"))
+                and (.attempt_count | type == "number")
+                and (.attempt_count == (.attempt_count | floor))
+                and (.attempt_count >= 1)
+                and (.apply_outcome | type == "string")
+                and (.apply_outcome == "applied"
+                     or .apply_outcome == "already_processed"
+                     or .apply_outcome == "ignored"
+                     or .apply_outcome == "stale")
+              ' "$BODY" >/dev/null; then
+                echo "HTTP_STATUS=200"
+                echo "PROCESSOR_RESPONSE_VALIDATION_FAILED=1"
+                echo "HTTP_POST_COUNT=${HTTP_POST_COUNT}"
+                echo "HTTP_RETRY_COUNT=${HTTP_RETRY_COUNT}"
+                exit 1
+              fi
+              INBOX_EVENT_ID="$(jq -r '.inbox_event_id' "$BODY")"
+              ATTEMPT_COUNT="$(jq -r '.attempt_count' "$BODY")"
+              APPLY_OUTCOME="$(jq -r '.apply_outcome' "$BODY")"
+              echo "HTTP_STATUS=200"
+              echo "OUTCOME=processed"
+              echo "CORRELATION_ID=${CORRELATION_ID}"
+              echo "INBOX_EVENT_ID=${INBOX_EVENT_ID}"
+              echo "ATTEMPT_COUNT=${ATTEMPT_COUNT}"
+              echo "APPLY_OUTCOME=${APPLY_OUTCOME}"
+              echo "HTTP_POST_COUNT=${HTTP_POST_COUNT}"
+              echo "HTTP_RETRY_COUNT=${HTTP_RETRY_COUNT}"
+              exit 0
+              ;;
+            failed_finalized)
+              if ! jq -e '
+                (.inbox_event_id | type == "string")
+                and (.inbox_event_id | test("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"))
+                and (.attempt_count | type == "number")
+                and (.attempt_count == (.attempt_count | floor))
+                and (.attempt_count >= 1)
+                and (.error_code | type == "string")
+                and ((.error_code | length) > 0)
+                and (.error_code | test("^ATLAS_[A-Z0-9_]+$"))
+              ' "$BODY" >/dev/null; then
+                echo "HTTP_STATUS=200"
+                echo "PROCESSOR_RESPONSE_VALIDATION_FAILED=1"
+                echo "HTTP_POST_COUNT=${HTTP_POST_COUNT}"
+                echo "HTTP_RETRY_COUNT=${HTTP_RETRY_COUNT}"
+                exit 1
+              fi
+              INBOX_EVENT_ID="$(jq -r '.inbox_event_id' "$BODY")"
+              ATTEMPT_COUNT="$(jq -r '.attempt_count' "$BODY")"
+              ERROR_CODE="$(jq -r '.error_code' "$BODY")"
+              echo "HTTP_STATUS=200"
+              echo "OUTCOME=failed_finalized"
+              echo "CORRELATION_ID=${CORRELATION_ID}"
+              echo "INBOX_EVENT_ID=${INBOX_EVENT_ID}"
+              echo "ATTEMPT_COUNT=${ATTEMPT_COUNT}"
+              echo "ERROR_CODE=${ERROR_CODE}"
+              echo "HTTP_POST_COUNT=${HTTP_POST_COUNT}"
+              echo "HTTP_RETRY_COUNT=${HTTP_RETRY_COUNT}"
+              # Controlled business fail: visible Actions FAILURE, never retry.
+              exit 1
+              ;;
+            *)
+              echo "HTTP_STATUS=200"
+              echo "PROCESSOR_RESPONSE_VALIDATION_FAILED=1"
+              echo "HTTP_POST_COUNT=${HTTP_POST_COUNT}"
+              echo "HTTP_RETRY_COUNT=${HTTP_RETRY_COUNT}"
+              exit 1
+              ;;
+          esac

@@ -361,6 +361,7 @@ DECLARE
   v_co_manual UUID;
   v_co_unlinked UUID;
   v_co_atom UUID;
+  v_co_conv UUID;
 
   v_price_row_id UUID;
   v_seed_price TEXT := 'pri_01kze90z27wy6m0fpxpebaewjv';
@@ -370,6 +371,7 @@ DECLARE
   v_sess_manual UUID;
   v_sess_unlinked UUID;
   v_sess_atom UUID;
+  v_sess_conv UUID;
 
   v_sub_main TEXT := pg_temp.paddle_id('sub_', 'main-sub');
   v_ctm_main TEXT := pg_temp.paddle_id('ctm_', 'main-ctm');
@@ -391,6 +393,10 @@ DECLARE
   v_ctm_unlinked TEXT := pg_temp.paddle_id('ctm_', 'unlinked-ctm');
   v_txn_unlinked TEXT := pg_temp.paddle_id('txn_', 'unlinked-txn');
 
+  v_sub_conv TEXT := pg_temp.paddle_id('sub_', 'conv-sub');
+  v_ctm_conv TEXT := pg_temp.paddle_id('ctm_', 'conv-ctm');
+  v_txn_conv TEXT := pg_temp.paddle_id('txn_', 'conv-txn');
+
   v_bad_price TEXT := pg_temp.paddle_id('pri_', 'not-seeded-price');
 
   v_t0 TIMESTAMPTZ := TIMESTAMPTZ '2026-08-17 10:00:00+00';
@@ -402,6 +408,8 @@ DECLARE
   v_t6 TIMESTAMPTZ := TIMESTAMPTZ '2026-08-17 10:30:00+00';
   v_t7 TIMESTAMPTZ := TIMESTAMPTZ '2026-08-17 10:35:00+00';
   v_t8 TIMESTAMPTZ := TIMESTAMPTZ '2026-08-17 10:40:00+00';
+  -- 14C-2I: equal occurred_at for created→activated (mirrors Sandbox E2E).
+  v_t_conv TIMESTAMPTZ := TIMESTAMPTZ '2026-08-17 12:00:00+00';
   v_period_start TIMESTAMPTZ := TIMESTAMPTZ '2026-08-17 10:00:00+00';
   v_period_end TIMESTAMPTZ := TIMESTAMPTZ '2026-09-17 10:00:00+00';
 
@@ -606,6 +614,13 @@ BEGIN
   );
   v_co_atom := v_company.id;
 
+  SELECT * INTO v_company
+  FROM public.create_company(
+    'Company 14C2I Convergence',
+    'company-14c2i-conv-' || substr(gen_random_uuid()::text, 1, 8)
+  );
+  v_co_conv := v_company.id;
+
   RESET ROLE;
 
   v_sess_main := pg_temp.create_checkout_session(
@@ -622,6 +637,9 @@ BEGIN
   );
   v_sess_atom := pg_temp.create_checkout_session(
     v_co_atom, v_owner, v_price_row_id, v_txn_atom, 'idem-apply-atom'
+  );
+  v_sess_conv := pg_temp.create_checkout_session(
+    v_co_conv, v_owner, v_price_row_id, v_txn_conv, 'idem-apply-conv'
   );
 
   UPDATE public.company_subscriptions
@@ -1983,6 +2001,179 @@ BEGIN
     NULL,
     format('out=%s type=%s status=%s', v_ingest_outcome, v_row.event_type,
            v_row.processing_status)
+  );
+
+  -- =========================================================================
+  -- 31. 14C-2I: created(active) → activated(active) equal watermark noop
+  -- =========================================================================
+  v_custom := pg_temp.custom_data(v_co_conv, v_sess_conv, 'premium_monthly', 1);
+
+  v_seq := v_seq + 1;
+  v_evt := pg_temp.paddle_id('evt_', 'conv-created-' || v_seq::text);
+  v_payload := pg_temp.sub_payload(
+    v_evt, v_t_conv, 'active', v_sub_conv, v_ctm_conv, v_seed_price,
+    v_period_start, v_period_end, v_custom, FALSE, NULL
+  );
+  -- Force authoritative event_type independent of status-derived cosmetic type.
+  v_payload := v_payload || jsonb_build_object('event_type', 'subscription.created');
+  v_id := pg_temp.insert_inbox(
+    v_evt, 'subscription.created', 'received', v_payload, v_t_conv, 'verified'
+  );
+
+  SET LOCAL ROLE service_role;
+  PERFORM * FROM public.claim_paddle_sandbox_webhook_event_for_processing_server(v_id);
+  SELECT outcome, processing_status
+  INTO v_outcome, v_status
+  FROM public.apply_paddle_sandbox_webhook_event_server(v_id);
+  RESET ROLE;
+
+  SELECT * INTO v_bill FROM private.company_billing WHERE company_id = v_co_conv;
+  SELECT * INTO v_sub FROM public.company_subscriptions WHERE company_id = v_co_conv;
+  SELECT r.effective_plan_code INTO v_eff
+  FROM private.resolve_company_entitlement(v_co_conv, now()) r;
+
+  PERFORM pg_temp.record_result(
+    'created_active_entitled_before_activated',
+    v_outcome = 'applied'
+    AND v_status = 'processed'
+    AND v_sub.plan_code = 'premium'
+    AND v_sub.status = 'active'
+    AND v_sub.entitlement_origin = 'provider'
+    AND v_bill.provider_code = 'paddle'
+    AND v_bill.provider_environment = 'test'
+    AND v_bill.external_customer_id = v_ctm_conv
+    AND v_bill.external_subscription_id = v_sub_conv
+    AND v_bill.external_price_id = v_seed_price
+    AND v_bill.subscription_status = 'active'
+    AND v_bill.payment_status = 'ok'
+    AND v_bill.provider_access_status = 'entitled'
+    AND v_bill.sync_status = 'idle'
+    AND v_bill.last_sync_result = 'succeeded'
+    AND v_bill.last_subscription_event_occurred_at = v_t_conv
+    AND v_eff = 'premium',
+    NULL,
+    format(
+      'out=%s plan=%s origin=%s access=%s wm=%s',
+      v_outcome, v_sub.plan_code, v_sub.entitlement_origin,
+      v_bill.provider_access_status, v_bill.last_subscription_event_occurred_at
+    )
+  );
+
+  v_billing_fp_before := pg_temp.billing_fp();
+  v_subs_fp_before := pg_temp.subs_fp();
+  v_watermark_before := v_bill.last_subscription_event_occurred_at;
+
+  v_seq := v_seq + 1;
+  v_evt := pg_temp.paddle_id('evt_', 'conv-activated-' || v_seq::text);
+  v_payload := pg_temp.sub_payload(
+    v_evt, v_t_conv, 'active', v_sub_conv, v_ctm_conv, v_seed_price,
+    v_period_start, v_period_end, v_custom, FALSE, NULL
+  );
+  v_payload := v_payload || jsonb_build_object('event_type', 'subscription.activated');
+  v_id := pg_temp.insert_inbox(
+    v_evt, 'subscription.activated', 'received', v_payload, v_t_conv, 'verified'
+  );
+
+  SET LOCAL ROLE service_role;
+  PERFORM * FROM public.claim_paddle_sandbox_webhook_event_for_processing_server(v_id);
+  SELECT outcome, processing_status
+  INTO v_outcome, v_status
+  FROM public.apply_paddle_sandbox_webhook_event_server(v_id);
+  RESET ROLE;
+
+  SELECT * INTO v_bill FROM private.company_billing WHERE company_id = v_co_conv;
+  SELECT * INTO v_sub FROM public.company_subscriptions WHERE company_id = v_co_conv;
+  SELECT r.effective_plan_code INTO v_eff
+  FROM private.resolve_company_entitlement(v_co_conv, now()) r;
+  SELECT * INTO v_row FROM private.billing_provider_events WHERE id = v_id;
+
+  PERFORM pg_temp.record_result(
+    'activated_equal_watermark_applied_noop',
+    v_outcome = 'applied'
+    AND v_status = 'processed'
+    AND v_row.processing_status = 'processed'
+    AND v_sub.plan_code = 'premium'
+    AND v_sub.status = 'active'
+    AND v_sub.entitlement_origin = 'provider'
+    AND v_bill.provider_access_status = 'entitled'
+    AND v_bill.payment_status = 'ok'
+    AND v_bill.sync_status = 'idle'
+    AND v_bill.last_sync_result = 'succeeded'
+    AND v_bill.external_customer_id = v_ctm_conv
+    AND v_bill.external_subscription_id = v_sub_conv
+    AND v_bill.external_price_id = v_seed_price
+    AND v_bill.last_subscription_event_occurred_at = v_watermark_before
+    AND v_bill.last_subscription_event_occurred_at = v_t_conv
+    AND v_eff = 'premium'
+    AND pg_temp.billing_fp() = v_billing_fp_before
+    AND pg_temp.subs_fp() = v_subs_fp_before,
+    NULL,
+    format(
+      'out=%s status=%s wm=%s bill_fp_eq=%s subs_fp_eq=%s',
+      v_outcome, v_status, v_bill.last_subscription_event_occurred_at,
+      (pg_temp.billing_fp() = v_billing_fp_before),
+      (pg_temp.subs_fp() = v_subs_fp_before)
+    )
+  );
+
+  -- =========================================================================
+  -- 32. 14C-2I: transaction.completed after entitled (non-authoritative)
+  -- =========================================================================
+  v_watermark_before := v_bill.last_subscription_event_occurred_at;
+  v_subs_fp_before := pg_temp.subs_fp();
+
+  v_seq := v_seq + 1;
+  v_evt := pg_temp.paddle_id('evt_', 'conv-txn-' || v_seq::text);
+  v_payload := pg_temp.txn_payload(
+    v_evt, v_t_conv + interval '1 second', v_txn_conv,
+    v_sub_conv, v_ctm_conv, v_seed_price, v_custom
+  );
+  v_id := pg_temp.insert_inbox(
+    v_evt, 'transaction.completed', 'received', v_payload,
+    v_t_conv + interval '1 second', 'verified'
+  );
+
+  SET LOCAL ROLE service_role;
+  PERFORM * FROM public.claim_paddle_sandbox_webhook_event_for_processing_server(v_id);
+  SELECT outcome, processing_status
+  INTO v_outcome, v_status
+  FROM public.apply_paddle_sandbox_webhook_event_server(v_id);
+  RESET ROLE;
+
+  SELECT * INTO v_bill FROM private.company_billing WHERE company_id = v_co_conv;
+  SELECT * INTO v_sub FROM public.company_subscriptions WHERE company_id = v_co_conv;
+  SELECT r.effective_plan_code INTO v_eff
+  FROM private.resolve_company_entitlement(v_co_conv, now()) r;
+  SELECT * INTO v_row FROM private.billing_provider_events WHERE id = v_id;
+
+  PERFORM pg_temp.record_result(
+    'transaction_after_entitled_non_authoritative',
+    v_outcome = 'applied'
+    AND v_status = 'processed'
+    AND v_row.processing_status = 'processed'
+    AND v_sub.plan_code = 'premium'
+    AND v_sub.status = 'active'
+    AND v_sub.entitlement_origin = 'provider'
+    AND v_bill.provider_access_status = 'entitled'
+    AND v_bill.subscription_status = 'active'
+    AND v_bill.payment_status = 'ok'
+    AND v_bill.sync_status = 'idle'
+    AND v_bill.last_sync_result = 'succeeded'
+    AND v_bill.external_customer_id = v_ctm_conv
+    AND v_bill.external_subscription_id = v_sub_conv
+    AND v_bill.external_price_id = v_seed_price
+    AND v_bill.last_subscription_event_occurred_at = v_watermark_before
+    AND v_bill.last_subscription_event_occurred_at = v_t_conv
+    AND v_eff = 'premium'
+    AND pg_temp.subs_fp() = v_subs_fp_before,
+    NULL,
+    format(
+      'out=%s plan=%s origin=%s access=%s wm=%s wm_unchanged=%s',
+      v_outcome, v_sub.plan_code, v_sub.entitlement_origin,
+      v_bill.provider_access_status,
+      v_bill.last_subscription_event_occurred_at,
+      (v_bill.last_subscription_event_occurred_at = v_watermark_before)
+    )
   );
 END;
 $$;

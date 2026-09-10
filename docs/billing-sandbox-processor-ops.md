@@ -29,6 +29,9 @@ These controls are **independent**:
 
 Never leave `processor_enabled=true` after a one-shot.
 
+Processor and scheduler kill switches remain authoritative. Documentation
+disposition never overrides them.
+
 ## Manual one-shot procedure
 
 Exactly one eligible inbox event per approved one-shot.
@@ -105,6 +108,12 @@ Then:
 | evidence | preserve workflow run id + DB audit rows |
 | further drain | **stop** (do not process the next event) |
 
+Unexpected `failed` / `failed_finalized` inbox rows (not an exact match in the
+operator-accepted test dead-letter registry below) require operator
+investigation. Do **not** treat them as routine recovery candidates. Do **not**
+reset, requeue, or delete inbox rows as routine recovery. Stop automatic
+processing / readiness decisions until disposition is explicit.
+
 ## failed_finalized behavior
 
 Under current architecture:
@@ -112,34 +121,144 @@ Under current architecture:
 - Apply failure that is successfully fail-finalized yields HTTP 200 with
   `outcome=failed_finalized` and inbox `processing_status=failed`.
 - Automatic `claim_next` **excludes** `failed` events (dead letter).
+- The processor **never** automatically retries `failed_finalized` / `failed`
+  inbox events.
 - `attempt_count < 5` does **not** mean failed events auto-retry; that gate
   applies to `received` / stale `processing` only.
 - Fail finalizer does not implement automatic recovery.
 - Manual UUID reclaim of `failed` exists in SQL but is **not** the scheduler
   path and is **out of scope** for 14C-2I.
 - Operator recovery / provider reconciliation is **out of scope** for 14C-2I.
+- An `OPERATOR_ACCEPTED_TEST_DEAD_LETTER` classification is an **operator
+  disposition only**. It does **not** change DB `processing_status`, does
+  **not** clear `error_sanitized`, and does **not** make the row claimable
+  again.
+
+## OPERATOR_ACCEPTED_TEST_DEAD_LETTER
+
+`OPERATOR_ACCEPTED_TEST_DEAD_LETTER` is a **strict** operator disposition term.
+It is **not** a blanket exception for failed events.
+
+A paddle/test inbox row may be classified
+`OPERATOR_ACCEPTED_TEST_DEAD_LETTER` **only when all** of the following are
+true:
+
+- `provider_environment=test` (sandbox/test only)
+- exact inbox event UUID recorded
+- exact `external_event_id` recorded
+- `event_type` recorded
+- failure / error code recorded
+- provenance conclusively proven
+- failure was intentionally induced or expected by a controlled test
+- current production behavior is correct
+- no product defect remains
+- no retry / reprocessing is required
+- no entitlement / data corruption exists
+- event is excluded from the normal claim path (`failed` dead letter)
+- preserving it has audit / debug value
+- operator explicitly reviewed and accepted it
+- no pending remediation exists
+
+Unknown, unexplained, real-user, production/live, or potentially defective
+failed events **MUST NOT** qualify.
+
+## Operator-accepted test dead letters
+
+Registry of operator-reviewed paddle/test dead letters (14C-2I Phase I6/I7).
+Exact-match only. Mismatch on id, external id, type, error, status, or
+provenance means the row is **unresolved** and blocks scheduler readiness.
+
+### A — L-E5 synthetic LE3 fixture
+
+| Field | Value |
+|---|---|
+| environment | paddle / test |
+| inbox_event_id | `b59de26a-6a59-4e27-8edc-2b53fb95862f` |
+| external_event_id | `evt_atlasle5000000000000000000` |
+| event_type | `transaction.completed` |
+| expected error | `ATLAS_PROVIDER_EVENT_INVALID_PAYLOAD` |
+| provenance | 14C-2G L-E5 synthetic LE3 fixture |
+| reason | synthetic customer/subscription identifiers have 25-char suffixes instead of required 26 chars; intentionally preserved audit dead-letter |
+| disposition | `OPERATOR_ACCEPTED_TEST_DEAD_LETTER` |
+| remediation | none |
+| retry / requeue | prohibited / not required |
+| entitlement regression | none |
+
+### B — K-C2 intentional apply-fail fixture
+
+| Field | Value |
+|---|---|
+| environment | paddle / test |
+| inbox_event_id | `e6ecbb21-8f8a-46db-becb-b58ec727fc18` |
+| external_event_id | `evt_zzzzatlas14c2fkb1pos000001` |
+| event_type | `subscription.activated` |
+| expected error | `ATLAS_PROVIDER_EVENT_INVALID_PAYLOAD` |
+| provenance | 14C-2F K-C2 intentional apply-fail/finalize fixture |
+| reason | intentionally incomplete payload: missing `data.status` and `data.customer_id` |
+| disposition | `OPERATOR_ACCEPTED_TEST_DEAD_LETTER` |
+| remediation | none |
+| retry / requeue | prohibited / not required |
+| entitlement regression | none |
+
+### C — K-D2/K-D3 intentional UNLINKED fixture
+
+| Field | Value |
+|---|---|
+| environment | paddle / test |
+| inbox_event_id | `f818e842-d0f5-4614-bf34-a9625e0a8827` |
+| external_event_id | `evt_zzzzatlas14c2fkd1unl000001` |
+| event_type | `subscription.activated` |
+| expected error | `ATLAS_PROVIDER_EVENT_UNLINKED` |
+| provenance | 14C-2F K-D2/K-D3 intentional UNLINKED fixture |
+| reason | P0/P1 miss + intentionally incomplete P2 first-link proof |
+| disposition | `OPERATOR_ACCEPTED_TEST_DEAD_LETTER` |
+| remediation | none |
+| retry / requeue | prohibited / not required |
+| entitlement regression | none |
 
 ## Scheduler readiness checklist
 
-Declare `SCHEDULER_SAFE_TO_ARM=YES` only when **all** are true:
+Declare `SCHEDULER_SAFE_TO_ARM=YES` only when **all** are true (fail-closed):
 
-- [ ] Local convergence tests green (created→activated equal watermark;
-      transaction.completed after entitled)
+- [ ] `checkout_enabled=false`
+- [ ] `processor_enabled` resting state appropriate for the arming procedure
+      (resting `false` before any guarded enable)
+- [ ] `ATLAS_BILLING_PROCESSOR_SCHEDULE_ARMED` currently `false` before any
+      arming action
+- [ ] Global paddle/test eligible verified queue = `0`
+      (`ELIGIBLE_RECEIVED_EVENT_COUNT = 0`; `claim_next` is not company-scoped)
+- [ ] Global paddle/test stale processing count = `0`
+- [ ] No unexpected `received` / `processing` paddle/test events
+- [ ] No **unresolved** `failed` / `failed_finalized` paddle/test inbox events
+- [ ] Every retained paddle/test `failed` row **exactly** matches an
+      `OPERATOR_ACCEPTED_TEST_DEAD_LETTER` registry entry (id +
+      `external_event_id` + `event_type` + expected error). Registry matches
+      are operator-disposed, **not** unresolved.
+- [ ] No product-fix / manual-investigation failed rows remain
+- [ ] Local convergence tests green / present on develop
+      (created→activated equal watermark; transaction.completed after entitled)
 - [ ] Remote known two-event drain proven for the Sandbox E2E company
-- [ ] Global paddle/test `ELIGIBLE_RECEIVED_EVENT_COUNT = 0`
-- [ ] Global paddle/test `STALE_PROCESSING_EVENT_COUNT = 0`
-- [ ] No unresolved `failed` / `failed_finalized` inbox events in paddle/test
-- [ ] Premium/billing stable after drain
-- [ ] `processor_enabled` resting `false`
-- [ ] `ATLAS_BILLING_PROCESSOR_SCHEDULE_ARMED` resting `false`
-- [ ] Manual workflow response validator correct
-- [ ] Schedule workflow response validator correct
+- [ ] Manual and schedule workflow response validators aligned
 - [ ] One POST / zero retry invariant confirmed
+- [ ] Entitlement / linkage state healthy after drain
 - [ ] Force-disable procedure documented (this file)
 - [ ] `failed_finalized` response procedure documented (this file)
 
-**Hard requirement:** `ELIGIBLE_RECEIVED_EVENT_COUNT` must equal **0** before
-declaring scheduler readiness (`claim_next` is not company-scoped).
+**Unresolved failed event (blocks `SCHEDULER_SAFE_TO_ARM=YES`):** any
+paddle/test `failed` / `failed_finalized` row that is absent from the
+registry, mismatched against the registry, newly appeared, has a different
+error / status / event id, has unknown provenance, or still requires
+remediation.
+
+This rule is **fail-closed**. It is **not** a broad allowance that “failed
+events are allowed.”
+
+If any checklist condition fails: `SCHEDULER_SAFE_TO_ARM=NO`.
+
+After documentation review/acceptance of this dead-letter policy, a **fresh
+read-only readiness audit** is still required before any arming decision.
+This document does **not** arm the scheduler. Actual scheduler arming remains
+a separate explicit operator decision.
 
 Do **not** permanently arm the scheduler as part of 14C-2I.
 

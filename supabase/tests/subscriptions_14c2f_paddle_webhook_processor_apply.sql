@@ -219,6 +219,7 @@ $$;
 CREATE OR REPLACE FUNCTION pg_temp.sub_payload(
   p_event_id TEXT,
   p_occurred_at TIMESTAMPTZ,
+  p_provider_updated_at TIMESTAMPTZ,
   p_status TEXT,
   p_sub_id TEXT,
   p_customer_id TEXT,
@@ -253,6 +254,9 @@ BEGIN
     'id', p_sub_id,
     'status', p_status,
     'customer_id', p_customer_id,
+    'updated_at', CASE WHEN p_provider_updated_at IS NULL THEN NULL
+                       ELSE to_char(p_provider_updated_at AT TIME ZONE 'UTC',
+                                    'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') END,
     'canceled_at', CASE WHEN p_canceled_at IS NULL THEN NULL
                         ELSE to_char(p_canceled_at AT TIME ZONE 'UTC',
                                      'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') END,
@@ -825,7 +829,12 @@ BEGIN
     jsonb_build_object(
       'event_id', v_evt,
       'occurred_at', to_char(v_t0 AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
-      'data', jsonb_build_object('id', 'not-a-sub', 'status', 'active')
+      'data', jsonb_build_object(
+        'id', 'not-a-sub',
+        'status', 'active',
+        'updated_at', to_char(v_t0 AT TIME ZONE 'UTC',
+                             'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')
+      )
     ),
     v_t0, 'verified'
   );
@@ -1208,7 +1217,7 @@ BEGIN
   v_seq := v_seq + 1;
   v_evt := pg_temp.paddle_id('evt_', 'activated-' || v_seq::text);
   v_payload := pg_temp.sub_payload(
-    v_evt, v_t1, 'active', v_sub_main, v_ctm_main, v_seed_price,
+    v_evt, v_t1, v_t1, 'active', v_sub_main, v_ctm_main, v_seed_price,
     v_period_start, v_period_end, NULL, FALSE, NULL
   );
   -- fix event_type in payload root is cosmetic; inbox.event_type is authoritative
@@ -1254,7 +1263,7 @@ BEGIN
   v_seq := v_seq + 1;
   v_evt := pg_temp.paddle_id('evt_', 'bad-period-' || v_seq::text);
   v_payload := pg_temp.sub_payload(
-    v_evt, v_t2, 'active', v_sub_main, v_ctm_main, v_seed_price,
+    v_evt, v_t2, v_t2, 'active', v_sub_main, v_ctm_main, v_seed_price,
     NULL, NULL, NULL, FALSE, NULL
   );
   v_id := pg_temp.insert_inbox(
@@ -1300,7 +1309,7 @@ BEGIN
   v_seq := v_seq + 1;
   v_evt := pg_temp.paddle_id('evt_', 'past-due-' || v_seq::text);
   v_payload := pg_temp.sub_payload(
-    v_evt, v_t2, 'past_due', v_sub_main, v_ctm_main, v_seed_price,
+    v_evt, v_t2, v_t2, 'past_due', v_sub_main, v_ctm_main, v_seed_price,
     v_period_start, v_period_end, NULL, FALSE, NULL
   );
   v_id := pg_temp.insert_inbox(
@@ -1343,7 +1352,7 @@ BEGIN
   v_seq := v_seq + 1;
   v_evt := pg_temp.paddle_id('evt_', 'paused-' || v_seq::text);
   v_payload := pg_temp.sub_payload(
-    v_evt, v_t3, 'paused', v_sub_main, v_ctm_main, v_seed_price,
+    v_evt, v_t3, v_t3, 'paused', v_sub_main, v_ctm_main, v_seed_price,
     v_period_start, v_period_end, NULL, FALSE, NULL
   );
   v_id := pg_temp.insert_inbox(
@@ -1385,7 +1394,7 @@ BEGIN
   v_seq := v_seq + 1;
   v_evt := pg_temp.paddle_id('evt_', 'restore-active-' || v_seq::text);
   v_payload := pg_temp.sub_payload(
-    v_evt, v_t4, 'active', v_sub_main, v_ctm_main, v_seed_price,
+    v_evt, v_t4, v_t4, 'active', v_sub_main, v_ctm_main, v_seed_price,
     v_period_start, v_period_end, NULL, FALSE, NULL
   );
   v_id := pg_temp.insert_inbox(
@@ -1424,7 +1433,7 @@ BEGIN
   v_seq := v_seq + 1;
   v_evt := pg_temp.paddle_id('evt_', 'trialing-' || v_seq::text);
   v_payload := pg_temp.sub_payload(
-    v_evt, v_t5, 'trialing', v_sub_main, v_ctm_main, v_seed_price,
+    v_evt, v_t5, v_t5, 'trialing', v_sub_main, v_ctm_main, v_seed_price,
     v_period_start, v_period_end, NULL, FALSE, NULL
   );
   v_id := pg_temp.insert_inbox(
@@ -1477,7 +1486,7 @@ BEGIN
   v_seq := v_seq + 1;
   v_evt := pg_temp.paddle_id('evt_', 'sched-cancel-' || v_seq::text);
   v_payload := pg_temp.sub_payload(
-    v_evt, v_t5, 'active', v_sub_main, v_ctm_main, v_seed_price,
+    v_evt, v_t5, v_t5, 'active', v_sub_main, v_ctm_main, v_seed_price,
     v_period_start, v_period_end, NULL, TRUE, NULL
   );
   v_id := pg_temp.insert_inbox(
@@ -1511,7 +1520,7 @@ BEGIN
   v_seq := v_seq + 1;
   v_evt := pg_temp.paddle_id('evt_', 'canceled-' || v_seq::text);
   v_payload := pg_temp.sub_payload(
-    v_evt, v_t6, 'canceled', v_sub_main, v_ctm_main, v_seed_price,
+    v_evt, v_t6, v_t6, 'canceled', v_sub_main, v_ctm_main, v_seed_price,
     v_period_start, v_period_end, NULL, FALSE, v_t6
   );
   v_id := pg_temp.insert_inbox(
@@ -1556,7 +1565,7 @@ BEGIN
   v_seq := v_seq + 1;
   v_evt := pg_temp.paddle_id('evt_', 'reactivate-' || v_seq::text);
   v_payload := pg_temp.sub_payload(
-    v_evt, v_t7, 'active', v_sub_main, v_ctm_main, v_seed_price,
+    v_evt, v_t7, v_t7, 'active', v_sub_main, v_ctm_main, v_seed_price,
     v_period_start, v_period_end, NULL, FALSE, NULL
   );
   v_id := pg_temp.insert_inbox(
@@ -1579,7 +1588,7 @@ BEGIN
   v_seq := v_seq + 1;
   v_evt := pg_temp.paddle_id('evt_', 'stale-' || v_seq::text);
   v_payload := pg_temp.sub_payload(
-    v_evt, v_t4, 'canceled', v_sub_main, v_ctm_main, v_seed_price,
+    v_evt, v_t4, v_t4, 'canceled', v_sub_main, v_ctm_main, v_seed_price,
     v_period_start, v_period_end, NULL, FALSE, v_t4
   );
   v_id := pg_temp.insert_inbox(
@@ -1650,7 +1659,7 @@ BEGIN
   v_seq := v_seq + 1;
   v_evt := pg_temp.paddle_id('evt_', 'equal-equiv-' || v_seq::text);
   v_payload := pg_temp.sub_payload(
-    v_evt, v_t7, 'active', v_sub_main, v_ctm_main, v_seed_price,
+    v_evt, v_t7, v_t7, 'active', v_sub_main, v_ctm_main, v_seed_price,
     v_period_start, v_period_end, NULL, FALSE, NULL
   );
   v_id := pg_temp.insert_inbox(
@@ -1678,11 +1687,13 @@ BEGIN
 
   -- =========================================================================
   -- 28. equal timestamp conflicting → ORDER_AMBIGUOUS + fail finalizer
+  -- Equal webhook watermark + NEWER provider object version preserves
+  -- ATLAS_PROVIDER_EVENT_ORDER_AMBIGUOUS (not STATE_ORDER_AMBIGUOUS).
   -- =========================================================================
   v_seq := v_seq + 1;
   v_evt := pg_temp.paddle_id('evt_', 'equal-conflict-' || v_seq::text);
   v_payload := pg_temp.sub_payload(
-    v_evt, v_t7, 'past_due', v_sub_main, v_ctm_main, v_seed_price,
+    v_evt, v_t7, v_t8, 'past_due', v_sub_main, v_ctm_main, v_seed_price,
     v_period_start, v_period_end, NULL, FALSE, NULL
   );
   v_id := pg_temp.insert_inbox(
@@ -1749,7 +1760,7 @@ BEGIN
   v_seq := v_seq + 1;
   v_evt := pg_temp.paddle_id('evt_', 'atom-bad-period-' || v_seq::text);
   v_payload := pg_temp.sub_payload(
-    v_evt, v_t1, 'active', v_sub_atom, v_ctm_atom, v_seed_price,
+    v_evt, v_t1, v_t1, 'active', v_sub_atom, v_ctm_atom, v_seed_price,
     v_period_end, v_period_start, NULL, FALSE, NULL
   );
   v_id := pg_temp.insert_inbox(
@@ -1903,6 +1914,8 @@ BEGIN
       'id', v_sub_main,
       'status', 'active',
       'customer_id', v_ctm_main,
+      'updated_at', to_char((v_t7 + interval '5 minutes') AT TIME ZONE 'UTC',
+                           'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
       'items', jsonb_build_array(jsonb_build_object(
         'price', jsonb_build_object('id', v_seed_price)
       )),
@@ -1937,7 +1950,8 @@ BEGIN
   v_seq := v_seq + 1;
   v_evt := pg_temp.paddle_id('evt_', 'canceled-future-period-' || v_seq::text);
   v_payload := pg_temp.sub_payload(
-    v_evt, v_t7 + interval '10 minutes', 'canceled', v_sub_main, v_ctm_main,
+    v_evt, v_t7 + interval '10 minutes', v_t7 + interval '10 minutes',
+    'canceled', v_sub_main, v_ctm_main,
     v_seed_price, v_period_start, v_period_end, NULL, FALSE, clock_timestamp()
   );
   v_id := pg_temp.insert_inbox(
@@ -2011,7 +2025,7 @@ BEGIN
   v_seq := v_seq + 1;
   v_evt := pg_temp.paddle_id('evt_', 'conv-created-' || v_seq::text);
   v_payload := pg_temp.sub_payload(
-    v_evt, v_t_conv, 'active', v_sub_conv, v_ctm_conv, v_seed_price,
+    v_evt, v_t_conv, v_t_conv, 'active', v_sub_conv, v_ctm_conv, v_seed_price,
     v_period_start, v_period_end, v_custom, FALSE, NULL
   );
   -- Force authoritative event_type independent of status-derived cosmetic type.
@@ -2066,7 +2080,7 @@ BEGIN
   v_seq := v_seq + 1;
   v_evt := pg_temp.paddle_id('evt_', 'conv-activated-' || v_seq::text);
   v_payload := pg_temp.sub_payload(
-    v_evt, v_t_conv, 'active', v_sub_conv, v_ctm_conv, v_seed_price,
+    v_evt, v_t_conv, v_t_conv, 'active', v_sub_conv, v_ctm_conv, v_seed_price,
     v_period_start, v_period_end, v_custom, FALSE, NULL
   );
   v_payload := v_payload || jsonb_build_object('event_type', 'subscription.activated');

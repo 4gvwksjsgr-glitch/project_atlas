@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.billing-webhook-processor-paddle]
 verify_jwt = false
+
+[functions.billing-reconciliation-paddle]
+verify_jwt = true

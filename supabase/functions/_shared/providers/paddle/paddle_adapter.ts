@@ -7,6 +7,7 @@
 import { validateAtlasCheckoutUrl } from "../../http.ts";
 import {
   type BillingProviderCheckoutAdapter,
+  type BillingProviderSubscriptionReader,
   PADDLE_API_VERSION,
   PADDLE_DEFINITIVE_CLIENT_STATUSES,
   PADDLE_MAX_RESPONSE_BYTES,
@@ -15,6 +16,8 @@ import {
   PADDLE_TXN_ID_RE,
   type PaddleCreateCheckoutInput,
   type PaddleCreateCheckoutResult,
+  type PaddleGetSubscriptionResult,
+  type PaddleSubscriptionResponse,
   type PaddleTransactionResponse,
 } from "./paddle_types.ts";
 
@@ -339,6 +342,201 @@ export function createPaddleSandboxCheckoutAdapter(
         external_transaction_id: txnId,
         checkout_url: checkoutUrl,
       };
+    },
+  };
+}
+
+/**
+ * Exact GET /subscriptions/{id} for sandbox reconciliation.
+ * No list/search/customer discovery/transaction fallback. No retries.
+ */
+export async function getPaddleSandboxSubscription(
+  externalSubscriptionId: string,
+  deps: PaddleAdapterDeps,
+): Promise<PaddleGetSubscriptionResult> {
+  const id = externalSubscriptionId.trim();
+  if (!id) {
+    return {
+      kind: "invalid_provider_response",
+      sanitized_message: "Subscription id missing",
+    };
+  }
+
+  const apiKey = readPaddleSandboxApiKey(deps.env);
+  if (!apiKey) {
+    return {
+      kind: "provider_error",
+      reason: "http_non_2xx",
+      sanitized_message: "Paddle sandbox API key not configured",
+    };
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(
+    () => controller.abort(),
+    PADDLE_REQUEST_TIMEOUT_MS,
+  );
+
+  const url = `${PADDLE_SANDBOX_BASE_URL}/subscriptions/${
+    encodeURIComponent(id)
+  }`;
+
+  let response: Response;
+  try {
+    response = await deps.fetch(url, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Paddle-Version": PADDLE_API_VERSION,
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timer);
+    const aborted = err instanceof Error &&
+      (err.name === "AbortError" || /abort/i.test(err.message));
+    return {
+      kind: "provider_error",
+      reason: aborted ? "timeout" : "network",
+      sanitized_message: aborted
+        ? "Paddle request timed out"
+        : "Paddle network error",
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+
+  const status = response.status;
+
+  const bodyRead = await readResponseBodyWithLimit(response);
+  if (!bodyRead.ok) {
+    const sizeMsg = bodyRead.reason === "oversized"
+      ? "Paddle response exceeded size limit"
+      : "Paddle response body could not be read";
+    if (status === 404) {
+      return {
+        kind: "not_found",
+        sanitized_message: "Paddle subscription not found",
+      };
+    }
+    if (status >= 200 && status < 300) {
+      return {
+        kind: "invalid_provider_response",
+        sanitized_message: sizeMsg,
+      };
+    }
+    return {
+      kind: "provider_error",
+      reason: status >= 500 ? "http_5xx" : "http_non_2xx",
+      sanitized_message: sizeMsg,
+    };
+  }
+
+  let json: PaddleSubscriptionResponse | null = null;
+  if (bodyRead.bytes.byteLength > 0) {
+    let text: string;
+    try {
+      text = new TextDecoder("utf-8", { fatal: true }).decode(bodyRead.bytes);
+    } catch {
+      if (status === 404) {
+        return {
+          kind: "not_found",
+          sanitized_message: "Paddle subscription not found",
+        };
+      }
+      if (status >= 200 && status < 300) {
+        return {
+          kind: "invalid_provider_response",
+          sanitized_message: "Paddle response was not valid UTF-8",
+        };
+      }
+      return {
+        kind: "provider_error",
+        reason: status >= 500 ? "http_5xx" : "http_non_2xx",
+        sanitized_message: "Paddle response was not valid UTF-8",
+      };
+    }
+    try {
+      json = JSON.parse(text) as PaddleSubscriptionResponse;
+    } catch {
+      if (status === 404) {
+        return {
+          kind: "not_found",
+          sanitized_message: "Paddle subscription not found",
+        };
+      }
+      if (status >= 200 && status < 300) {
+        return {
+          kind: "invalid_provider_response",
+          sanitized_message: "Paddle response was not JSON",
+        };
+      }
+      return {
+        kind: "provider_error",
+        reason: status >= 500 ? "http_5xx" : "http_non_2xx",
+        sanitized_message: "Paddle response was not JSON",
+      };
+    }
+  }
+
+  if (status === 404) {
+    return {
+      kind: "not_found",
+      sanitized_message: sanitizeProviderMessage(
+        json?.error?.detail,
+        "Paddle subscription not found",
+      ),
+    };
+  }
+
+  if (status >= 500) {
+    return {
+      kind: "provider_error",
+      reason: "http_5xx",
+      sanitized_message: sanitizeProviderMessage(
+        json?.error?.detail,
+        "Paddle server error",
+      ),
+    };
+  }
+
+  if (status < 200 || status >= 300) {
+    return {
+      kind: "provider_error",
+      reason: "http_non_2xx",
+      sanitized_message: sanitizeProviderMessage(
+        json?.error?.detail,
+        `Paddle returned status ${status}`,
+      ),
+    };
+  }
+
+  // 2xx: require structural envelope with object `data`
+  if (
+    json === null ||
+    json.data === null ||
+    json.data === undefined ||
+    typeof json.data !== "object" ||
+    Array.isArray(json.data)
+  ) {
+    return {
+      kind: "invalid_provider_response",
+      sanitized_message: "Paddle subscription envelope missing data",
+    };
+  }
+
+  return {
+    kind: "success",
+    data: json.data,
+  };
+}
+
+export function createPaddleSandboxSubscriptionReader(
+  deps: PaddleAdapterDeps,
+): BillingProviderSubscriptionReader {
+  return {
+    getSubscription(externalSubscriptionId: string) {
+      return getPaddleSandboxSubscription(externalSubscriptionId, deps);
     },
   };
 }

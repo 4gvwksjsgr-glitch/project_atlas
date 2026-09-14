@@ -6,6 +6,8 @@
 import { assertEquals } from "@std/assert";
 import {
   createPaddleSandboxCheckoutAdapter,
+  createPaddleSandboxSubscriptionReader,
+  getPaddleSandboxSubscription,
   isValidPaddleTransactionId,
   readResponseBodyWithLimit,
   validatePaddleCheckoutUrl,
@@ -425,4 +427,216 @@ Deno.test("createCheckout at max+1 is oversized uncertain", async () => {
     );
   }
   assertEquals(JSON.stringify(result).includes("BBBBBBBB"), false);
+});
+
+// ---------------------------------------------------------------------------
+// GET /subscriptions/{id} — D2 reconciliation
+// ---------------------------------------------------------------------------
+
+const SUB_ID = "sub_01h4examplesubid0000000001";
+const CTM_ID = "ctm_01h4examplecustid000000001";
+const PRI_ID = "pri_01h4examplepriceid00000001";
+
+function subscriptionEnvelope(overrides: Record<string, unknown> = {}) {
+  return {
+    data: {
+      id: SUB_ID,
+      customer_id: CTM_ID,
+      status: "active",
+      updated_at: "2026-09-14T10:00:00.000Z",
+      current_billing_period: {
+        starts_at: "2026-09-01T00:00:00.000Z",
+        ends_at: "2026-10-01T00:00:00.000Z",
+      },
+      items: [{ price: { id: PRI_ID } }],
+      canceled_at: null,
+      scheduled_change: null,
+      ...overrides,
+    },
+  };
+}
+
+Deno.test("getSubscription exact GET path bearer version one request", async () => {
+  let calls = 0;
+  let seenUrl = "";
+  let seenMethod = "";
+  let seenAuth = "";
+  let seenVersion = "";
+  let seenContentType: string | null = null;
+
+  const result = await getPaddleSandboxSubscription(SUB_ID, {
+    env: (k) => k === "PADDLE_SANDBOX_API_KEY" ? "secret-key-xyz" : undefined,
+    fetch: async (url, init) => {
+      calls += 1;
+      seenUrl = String(url);
+      const opts = (init ?? {}) as RequestInit;
+      seenMethod = String(opts.method ?? "GET");
+      const headers = new Headers(opts.headers);
+      seenAuth = headers.get("Authorization") ?? "";
+      seenVersion = headers.get("Paddle-Version") ?? "";
+      seenContentType = headers.get("Content-Type");
+      return new Response(JSON.stringify(subscriptionEnvelope()), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+  });
+
+  assertEquals(result.kind, "success");
+  assertEquals(calls, 1);
+  assertEquals(
+    seenUrl,
+    `${PADDLE_SANDBOX_BASE_URL}/subscriptions/${encodeURIComponent(SUB_ID)}`,
+  );
+  assertEquals(seenMethod, "GET");
+  assertEquals(seenAuth, "Bearer secret-key-xyz");
+  assertEquals(seenVersion, "1");
+  assertEquals(seenContentType, null);
+  assertEquals(JSON.stringify(result).includes("secret-key-xyz"), false);
+  assertEquals(JSON.stringify(result).includes("Bearer"), false);
+});
+
+Deno.test("getSubscription encodes exact id in path", async () => {
+  const special = "sub_01h4examplesubid0000000001";
+  let seenUrl = "";
+  await getPaddleSandboxSubscription(special, {
+    env: () => "k",
+    fetch: async (url) => {
+      seenUrl = String(url);
+      return new Response(JSON.stringify(subscriptionEnvelope()), {
+        status: 200,
+      });
+    },
+  });
+  assertEquals(
+    seenUrl.endsWith(`/subscriptions/${encodeURIComponent(special)}`),
+    true,
+  );
+  assertEquals(seenUrl.includes("?"), false);
+  assertEquals(seenUrl.includes("/subscriptions?"), false);
+});
+
+Deno.test("getSubscription classifies 404 as not_found", async () => {
+  const result = await getPaddleSandboxSubscription(SUB_ID, {
+    env: () => "k",
+    fetch: async () =>
+      new Response(JSON.stringify({ error: { detail: "missing" } }), {
+        status: 404,
+      }),
+  });
+  assertEquals(result.kind, "not_found");
+});
+
+Deno.test("getSubscription classifies 500 as provider_error", async () => {
+  const result = await getPaddleSandboxSubscription(SUB_ID, {
+    env: () => "k",
+    fetch: async () =>
+      new Response(JSON.stringify({ error: { detail: "boom" } }), {
+        status: 500,
+      }),
+  });
+  assertEquals(result.kind, "provider_error");
+  if (result.kind === "provider_error") {
+    assertEquals(result.reason, "http_5xx");
+  }
+});
+
+Deno.test("getSubscription classifies generic non-2xx as provider_error", async () => {
+  for (const status of [400, 401, 403, 409, 418, 422, 429]) {
+    const result = await getPaddleSandboxSubscription(SUB_ID, {
+      env: () => "k",
+      fetch: async () =>
+        new Response(JSON.stringify({ error: { detail: "x" } }), { status }),
+    });
+    assertEquals(result.kind, "provider_error", `status ${status}`);
+    if (result.kind === "provider_error") {
+      assertEquals(result.reason, "http_non_2xx");
+    }
+  }
+});
+
+Deno.test("getSubscription classifies timeout and network", async () => {
+  const timeout = await getPaddleSandboxSubscription(SUB_ID, {
+    env: () => "k",
+    fetch: async () => {
+      const err = new Error("Aborted");
+      err.name = "AbortError";
+      throw err;
+    },
+  });
+  assertEquals(timeout.kind, "provider_error");
+  if (timeout.kind === "provider_error") {
+    assertEquals(timeout.reason, "timeout");
+  }
+
+  const network = await getPaddleSandboxSubscription(SUB_ID, {
+    env: () => "k",
+    fetch: async () => {
+      throw new Error("connect ECONNREFUSED");
+    },
+  });
+  assertEquals(network.kind, "provider_error");
+  if (network.kind === "provider_error") {
+    assertEquals(network.reason, "network");
+  }
+});
+
+Deno.test("getSubscription malformed JSON on 2xx is invalid_provider_response", async () => {
+  const result = await getPaddleSandboxSubscription(SUB_ID, {
+    env: () => "k",
+    fetch: async () => new Response("{not-json", { status: 200 }),
+  });
+  assertEquals(result.kind, "invalid_provider_response");
+});
+
+Deno.test("getSubscription missing data envelope is invalid_provider_response", async () => {
+  const result = await getPaddleSandboxSubscription(SUB_ID, {
+    env: () => "k",
+    fetch: async () =>
+      new Response(JSON.stringify({ ok: true }), { status: 200 }),
+  });
+  assertEquals(result.kind, "invalid_provider_response");
+});
+
+Deno.test("getSubscription oversized 2xx is invalid_provider_response once", async () => {
+  let calls = 0;
+  const first = new Uint8Array(PADDLE_MAX_RESPONSE_BYTES);
+  first.fill(0x41);
+  const extra = new Uint8Array([0x41]);
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(first);
+      controller.enqueue(extra);
+      controller.close();
+    },
+  });
+  const result = await getPaddleSandboxSubscription(SUB_ID, {
+    env: () => "k",
+    fetch: async () => {
+      calls += 1;
+      return new Response(stream, { status: 200 });
+    },
+  });
+  assertEquals(calls, 1);
+  assertEquals(result.kind, "invalid_provider_response");
+});
+
+Deno.test("getSubscription valid response no retry via reader", async () => {
+  let calls = 0;
+  const reader = createPaddleSandboxSubscriptionReader({
+    env: () => "k",
+    fetch: async () => {
+      calls += 1;
+      return new Response(JSON.stringify(subscriptionEnvelope()), {
+        status: 200,
+      });
+    },
+  });
+  const result = await reader.getSubscription(SUB_ID);
+  assertEquals(result.kind, "success");
+  if (result.kind === "success") {
+    assertEquals(result.data.id, SUB_ID);
+    assertEquals(result.data.customer_id, CTM_ID);
+  }
+  assertEquals(calls, 1);
 });

@@ -1,10 +1,16 @@
-/** Paddle Billing sandbox checkout adapter types. */
+/** Paddle Billing sandbox adapter types (checkout + subscription GET). */
 
 export const PADDLE_SANDBOX_BASE_URL = "https://sandbox-api.paddle.com";
 export const PADDLE_API_VERSION = "1";
 export const PADDLE_REQUEST_TIMEOUT_MS = 10_000;
 export const PADDLE_MAX_RESPONSE_BYTES = 256 * 1024;
 export const PADDLE_TXN_ID_RE = /^txn_[a-z0-9]+$/i;
+/** Matches SQL webhook mapper: ^sub_[a-z0-9]{26}$ */
+export const PADDLE_SUBSCRIPTION_ID_RE = /^sub_[a-z0-9]{26}$/;
+/** Matches SQL webhook mapper: ^ctm_[a-z0-9]{26}$ */
+export const PADDLE_CUSTOMER_ID_RE = /^ctm_[a-z0-9]{26}$/;
+/** Matches SQL webhook mapper: ^pri_[a-z0-9]{26}$ */
+export const PADDLE_PRICE_ID_RE = /^pri_[a-z0-9]{26}$/;
 
 /** Explicit whitelist of definitive client-rejection HTTP statuses. */
 export const PADDLE_DEFINITIVE_CLIENT_STATUSES = [
@@ -71,4 +77,68 @@ export interface PaddleTransactionResponse {
     detail?: unknown;
     code?: unknown;
   } | null;
+}
+
+/** Minimal subscription fields used by D2 reconciliation normalize. */
+export interface PaddleSubscriptionItem {
+  price?: {
+    id?: string | null;
+  } | null;
+}
+
+export interface PaddleSubscriptionBillingPeriod {
+  starts_at?: string | null;
+  ends_at?: string | null;
+}
+
+export interface PaddleSubscriptionScheduledChange {
+  action?: string | null;
+}
+
+export interface PaddleSubscriptionData {
+  id?: string | null;
+  customer_id?: string | null;
+  status?: string | null;
+  updated_at?: string | null;
+  canceled_at?: string | null;
+  current_billing_period?: PaddleSubscriptionBillingPeriod | null;
+  scheduled_change?: PaddleSubscriptionScheduledChange | null;
+  items?: PaddleSubscriptionItem[] | null;
+}
+
+export interface PaddleSubscriptionResponse {
+  data?: PaddleSubscriptionData | null;
+  error?: {
+    detail?: unknown;
+    code?: unknown;
+  } | null;
+}
+
+/**
+ * Deterministic GET /subscriptions/{id} classification for D2.
+ * Adapter classifies only; handler decides finalizer later.
+ */
+export type PaddleGetSubscriptionResult =
+  | {
+    kind: "success";
+    data: PaddleSubscriptionData;
+  }
+  | {
+    kind: "not_found";
+    sanitized_message: string;
+  }
+  | {
+    kind: "provider_error";
+    reason: "network" | "timeout" | "http_5xx" | "http_non_2xx";
+    sanitized_message: string;
+  }
+  | {
+    kind: "invalid_provider_response";
+    sanitized_message: string;
+  };
+
+export interface BillingProviderSubscriptionReader {
+  getSubscription(
+    externalSubscriptionId: string,
+  ): Promise<PaddleGetSubscriptionResult>;
 }

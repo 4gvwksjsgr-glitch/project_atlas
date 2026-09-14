@@ -125,6 +125,36 @@ export function defaultMessageForCode(code: string): string {
       return "Invalid webhook signature";
     case "ATLAS_PROVIDER_EVENT_PAYLOAD_CONFLICT":
       return "Provider event conflict";
+    case "ATLAS_SUBSCRIPTION_NOT_FOUND":
+      return "Subscription not found";
+    case "ATLAS_BILLING_NOT_FOUND":
+      return "Billing record not found";
+    case "ATLAS_BILLING_RECONCILIATION_UNLINKED":
+      return "Billing is not linked for reconciliation";
+    case "ATLAS_BILLING_RECONCILIATION_UNSUPPORTED_PROVIDER":
+      return "Provider is not supported for reconciliation";
+    case "ATLAS_BILLING_RECONCILIATION_UNSUPPORTED_ENVIRONMENT":
+      return "Provider environment is not supported for reconciliation";
+    case "ATLAS_BILLING_RECONCILIATION_UNAVAILABLE":
+      return "Billing reconciliation unavailable";
+    case "ATLAS_BILLING_RECONCILIATION_BUSY":
+      return "Billing reconciliation is busy";
+    case "ATLAS_BILLING_RECONCILIATION_CONFLICT":
+      return "Billing reconciliation conflict";
+    case "ATLAS_BILLING_RECONCILIATION_STALE_SNAPSHOT":
+      return "Billing reconciliation snapshot is stale";
+    case "ATLAS_BILLING_RECONCILIATION_STALE_PROVIDER_STATE":
+      return "Provider state is stale";
+    case "ATLAS_BILLING_RECONCILIATION_CATALOG_MISMATCH":
+      return "Provider price catalog mismatch";
+    case "ATLAS_BILLING_RECONCILIATION_UNSUPPORTED_STATE":
+      return "Provider subscription state is unsupported";
+    case "ATLAS_BILLING_RECONCILIATION_INVALID_PROVIDER_RESPONSE":
+      return "Provider response was invalid";
+    case "ATLAS_BILLING_RECONCILIATION_NOT_FOUND":
+      return "Provider subscription not found";
+    case "ATLAS_BILLING_RECONCILIATION_PROVIDER_ERROR":
+      return "Provider request failed";
     default:
       return "Request failed";
   }
@@ -167,7 +197,25 @@ export function httpStatusForAtlasCode(code: string): number {
     case "ATLAS_CHECKOUT_UNAVAILABLE":
     case "ATLAS_OFFER_NOT_FOUND":
     case "ATLAS_PRICE_UNAVAILABLE":
+    case "ATLAS_BILLING_RECONCILIATION_UNLINKED":
+    case "ATLAS_BILLING_RECONCILIATION_UNSUPPORTED_PROVIDER":
+    case "ATLAS_BILLING_RECONCILIATION_UNSUPPORTED_ENVIRONMENT":
+    case "ATLAS_BILLING_RECONCILIATION_BUSY":
+    case "ATLAS_BILLING_RECONCILIATION_CONFLICT":
+    case "ATLAS_BILLING_RECONCILIATION_STALE_SNAPSHOT":
+    case "ATLAS_BILLING_RECONCILIATION_STALE_PROVIDER_STATE":
+    case "ATLAS_BILLING_RECONCILIATION_CATALOG_MISMATCH":
+    case "ATLAS_BILLING_RECONCILIATION_UNSUPPORTED_STATE":
       return 409;
+    case "ATLAS_SUBSCRIPTION_NOT_FOUND":
+    case "ATLAS_BILLING_NOT_FOUND":
+    case "ATLAS_BILLING_RECONCILIATION_NOT_FOUND":
+      return 404;
+    case "ATLAS_BILLING_RECONCILIATION_INVALID_PROVIDER_RESPONSE":
+    case "ATLAS_BILLING_RECONCILIATION_PROVIDER_ERROR":
+      return 502;
+    case "ATLAS_BILLING_RECONCILIATION_UNAVAILABLE":
+      return 503;
     default:
       return 500;
   }

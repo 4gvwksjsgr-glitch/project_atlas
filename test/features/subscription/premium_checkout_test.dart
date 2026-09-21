@@ -14,6 +14,7 @@ import 'package:project_atlas/features/subscription/domain/repositories/subscrip
 import 'package:project_atlas/features/subscription/domain/services/billing_checkout_url_launcher.dart';
 import 'package:project_atlas/features/subscription/domain/services/sandbox_billing_checkout_url.dart';
 import 'package:project_atlas/features/subscription/domain/usecases/create_company_premium_checkout.dart';
+import 'package:project_atlas/features/subscription/presentation/controllers/checkout_return_refresh_controller.dart';
 import 'package:project_atlas/features/subscription/presentation/controllers/create_premium_checkout_controller.dart';
 import 'package:project_atlas/features/subscription/presentation/providers/subscription_providers.dart';
 import 'package:project_atlas/features/subscription/presentation/widgets/company_plan_card.dart';
@@ -21,6 +22,8 @@ import 'package:project_atlas/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   const validCheckoutUrl =
       'https://project-atlas-bxh.pages.dev/billing/checkout'
       '?_ptxn=txn_01h8xckj7xqz9dkrgk1k3sy1jg';
@@ -436,6 +439,39 @@ void main() {
       expect(repo.lastIdempotencyKey, 'key-1');
       expect(launcher.launched, [Uri.parse(validCheckoutUrl)]);
       expect(keySeq, 1);
+      expect(
+        container
+            .read(checkoutReturnRefreshControllerProvider)
+            .pendingCompanyId,
+        'c1',
+      );
+    });
+
+    test('failed checkout does not mark return refresh pending', () async {
+      final repo = _CheckoutFakeRepo(
+        createFailure: const AtlasCheckoutUnavailableFailure(),
+      );
+      final container = ProviderContainer(
+        overrides: [
+          subscriptionRepositoryProvider.overrideWithValue(repo),
+          billingCheckoutUrlLauncherProvider.overrideWithValue(_FakeLauncher()),
+          billingCheckoutIdempotencyKeyGeneratorProvider.overrideWithValue(
+            () => 'key-1',
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      expect(
+        await container
+            .read(createPremiumCheckoutControllerProvider('c1').notifier)
+            .startCheckout(),
+        isFalse,
+      );
+      expect(
+        container.read(checkoutReturnRefreshControllerProvider).isPending,
+        isFalse,
+      );
     });
 
     test('terminal error resets; later attempt gets new key', () async {

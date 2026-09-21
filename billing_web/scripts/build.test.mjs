@@ -27,12 +27,23 @@ function read(p) {
   return fs.readFileSync(p, "utf8");
 }
 
+function copyDirSync(src, dest) {
+  fs.mkdirSync(dest, { recursive: true });
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    const from = path.join(src, entry.name);
+    const to = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      copyDirSync(from, to);
+    } else if (entry.isFile()) {
+      fs.copyFileSync(from, to);
+    }
+  }
+}
+
 function withTempRoot(fn) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "billing-web-"));
   const root = path.join(tmp, "billing_web");
-  fs.cpSync(path.join(BILLING_WEB, "src"), path.join(root, "src"), {
-    recursive: true,
-  });
+  copyDirSync(path.join(BILLING_WEB, "src"), path.join(root, "src"));
   fs.mkdirSync(path.join(root, "scripts"), { recursive: true });
   try {
     return fn(root, tmp);
@@ -296,15 +307,57 @@ test("checkout.js uses exact txn regex and does not open Checkout", () => {
   assert.ok(initIdx > sandboxIdx);
 });
 
-test("return page wording is non-authoritative", () => {
+test("return page wording is finite and non-authoritative", () => {
   const js = read(path.join(BILLING_WEB, "src", "assets", "return.js"));
-  assert.match(js, /Stiamo verificando il pagamento/);
-  assert.match(js, /aggiornato dopo la conferma/);
+  const html = read(path.join(BILLING_WEB, "src", "billing", "return.html"));
+
+  assert.match(js, /Pagamento inviato/);
+  assert.match(js, /Puoi tornare ad Atlas/);
+  assert.match(js, /riceve la conferma del pagamento/);
+  assert.match(js, /return-to-atlas/);
+  assert.doesNotMatch(js, /Stiamo verificando il pagamento/);
+  assert.doesNotMatch(js, /Attendere/);
+  assert.doesNotMatch(js, /indefinit/i);
+  assert.doesNotMatch(js, /setInterval|setTimeout/);
   assert.doesNotMatch(js, /Pagamento ricevuto/);
   assert.doesNotMatch(js, /Premium attivo/i);
   assert.doesNotMatch(js, /abbonamento attivo/i);
   assert.doesNotMatch(js, /acquisto completato/i);
   assert.doesNotMatch(js, /pagamento confermato/i);
+  assert.doesNotMatch(js, /location\.(href|assign|replace)/);
+  assert.doesNotMatch(js, /window\.open\s*\(/);
+
+  assert.match(html, /Pagamento inviato/);
+  assert.match(html, /Puoi tornare ad Atlas/);
+  assert.match(html, /id="return-to-atlas"/);
+  assert.doesNotMatch(html, /Stiamo verificando il pagamento/);
+  assert.doesNotMatch(html, /Elaborazione/);
+});
+
+test("return.js does not poll backend or decide Premium", () => {
+  const js = read(path.join(BILLING_WEB, "src", "assets", "return.js"));
+  assert.doesNotMatch(js, /fetch\s*\(/);
+  assert.doesNotMatch(js, /XMLHttpRequest/);
+  assert.doesNotMatch(js, /WebSocket/);
+  assert.doesNotMatch(js, /supabase/i);
+  assert.doesNotMatch(js, /get_company_subscription_overview/);
+  assert.doesNotMatch(js, /isEffectivePremium|effectivePlanCode|providerAccessStatus/);
+  assert.doesNotMatch(js, /setInterval/);
+  assert.doesNotMatch(js, /\bpoll[A-Za-z(]/i);
+});
+
+test("built return page/assets contain finite return UX", () => {
+  withTempRoot((root) => {
+    const result = build({ root, dev: true, env: {} });
+    const distJs = read(path.join(result.dist, "assets", "return.js"));
+    const distHtml = read(path.join(result.dist, "billing", "return.html"));
+    assert.match(distJs, /Pagamento inviato/);
+    assert.match(distJs, /Puoi tornare ad Atlas/);
+    assert.doesNotMatch(distJs, /Stiamo verificando il pagamento/);
+    assert.doesNotMatch(distJs, /fetch\s*\(/);
+    assert.match(distHtml, /Pagamento inviato/);
+    assert.match(distHtml, /id="return-to-atlas"/);
+  });
 });
 
 test("payment-page JS has no entitlement mutation or server credential usage", () => {

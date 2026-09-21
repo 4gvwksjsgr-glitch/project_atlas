@@ -5,14 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; upgrade-insecure-requests">
-  <title>Verifica pagamento</title>
+  <title>Pagamento inviato</title>
   <link rel="stylesheet" href="/assets/billing.css">
 </head>
 <body>
   <main>
     <section class="panel" aria-live="polite" aria-labelledby="return-title">
-      <h1 id="return-title">Elaborazione</h1>
-      <p id="return-body" class="status">Attendere…</p>
+      <h1 id="return-title">Pagamento inviato</h1>
+      <p id="return-body" class="status">
+        Puoi tornare ad Atlas. Il piano verrà aggiornato appena Atlas riceve la conferma del pagamento.
+      </p>
+      <p id="return-hint" class="hint">
+        Se la scheda di Atlas è ancora aperta, torna a quella finestra.
+      </p>
+      <div class="actions">
+        <button type="button" id="return-to-atlas" class="btn">
+          Torna ad Atlas
+        </button>
+      </div>
     </section>
   </main>
   <script src="/assets/return.js"></script>

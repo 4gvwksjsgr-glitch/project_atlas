@@ -6,6 +6,7 @@ import '../../../../core/utils/result.dart';
 import '../../../companies/presentation/controllers/company_onboarding_controller.dart';
 import '../../domain/services/sandbox_billing_checkout_url.dart';
 import '../providers/subscription_providers.dart';
+import 'checkout_return_refresh_controller.dart';
 
 class CreatePremiumCheckoutState {
   const CreatePremiumCheckoutState({
@@ -103,6 +104,9 @@ class CreatePremiumCheckoutController
             }
 
             _clearAttempt();
+            ref
+                .read(checkoutReturnRefreshControllerProvider.notifier)
+                .markPending(arg);
             state = state.copyWith(
               actionStatus: CompanyActionStatus.success,
               clearError: true,

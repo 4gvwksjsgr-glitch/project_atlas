@@ -53,6 +53,35 @@ p {
   color: var(--fg);
 }
 
+.hint {
+  margin-top: 0.75rem;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.actions {
+  margin-top: 1.5rem;
+}
+
+.btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  padding: 0.65rem 1.1rem;
+  cursor: pointer;
+}
+
+.btn:hover,
+.btn:focus-visible {
+  filter: brightness(1.08);
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

@@ -266,6 +266,59 @@
   "categoriesTitle": "Categorie",
   "categoriesSubtitle": "Categorie operative di entrate e uscite (non fiscali).",
   "categoriesSettingsLinkSubtitle": "Gestisci le categorie dei movimenti",
+  "teamTitle": "Team",
+  "teamSubtitle": "Membri e inviti dell'azienda attiva.",
+  "teamSettingsLinkSubtitle": "Gestisci membri e inviti",
+  "teamNoActiveCompany": "Nessuna azienda attiva. Seleziona un'azienda per continuare.",
+  "teamReadOnlyMessage": "Puoi visualizzare i membri, ma solo proprietario e amministratore gestiscono inviti e ruoli.",
+  "teamMembersSection": "Membri",
+  "teamMembersEmpty": "Nessun membro trovato.",
+  "teamPendingInvitesSection": "Inviti in sospeso",
+  "teamPendingInvitesEmpty": "Nessun invito in sospeso.",
+  "teamInviteFormTitle": "Invita un membro",
+  "teamInviteEmailLabel": "Email",
+  "teamRoleLabel": "Ruolo",
+  "teamInviteSubmit": "Crea invito",
+  "teamInviteTokenTitle": "Token di invito",
+  "teamInviteTokenWarning": "Copia subito questo token: viene mostrato una sola volta e non sarà più recuperabile.",
+  "teamInviteTokenCopy": "Copia",
+  "teamInviteTokenCopied": "Token copiato negli appunti.",
+  "teamInviteTokenDone": "Ho copiato",
+  "teamRevokeInviteAction": "Revoca",
+  "teamRevokeInviteTitle": "Revoca invito",
+  "teamRevokeInviteMessage": "Vuoi revocare l'invito per {email}?",
+  "@teamRevokeInviteMessage": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "teamRevokeInviteConfirm": "Revoca",
+  "teamChangeRoleAction": "Cambia ruolo",
+  "teamChangeRoleTitle": "Cambia ruolo",
+  "teamChangeRoleConfirm": "Salva",
+  "teamRemoveMemberAction": "Rimuovi",
+  "teamRemoveMemberTitle": "Rimuovi membro",
+  "teamRemoveMemberMessage": "Vuoi rimuovere {name} dall'azienda?",
+  "@teamRemoveMemberMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "teamRemoveMemberConfirm": "Rimuovi",
+  "teamInviteStatusPending": "In sospeso",
+  "teamInviteStatusAccepted": "Accettato",
+  "teamInviteStatusRevoked": "Revocato",
+  "teamInviteStatusExpired": "Scaduto",
+  "acceptInviteTitle": "Accetta invito",
+  "acceptInviteSubtitle": "Incolla il token ricevuto per unirti all'azienda.",
+  "acceptInviteTokenLabel": "Token di invito",
+  "acceptInviteTokenRequired": "Inserisci il token di invito",
+  "acceptInviteSubmit": "Accetta invito",
+  "acceptInviteSuccess": "Invito accettato. Ora fai parte dell'azienda.",
   "categoriesNoActiveCompany": "Nessuna azienda attiva. Seleziona un'azienda per continuare.",
   "categoriesReadOnlyMessage": "Puoi visualizzare le categorie, ma non modificarle.",
   "categoriesEmpty": "Nessuna categoria ancora. Aggiungi la prima categoria operativa.",

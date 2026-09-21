@@ -167,6 +167,14 @@ class _CompanySettingsFormState extends ConsumerState<CompanySettingsForm> {
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push(RoutePaths.settingsCategories),
               ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.group_outlined),
+                title: Text(l10n.teamTitle),
+                subtitle: Text(l10n.teamSettingsLinkSubtitle),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(RoutePaths.settingsTeam),
+              ),
               const SizedBox(height: AppUiConstants.spacingLarge),
               Text(
                 l10n.dashboardActiveRole(_company.role.label),

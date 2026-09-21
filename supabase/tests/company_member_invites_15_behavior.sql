@@ -42,7 +42,9 @@ GRANT EXECUTE ON FUNCTION pg_temp.record_result(TEXT, BOOLEAN, TEXT, TEXT) TO an
 DO $body$
 DECLARE
   v_owner UUID := gen_random_uuid();
+  v_owner2 UUID := gen_random_uuid();
   v_admin UUID := gen_random_uuid();
+  v_admin2 UUID := gen_random_uuid();
   v_manager UUID := gen_random_uuid();
   v_outsider UUID := gen_random_uuid();
   v_invitee UUID := gen_random_uuid();
@@ -65,8 +67,14 @@ BEGIN
     (v_owner, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
      'owner15@example.invalid', crypt('x', gen_salt('bf')), now(),
      '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, now(), now()),
+    (v_owner2, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+     'owner215@example.invalid', crypt('x', gen_salt('bf')), now(),
+     '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, now(), now()),
     (v_admin, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
      'admin15@example.invalid', crypt('x', gen_salt('bf')), now(),
+     '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, now(), now()),
+    (v_admin2, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+     'admin215@example.invalid', crypt('x', gen_salt('bf')), now(),
      '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, now(), now()),
     (v_manager, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
      'manager15@example.invalid', crypt('x', gen_salt('bf')), now(),
@@ -87,7 +95,10 @@ BEGIN
   INSERT INTO public.profiles (id, email, full_name)
   SELECT u.id, u.email, 'Step15'
   FROM auth.users u
-  WHERE u.id IN (v_owner, v_admin, v_manager, v_outsider, v_invitee, v_newperson, v_expired_user)
+  WHERE u.id IN (
+    v_owner, v_owner2, v_admin, v_admin2, v_manager,
+    v_outsider, v_invitee, v_newperson, v_expired_user
+  )
   ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email;
 
   INSERT INTO public.companies (id, name, slug) VALUES
@@ -96,7 +107,9 @@ BEGIN
 
   INSERT INTO public.company_members (company_id, user_id, role) VALUES
     (v_company_a, v_owner, 'owner'),
+    (v_company_a, v_owner2, 'owner'),
     (v_company_a, v_admin, 'admin'),
+    (v_company_a, v_admin2, 'admin'),
     (v_company_a, v_manager, 'manager'),
     (v_company_b, v_outsider, 'owner');
 
@@ -354,12 +367,106 @@ BEGIN
     );
   END;
 
+  BEGIN
+    PERFORM public.change_company_member_role(
+      v_company_a, v_invitee, 'owner'::public.company_role
+    );
+    PERFORM pg_temp.record_result('admin_cannot_assign_owner', false, NULL, 'expected deny');
+  EXCEPTION WHEN OTHERS THEN
+    PERFORM pg_temp.record_result(
+      'admin_cannot_assign_owner',
+      SQLERRM LIKE '%ATLAS_ONLY_OWNER_CAN_ASSIGN_OWNER%', SQLSTATE, SQLERRM
+    );
+  END;
+
+  BEGIN
+    PERFORM public.change_company_member_role(
+      v_company_a, v_owner, 'manager'::public.company_role
+    );
+    PERFORM pg_temp.record_result('admin_cannot_demote_owner', false, NULL, 'expected deny');
+  EXCEPTION WHEN OTHERS THEN
+    PERFORM pg_temp.record_result(
+      'admin_cannot_demote_owner',
+      SQLERRM LIKE '%ATLAS_ONLY_OWNER_CAN_MANAGE_PRIVILEGED_MEMBER%', SQLSTATE, SQLERRM
+    );
+  END;
+
+  BEGIN
+    PERFORM public.remove_company_member(v_company_a, v_owner);
+    PERFORM pg_temp.record_result('admin_cannot_remove_owner', false, NULL, 'expected deny');
+  EXCEPTION WHEN OTHERS THEN
+    PERFORM pg_temp.record_result(
+      'admin_cannot_remove_owner',
+      SQLERRM LIKE '%ATLAS_ONLY_OWNER_CAN_MANAGE_PRIVILEGED_MEMBER%', SQLSTATE, SQLERRM
+    );
+  END;
+
+  BEGIN
+    PERFORM public.change_company_member_role(
+      v_company_a, v_admin2, 'manager'::public.company_role
+    );
+    PERFORM pg_temp.record_result(
+      'admin_cannot_change_other_admin_role', false, NULL, 'expected deny'
+    );
+  EXCEPTION WHEN OTHERS THEN
+    PERFORM pg_temp.record_result(
+      'admin_cannot_change_other_admin_role',
+      SQLERRM LIKE '%ATLAS_ONLY_OWNER_CAN_MANAGE_PRIVILEGED_MEMBER%', SQLSTATE, SQLERRM
+    );
+  END;
+
+  BEGIN
+    PERFORM public.remove_company_member(v_company_a, v_admin2);
+    PERFORM pg_temp.record_result(
+      'admin_cannot_remove_other_admin', false, NULL, 'expected deny'
+    );
+  EXCEPTION WHEN OTHERS THEN
+    PERFORM pg_temp.record_result(
+      'admin_cannot_remove_other_admin',
+      SQLERRM LIKE '%ATLAS_ONLY_OWNER_CAN_MANAGE_PRIVILEGED_MEMBER%', SQLSTATE, SQLERRM
+    );
+  END;
+
   PERFORM set_config('request.jwt.claim.sub', v_owner::text, true);
   PERFORM set_config(
     'request.jwt.claims',
     json_build_object('sub', v_owner::text, 'role', 'authenticated')::text,
     true
   );
+  BEGIN
+    PERFORM public.change_company_member_role(
+      v_company_a, v_admin2, 'manager'::public.company_role
+    );
+    SELECT role INTO v_role FROM public.company_members
+    WHERE company_id = v_company_a AND user_id = v_admin2;
+    PERFORM pg_temp.record_result(
+      'owner_can_manage_admin',
+      v_role = 'manager'::public.company_role, NULL, NULL
+    );
+    -- Restore admin2 for later assertions / cleanup clarity.
+    PERFORM public.change_company_member_role(
+      v_company_a, v_admin2, 'admin'::public.company_role
+    );
+  EXCEPTION WHEN OTHERS THEN
+    PERFORM pg_temp.record_result('owner_can_manage_admin', false, SQLSTATE, SQLERRM);
+  END;
+
+  BEGIN
+    PERFORM public.change_company_member_role(
+      v_company_a, v_owner2, 'manager'::public.company_role
+    );
+    SELECT role INTO v_role FROM public.company_members
+    WHERE company_id = v_company_a AND user_id = v_owner2;
+    PERFORM pg_temp.record_result(
+      'owner_can_change_non_last_owner_where_allowed',
+      v_role = 'manager'::public.company_role, NULL, NULL
+    );
+  EXCEPTION WHEN OTHERS THEN
+    PERFORM pg_temp.record_result(
+      'owner_can_change_non_last_owner_where_allowed', false, SQLSTATE, SQLERRM
+    );
+  END;
+
   BEGIN
     PERFORM public.remove_company_member(v_company_a, v_invitee);
     SELECT count(*) INTO v_count FROM public.company_members

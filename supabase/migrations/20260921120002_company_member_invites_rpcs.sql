@@ -539,6 +539,17 @@ BEGIN
     v_uid
   );
 
+  -- Admins may only manage manager/employee targets; owner/admin targets are
+  -- owner-only (last-owner rules remain on the integrity trigger).
+  IF NOT v_actor_is_owner
+     AND v_target.role IN (
+       'owner'::public.company_role,
+       'admin'::public.company_role
+     ) THEN
+    RAISE EXCEPTION USING ERRCODE = 'P0001',
+      MESSAGE = 'ATLAS_ONLY_OWNER_CAN_MANAGE_PRIVILEGED_MEMBER';
+  END IF;
+
   IF p_role = 'owner'::public.company_role AND NOT v_actor_is_owner THEN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'ATLAS_ONLY_OWNER_CAN_ASSIGN_OWNER';
   END IF;
@@ -576,6 +587,7 @@ AS $$
 DECLARE
   v_uid UUID := auth.uid();
   v_target public.company_members%ROWTYPE;
+  v_actor_is_owner BOOLEAN;
 BEGIN
   IF v_uid IS NULL THEN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'ATLAS_NOT_AUTHENTICATED';
@@ -604,6 +616,22 @@ BEGIN
     END IF;
   ELSE
     PERFORM private.assert_can_manage_company_members(p_company_id);
+
+    v_actor_is_owner := private.has_company_role(
+      p_company_id,
+      ARRAY['owner']::public.company_role[],
+      v_uid
+    );
+
+    -- Admins may remove only manager/employee; owner/admin removal is owner-only.
+    IF NOT v_actor_is_owner
+       AND v_target.role IN (
+         'owner'::public.company_role,
+         'admin'::public.company_role
+       ) THEN
+      RAISE EXCEPTION USING ERRCODE = 'P0001',
+        MESSAGE = 'ATLAS_ONLY_OWNER_CAN_MANAGE_PRIVILEGED_MEMBER';
+    END IF;
   END IF;
 
   DELETE FROM public.company_members

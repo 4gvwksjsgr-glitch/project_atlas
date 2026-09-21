@@ -211,6 +211,9 @@ class _CompanyTeamBodyState extends ConsumerState<CompanyTeamBody> {
   }
 
   Future<void> _changeRoleDialog(CompanyMember member) async {
+    if (!_canManageTarget(member)) {
+      return;
+    }
     final l10n = AppLocalizations.of(context);
     final roles = _rolesAssignableTo(member);
     if (roles.isEmpty) {
@@ -269,19 +272,20 @@ class _CompanyTeamBodyState extends ConsumerState<CompanyTeamBody> {
     }
   }
 
+  bool _canManageTarget(CompanyMember member) =>
+      widget.actorRole.canManageMemberTarget(member.role);
+
   List<CompanyRole> _rolesAssignableTo(CompanyMember member) {
-    return switch (widget.actorRole) {
-      CompanyRole.owner => CompanyRole.values.toList(),
-      CompanyRole.admin => const [
-        CompanyRole.manager,
-        CompanyRole.employee,
-        CompanyRole.admin,
-      ].where((r) => r != CompanyRole.owner).toList(),
-      _ => const [],
-    };
+    if (!_canManageTarget(member)) {
+      return const [];
+    }
+    return widget.actorRole.assignableMemberRoles;
   }
 
   Future<void> _confirmRemove(CompanyMember member) async {
+    if (!_canManageTarget(member)) {
+      return;
+    }
     final l10n = AppLocalizations.of(context);
     final label = member.fullName?.isNotEmpty == true
         ? member.fullName!
@@ -402,6 +406,7 @@ class _CompanyTeamBodyState extends ConsumerState<CompanyTeamBody> {
                         final subtitle = member.fullName?.isNotEmpty == true
                             ? '${member.email} · ${member.role.label}'
                             : member.role.label;
+                        final showActions = _canManageTarget(member);
                         return ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(
@@ -410,7 +415,7 @@ class _CompanyTeamBodyState extends ConsumerState<CompanyTeamBody> {
                                 : member.email,
                           ),
                           subtitle: Text(subtitle),
-                          trailing: _canManage
+                          trailing: showActions
                               ? PopupMenuButton<String>(
                                   enabled: !state.isMutating,
                                   onSelected: (value) {

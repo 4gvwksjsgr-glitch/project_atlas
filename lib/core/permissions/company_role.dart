@@ -16,6 +16,24 @@ enum CompanyRole {
   bool get canManageMembers =>
       this == CompanyRole.owner || this == CompanyRole.admin;
 
+  /// Whether this actor may change/remove [target] (server remains authoritative).
+  /// Admin may only manage manager/employee; owner/admin targets are owner-only.
+  bool canManageMemberTarget(CompanyRole target) {
+    if (!canManageMembers) return false;
+    if (this == CompanyRole.owner) return true;
+    return target == CompanyRole.manager || target == CompanyRole.employee;
+  }
+
+  /// Roles this actor may assign when changing a manageable member.
+  List<CompanyRole> get assignableMemberRoles => switch (this) {
+    CompanyRole.owner => CompanyRole.values.toList(growable: false),
+    CompanyRole.admin => const [
+      CompanyRole.manager,
+      CompanyRole.employee,
+    ],
+    _ => const <CompanyRole>[],
+  };
+
   /// Owner e admin possono modificare nome/slug azienda (la RLS resta il gate reale).
   bool get canEditCompanyProfile =>
       this == CompanyRole.owner || this == CompanyRole.admin;

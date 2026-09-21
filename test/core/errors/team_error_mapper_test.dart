@@ -52,5 +52,24 @@ void main() {
         'Non puoi rimuovere o declassare l\'ultimo proprietario.',
       );
     });
+
+    test(
+      'mappa ATLAS_ONLY_OWNER_CAN_MANAGE_PRIVILEGED_MEMBER su AuthFailure',
+      () {
+        final failure = TeamErrorMapper.mapException(
+          const PostgrestException(
+            message: 'ATLAS_ONLY_OWNER_CAN_MANAGE_PRIVILEGED_MEMBER',
+            code: 'P0001',
+          ),
+          TeamOperation.changeMemberRole,
+        );
+
+        expect(failure, isA<AuthFailure>());
+        expect(
+          failure.message,
+          'Solo il proprietario può gestire proprietari e amministratori.',
+        );
+      },
+    );
   });
 }

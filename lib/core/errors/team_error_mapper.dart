@@ -35,6 +35,7 @@ abstract final class TeamErrorMapper {
     'ATLAS_CANNOT_REMOVE_LAST_OWNER',
     'ATLAS_ONLY_OWNER_CAN_ASSIGN_OWNER',
     'ATLAS_ONLY_OWNER_CAN_ASSIGN_ADMIN',
+    'ATLAS_ONLY_OWNER_CAN_MANAGE_PRIVILEGED_MEMBER',
   };
 
   static Failure mapException(
@@ -136,6 +137,9 @@ abstract final class TeamErrorMapper {
       ),
       'ATLAS_ONLY_OWNER_CAN_ASSIGN_ADMIN' => const AuthFailure(
         'Solo il proprietario può assegnare il ruolo amministratore.',
+      ),
+      'ATLAS_ONLY_OWNER_CAN_MANAGE_PRIVILEGED_MEMBER' => const AuthFailure(
+        'Solo il proprietario può gestire proprietari e amministratori.',
       ),
       _ => const UnknownFailure(),
     };

@@ -47,5 +47,15 @@ Output: `billing_web/dist/` (gitignored).
 ## Entitlement
 
 Checkout completion (overlay events, redirects, query parameters) is **not**
-entitlement proof. Authoritative Premium entitlement comes only from verified
-webhook / reconciliation (future step).
+entitlement proof. This site does **not** grant Premium and does **not**
+refresh Atlas subscription state after checkout.
+
+Authoritative Premium state comes from verified server-side billing only:
+
+- webhook ingest (`billing-webhook-paddle`) + processor apply
+  (`billing-webhook-processor-paddle`); and/or
+- owner-initiated Paddle sandbox reconciliation
+  (`billing-reconciliation-paddle`).
+
+Checkout / browser success remains UX-only. Return-token / `browser_signal`
+session closeout product wiring remains deferred.

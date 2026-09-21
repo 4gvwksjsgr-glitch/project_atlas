@@ -3,11 +3,21 @@
 ## Purpose
 
 Sandbox/Test operations only for Project Atlas Paddle Billing webhook
-processing. This document does **not** cover production/live go-live,
-provider reconciliation, or Flutter product flows.
+processing (`billing-webhook-paddle` inbox + `billing-webhook-processor-paddle`
+apply). This document does **not** cover production/live go-live or Flutter
+product flows.
 
-Authoritative Premium entitlement comes from verified webhook apply, not from
-checkout UI return pages.
+Authoritative Premium entitlement comes from verified server-side billing
+processing, not from checkout UI return pages:
+
+- **Webhook path:** verified inbox ingest → processor apply (requires
+  `processor_enabled=true`).
+- **Reconciliation path (14C-2J, shipped):** owner-initiated Paddle sandbox
+  reconciliation via Edge `billing-reconciliation-paddle` (owner JWT; exact
+  linked subscription GET only; no customer fallback; no first-link; no
+  automatic retry). Reconciliation updates the provider-state fence /
+  fingerprint and does **not** write the webhook watermark
+  (`last_subscription_event_occurred_at`).
 
 ## Safety defaults
 
@@ -128,7 +138,10 @@ Under current architecture:
 - Fail finalizer does not implement automatic recovery.
 - Manual UUID reclaim of `failed` exists in SQL but is **not** the scheduler
   path and is **out of scope** for 14C-2I.
-- Operator recovery / provider reconciliation is **out of scope** for 14C-2I.
+- Operator recovery tooling for failed inbox rows remains **out of scope** for
+  14C-2I (and is still deferred). Owner-initiated sandbox reconciliation was
+  later shipped in 14C-2J (`billing-reconciliation-paddle`) and is **not** a
+  substitute for automatic failed-inbox recovery.
 - An `OPERATOR_ACCEPTED_TEST_DEAD_LETTER` classification is an **operator
   disposition only**. It does **not** change DB `processing_status`, does
   **not** clear `error_sanitized`, and does **not** make the row claimable
@@ -276,9 +289,12 @@ are true:
 
 ## Out of scope / known debt
 
-- Provider reconciliation / Paddle GET APIs
-- Failed-event recovery automation
+- Failed-event recovery automation / operator recovery tooling for `failed`
+  inbox rows
 - Automatic retries of `failed` inbox rows
 - Production/live environment
 - Return-token / `browser_signal` checkout session closeout
 - Continuous / permanent scheduler arming
+- Automatic reconciliation scheduler, bulk reconciliation, customer-fallback
+  discovery, first-link reconciliation, and owner reconciliation Flutter UI
+  (14C-2J V1 is owner-initiated, one company, already-linked subscription only)

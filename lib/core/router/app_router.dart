@@ -13,9 +13,11 @@ import '../../features/clients/presentation/screens/customer_form_screen.dart';
 import '../../features/clients/presentation/screens/customer_import_screen.dart';
 import '../../features/clients/presentation/screens/customers_screen.dart';
 import '../../features/companies/presentation/providers/company_providers.dart';
+import '../../features/companies/presentation/screens/accept_invite_screen.dart';
 import '../../features/companies/presentation/screens/company_onboarding_screen.dart';
 import '../../features/companies/presentation/screens/company_selector_screen.dart';
 import '../../features/companies/presentation/screens/company_settings_screen.dart';
+import '../../features/companies/presentation/screens/company_team_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/documents/presentation/screens/documents_screen.dart';
 import '../../features/transactions/presentation/screens/transaction_form_screen.dart';
@@ -89,6 +91,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RoutePaths.selectCompany,
         builder: (context, state) => const CompanySelectorScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.acceptInvite,
+        builder: (context, state) => const AcceptInviteScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -174,6 +180,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'categories',
                     builder: (context, state) => const CategoriesScreen(),
+                  ),
+                  GoRoute(
+                    path: 'team',
+                    builder: (context, state) => const CompanyTeamScreen(),
                   ),
                 ],
               ),

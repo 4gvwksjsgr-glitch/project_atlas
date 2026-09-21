@@ -709,6 +709,132 @@ class AppLocalizationsIt extends AppLocalizations {
       'Gestisci le categorie dei movimenti';
 
   @override
+  String get teamTitle => 'Team';
+
+  @override
+  String get teamSubtitle => 'Membri e inviti dell\'azienda attiva.';
+
+  @override
+  String get teamSettingsLinkSubtitle => 'Gestisci membri e inviti';
+
+  @override
+  String get teamNoActiveCompany =>
+      'Nessuna azienda attiva. Seleziona un\'azienda per continuare.';
+
+  @override
+  String get teamReadOnlyMessage =>
+      'Puoi visualizzare i membri, ma solo proprietario e amministratore gestiscono inviti e ruoli.';
+
+  @override
+  String get teamMembersSection => 'Membri';
+
+  @override
+  String get teamMembersEmpty => 'Nessun membro trovato.';
+
+  @override
+  String get teamPendingInvitesSection => 'Inviti in sospeso';
+
+  @override
+  String get teamPendingInvitesEmpty => 'Nessun invito in sospeso.';
+
+  @override
+  String get teamInviteFormTitle => 'Invita un membro';
+
+  @override
+  String get teamInviteEmailLabel => 'Email';
+
+  @override
+  String get teamRoleLabel => 'Ruolo';
+
+  @override
+  String get teamInviteSubmit => 'Crea invito';
+
+  @override
+  String get teamInviteTokenTitle => 'Token di invito';
+
+  @override
+  String get teamInviteTokenWarning =>
+      'Copia subito questo token: viene mostrato una sola volta e non sarà più recuperabile.';
+
+  @override
+  String get teamInviteTokenCopy => 'Copia';
+
+  @override
+  String get teamInviteTokenCopied => 'Token copiato negli appunti.';
+
+  @override
+  String get teamInviteTokenDone => 'Ho copiato';
+
+  @override
+  String get teamRevokeInviteAction => 'Revoca';
+
+  @override
+  String get teamRevokeInviteTitle => 'Revoca invito';
+
+  @override
+  String teamRevokeInviteMessage(String email) {
+    return 'Vuoi revocare l\'invito per $email?';
+  }
+
+  @override
+  String get teamRevokeInviteConfirm => 'Revoca';
+
+  @override
+  String get teamChangeRoleAction => 'Cambia ruolo';
+
+  @override
+  String get teamChangeRoleTitle => 'Cambia ruolo';
+
+  @override
+  String get teamChangeRoleConfirm => 'Salva';
+
+  @override
+  String get teamRemoveMemberAction => 'Rimuovi';
+
+  @override
+  String get teamRemoveMemberTitle => 'Rimuovi membro';
+
+  @override
+  String teamRemoveMemberMessage(String name) {
+    return 'Vuoi rimuovere $name dall\'azienda?';
+  }
+
+  @override
+  String get teamRemoveMemberConfirm => 'Rimuovi';
+
+  @override
+  String get teamInviteStatusPending => 'In sospeso';
+
+  @override
+  String get teamInviteStatusAccepted => 'Accettato';
+
+  @override
+  String get teamInviteStatusRevoked => 'Revocato';
+
+  @override
+  String get teamInviteStatusExpired => 'Scaduto';
+
+  @override
+  String get acceptInviteTitle => 'Accetta invito';
+
+  @override
+  String get acceptInviteSubtitle =>
+      'Incolla il token ricevuto per unirti all\'azienda.';
+
+  @override
+  String get acceptInviteTokenLabel => 'Token di invito';
+
+  @override
+  String get acceptInviteTokenRequired => 'Inserisci il token di invito';
+
+  @override
+  String get acceptInviteSubmit => 'Accetta invito';
+
+  @override
+  String get acceptInviteSuccess =>
+      'Invito accettato. Ora fai parte dell\'azienda.';
+
+  @override
   String get categoriesNoActiveCompany =>
       'Nessuna azienda attiva. Seleziona un\'azienda per continuare.';
 

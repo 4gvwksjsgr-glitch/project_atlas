@@ -1330,6 +1330,240 @@ abstract class AppLocalizations {
   /// **'Gestisci le categorie dei movimenti'**
   String get categoriesSettingsLinkSubtitle;
 
+  /// No description provided for @teamTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Team'**
+  String get teamTitle;
+
+  /// No description provided for @teamSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Membri e inviti dell\'azienda attiva.'**
+  String get teamSubtitle;
+
+  /// No description provided for @teamSettingsLinkSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Gestisci membri e inviti'**
+  String get teamSettingsLinkSubtitle;
+
+  /// No description provided for @teamNoActiveCompany.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna azienda attiva. Seleziona un\'azienda per continuare.'**
+  String get teamNoActiveCompany;
+
+  /// No description provided for @teamReadOnlyMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Puoi visualizzare i membri, ma solo proprietario e amministratore gestiscono inviti e ruoli.'**
+  String get teamReadOnlyMessage;
+
+  /// No description provided for @teamMembersSection.
+  ///
+  /// In it, this message translates to:
+  /// **'Membri'**
+  String get teamMembersSection;
+
+  /// No description provided for @teamMembersEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun membro trovato.'**
+  String get teamMembersEmpty;
+
+  /// No description provided for @teamPendingInvitesSection.
+  ///
+  /// In it, this message translates to:
+  /// **'Inviti in sospeso'**
+  String get teamPendingInvitesSection;
+
+  /// No description provided for @teamPendingInvitesEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun invito in sospeso.'**
+  String get teamPendingInvitesEmpty;
+
+  /// No description provided for @teamInviteFormTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Invita un membro'**
+  String get teamInviteFormTitle;
+
+  /// No description provided for @teamInviteEmailLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Email'**
+  String get teamInviteEmailLabel;
+
+  /// No description provided for @teamRoleLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Ruolo'**
+  String get teamRoleLabel;
+
+  /// No description provided for @teamInviteSubmit.
+  ///
+  /// In it, this message translates to:
+  /// **'Crea invito'**
+  String get teamInviteSubmit;
+
+  /// No description provided for @teamInviteTokenTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Token di invito'**
+  String get teamInviteTokenTitle;
+
+  /// No description provided for @teamInviteTokenWarning.
+  ///
+  /// In it, this message translates to:
+  /// **'Copia subito questo token: viene mostrato una sola volta e non sarà più recuperabile.'**
+  String get teamInviteTokenWarning;
+
+  /// No description provided for @teamInviteTokenCopy.
+  ///
+  /// In it, this message translates to:
+  /// **'Copia'**
+  String get teamInviteTokenCopy;
+
+  /// No description provided for @teamInviteTokenCopied.
+  ///
+  /// In it, this message translates to:
+  /// **'Token copiato negli appunti.'**
+  String get teamInviteTokenCopied;
+
+  /// No description provided for @teamInviteTokenDone.
+  ///
+  /// In it, this message translates to:
+  /// **'Ho copiato'**
+  String get teamInviteTokenDone;
+
+  /// No description provided for @teamRevokeInviteAction.
+  ///
+  /// In it, this message translates to:
+  /// **'Revoca'**
+  String get teamRevokeInviteAction;
+
+  /// No description provided for @teamRevokeInviteTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Revoca invito'**
+  String get teamRevokeInviteTitle;
+
+  /// No description provided for @teamRevokeInviteMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Vuoi revocare l\'invito per {email}?'**
+  String teamRevokeInviteMessage(String email);
+
+  /// No description provided for @teamRevokeInviteConfirm.
+  ///
+  /// In it, this message translates to:
+  /// **'Revoca'**
+  String get teamRevokeInviteConfirm;
+
+  /// No description provided for @teamChangeRoleAction.
+  ///
+  /// In it, this message translates to:
+  /// **'Cambia ruolo'**
+  String get teamChangeRoleAction;
+
+  /// No description provided for @teamChangeRoleTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Cambia ruolo'**
+  String get teamChangeRoleTitle;
+
+  /// No description provided for @teamChangeRoleConfirm.
+  ///
+  /// In it, this message translates to:
+  /// **'Salva'**
+  String get teamChangeRoleConfirm;
+
+  /// No description provided for @teamRemoveMemberAction.
+  ///
+  /// In it, this message translates to:
+  /// **'Rimuovi'**
+  String get teamRemoveMemberAction;
+
+  /// No description provided for @teamRemoveMemberTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Rimuovi membro'**
+  String get teamRemoveMemberTitle;
+
+  /// No description provided for @teamRemoveMemberMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Vuoi rimuovere {name} dall\'azienda?'**
+  String teamRemoveMemberMessage(String name);
+
+  /// No description provided for @teamRemoveMemberConfirm.
+  ///
+  /// In it, this message translates to:
+  /// **'Rimuovi'**
+  String get teamRemoveMemberConfirm;
+
+  /// No description provided for @teamInviteStatusPending.
+  ///
+  /// In it, this message translates to:
+  /// **'In sospeso'**
+  String get teamInviteStatusPending;
+
+  /// No description provided for @teamInviteStatusAccepted.
+  ///
+  /// In it, this message translates to:
+  /// **'Accettato'**
+  String get teamInviteStatusAccepted;
+
+  /// No description provided for @teamInviteStatusRevoked.
+  ///
+  /// In it, this message translates to:
+  /// **'Revocato'**
+  String get teamInviteStatusRevoked;
+
+  /// No description provided for @teamInviteStatusExpired.
+  ///
+  /// In it, this message translates to:
+  /// **'Scaduto'**
+  String get teamInviteStatusExpired;
+
+  /// No description provided for @acceptInviteTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Accetta invito'**
+  String get acceptInviteTitle;
+
+  /// No description provided for @acceptInviteSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Incolla il token ricevuto per unirti all\'azienda.'**
+  String get acceptInviteSubtitle;
+
+  /// No description provided for @acceptInviteTokenLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Token di invito'**
+  String get acceptInviteTokenLabel;
+
+  /// No description provided for @acceptInviteTokenRequired.
+  ///
+  /// In it, this message translates to:
+  /// **'Inserisci il token di invito'**
+  String get acceptInviteTokenRequired;
+
+  /// No description provided for @acceptInviteSubmit.
+  ///
+  /// In it, this message translates to:
+  /// **'Accetta invito'**
+  String get acceptInviteSubmit;
+
+  /// No description provided for @acceptInviteSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Invito accettato. Ora fai parte dell\'azienda.'**
+  String get acceptInviteSuccess;
+
   /// No description provided for @categoriesNoActiveCompany.
   ///
   /// In it, this message translates to:

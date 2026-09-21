@@ -23,6 +23,8 @@ abstract final class AuthRedirectConfig {
     RoutePaths.documents,
     RoutePaths.settingsCompany,
     RoutePaths.settingsCategories,
+    RoutePaths.settingsTeam,
+    RoutePaths.acceptInvite,
     RoutePaths.onboardingCompany,
     RoutePaths.selectCompany,
   };
@@ -53,6 +55,7 @@ abstract final class AuthRedirectConfig {
         location.startsWith('${RoutePaths.clients}/') ||
         location.startsWith('${RoutePaths.transactions}/') ||
         location.startsWith('${RoutePaths.documents}/') ||
-        location.startsWith('${RoutePaths.settingsCompany}/');
+        location.startsWith('${RoutePaths.settingsCompany}/') ||
+        location.startsWith('${RoutePaths.acceptInvite}/');
   }
 }

@@ -7,4 +7,6 @@ extension CompanyRoleDbValue on CompanyRole {
       orElse: () => CompanyRole.employee,
     );
   }
+
+  String get toDbValue => name;
 }

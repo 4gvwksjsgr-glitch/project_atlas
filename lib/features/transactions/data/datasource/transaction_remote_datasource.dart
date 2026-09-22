@@ -38,12 +38,22 @@ typedef TransactionUpdateExecutor =
       String? notes,
     });
 
+typedef TransactionImportExecutor =
+    Future<Map<String, dynamic>> Function({
+      required String companyId,
+      required String sourceFileName,
+      required String sourceFileSha256,
+      required String sourceFormat,
+      required List<Map<String, dynamic>> rows,
+    });
+
 class TransactionRemoteDataSource {
   TransactionRemoteDataSource(
     SupabaseClient client, {
     @visibleForTesting this._listExecutor,
     @visibleForTesting this._createExecutor,
     @visibleForTesting this._updateExecutor,
+    @visibleForTesting this._importExecutor,
   }) : _client = client;
 
   @visibleForTesting
@@ -51,12 +61,14 @@ class TransactionRemoteDataSource {
     this._listExecutor,
     this._createExecutor,
     this._updateExecutor,
+    this._importExecutor,
   }) : _client = null;
 
   final SupabaseClient? _client;
   final TransactionsListExecutor? _listExecutor;
   final TransactionCreateExecutor? _createExecutor;
   final TransactionUpdateExecutor? _updateExecutor;
+  final TransactionImportExecutor? _importExecutor;
 
   Future<List<CashTransactionModel>> getTransactions({
     required String companyId,
@@ -130,6 +142,62 @@ class TransactionRemoteDataSource {
       notes: notes,
     );
     return CashTransactionModel.fromJson(response);
+  }
+
+  Future<Map<String, dynamic>> importTransactions({
+    required String companyId,
+    required String sourceFileName,
+    required String sourceFileSha256,
+    required String sourceFormat,
+    required List<Map<String, dynamic>> rows,
+  }) async {
+    if (companyId.isEmpty) {
+      throw ArgumentError.value(companyId, 'companyId', 'obbligatorio');
+    }
+
+    final executor = _importExecutor ?? _executeImport;
+    return executor(
+      companyId: companyId,
+      sourceFileName: sourceFileName,
+      sourceFileSha256: sourceFileSha256,
+      sourceFormat: sourceFormat,
+      rows: rows,
+    );
+  }
+
+  /// RPC `import_transactions`: le righe non contengono mai `company_id`/`id`.
+  Future<Map<String, dynamic>> _executeImport({
+    required String companyId,
+    required String sourceFileName,
+    required String sourceFileSha256,
+    required String sourceFormat,
+    required List<Map<String, dynamic>> rows,
+  }) async {
+    final response = await _client!.rpc(
+      'import_transactions',
+      params: {
+        'p_company_id': companyId,
+        'p_source_file_name': sourceFileName,
+        'p_source_file_sha256': sourceFileSha256,
+        'p_source_format': sourceFormat,
+        'p_rows': rows,
+      },
+    );
+
+    if (response is List) {
+      if (response.isEmpty) {
+        throw const FormatException('Risposta RPC import vuota');
+      }
+      final first = response.first;
+      if (first is Map) {
+        return Map<String, dynamic>.from(first);
+      }
+      throw const FormatException('Risposta RPC import non valida');
+    }
+    if (response is Map) {
+      return Map<String, dynamic>.from(response);
+    }
+    throw const FormatException('Risposta RPC import non valida');
   }
 
   Future<List<Map<String, dynamic>>> _executeList({

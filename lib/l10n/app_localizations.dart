@@ -1102,6 +1102,533 @@ abstract class AppLocalizations {
   /// **'Nuovo movimento'**
   String get transactionsNewButton;
 
+  /// No description provided for @transactionsImportButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Importa movimenti'**
+  String get transactionsImportButton;
+
+  /// No description provided for @transactionsImportTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Importa movimenti'**
+  String get transactionsImportTitle;
+
+  /// No description provided for @transactionsImportForbidden.
+  ///
+  /// In it, this message translates to:
+  /// **'Non hai i permessi per importare movimenti.'**
+  String get transactionsImportForbidden;
+
+  /// No description provided for @transactionsImportIntro.
+  ///
+  /// In it, this message translates to:
+  /// **'Importa i movimenti di cassa da un file CSV o Excel nell\'azienda attiva.'**
+  String get transactionsImportIntro;
+
+  /// No description provided for @transactionsImportFieldsNotice.
+  ///
+  /// In it, this message translates to:
+  /// **'Questa versione importa soltanto: Data, Descrizione, Importo (colonna con segno oppure Dare e Avere), Riferimento, Note. Il verso del movimento viene dedotto dal segno dell\'importo o dalla colonna Dare/Avere.'**
+  String get transactionsImportFieldsNotice;
+
+  /// No description provided for @transactionsImportLimits.
+  ///
+  /// In it, this message translates to:
+  /// **'Limiti: file fino a 2 MB, massimo 500 righe dati, massimo 20 fogli Excel, un foglio alla volta.'**
+  String get transactionsImportLimits;
+
+  /// No description provided for @transactionsImportDeferredNotice.
+  ///
+  /// In it, this message translates to:
+  /// **'Non sono previsti in questa versione: collegamento alle API bancarie, calcoli fiscali e annullamento di un\'importazione.'**
+  String get transactionsImportDeferredNotice;
+
+  /// No description provided for @transactionsImportPickFile.
+  ///
+  /// In it, this message translates to:
+  /// **'Seleziona file CSV o XLSX'**
+  String get transactionsImportPickFile;
+
+  /// No description provided for @transactionsImportPickSheet.
+  ///
+  /// In it, this message translates to:
+  /// **'Scegli il foglio da importare'**
+  String get transactionsImportPickSheet;
+
+  /// No description provided for @transactionsImportSheetRows.
+  ///
+  /// In it, this message translates to:
+  /// **'{count} righe dati'**
+  String transactionsImportSheetRows(int count);
+
+  /// No description provided for @transactionsImportMappingTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Associa le colonne'**
+  String get transactionsImportMappingTitle;
+
+  /// No description provided for @transactionsImportMappingHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Data e Descrizione sono obbligatorie. Per l\'importo scegli una colonna con segno oppure la coppia Dare e Avere. Ogni campo può essere associato a una sola colonna.'**
+  String get transactionsImportMappingHint;
+
+  /// No description provided for @transactionsImportFieldDate.
+  ///
+  /// In it, this message translates to:
+  /// **'Data'**
+  String get transactionsImportFieldDate;
+
+  /// No description provided for @transactionsImportFieldDescription.
+  ///
+  /// In it, this message translates to:
+  /// **'Descrizione'**
+  String get transactionsImportFieldDescription;
+
+  /// No description provided for @transactionsImportFieldSignedAmount.
+  ///
+  /// In it, this message translates to:
+  /// **'Importo con segno'**
+  String get transactionsImportFieldSignedAmount;
+
+  /// No description provided for @transactionsImportFieldDebit.
+  ///
+  /// In it, this message translates to:
+  /// **'Dare (uscite)'**
+  String get transactionsImportFieldDebit;
+
+  /// No description provided for @transactionsImportFieldCredit.
+  ///
+  /// In it, this message translates to:
+  /// **'Avere (entrate)'**
+  String get transactionsImportFieldCredit;
+
+  /// No description provided for @transactionsImportFieldReference.
+  ///
+  /// In it, this message translates to:
+  /// **'Riferimento'**
+  String get transactionsImportFieldReference;
+
+  /// No description provided for @transactionsImportFieldNotes.
+  ///
+  /// In it, this message translates to:
+  /// **'Note'**
+  String get transactionsImportFieldNotes;
+
+  /// No description provided for @transactionsImportFieldIgnore.
+  ///
+  /// In it, this message translates to:
+  /// **'Ignora'**
+  String get transactionsImportFieldIgnore;
+
+  /// No description provided for @transactionsImportContinue.
+  ///
+  /// In it, this message translates to:
+  /// **'Continua'**
+  String get transactionsImportContinue;
+
+  /// No description provided for @transactionsImportBack.
+  ///
+  /// In it, this message translates to:
+  /// **'Indietro'**
+  String get transactionsImportBack;
+
+  /// No description provided for @transactionsImportFormatTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Scegli come leggere i valori'**
+  String get transactionsImportFormatTitle;
+
+  /// No description provided for @transactionsImportFormatHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Alcuni valori del file possono essere letti in più modi. Nessuna interpretazione viene scelta automaticamente: indica tu il formato corretto.'**
+  String get transactionsImportFormatHint;
+
+  /// No description provided for @transactionsImportNumberFormatLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Separatore decimale'**
+  String get transactionsImportNumberFormatLabel;
+
+  /// No description provided for @transactionsImportNumberFormatAuto.
+  ///
+  /// In it, this message translates to:
+  /// **'Non specificato'**
+  String get transactionsImportNumberFormatAuto;
+
+  /// No description provided for @transactionsImportNumberFormatComma.
+  ///
+  /// In it, this message translates to:
+  /// **'Virgola: 1.234,56'**
+  String get transactionsImportNumberFormatComma;
+
+  /// No description provided for @transactionsImportNumberFormatDot.
+  ///
+  /// In it, this message translates to:
+  /// **'Punto: 1,234.56'**
+  String get transactionsImportNumberFormatDot;
+
+  /// No description provided for @transactionsImportNumberFormatRequired.
+  ///
+  /// In it, this message translates to:
+  /// **'Il file contiene importi ambigui: scegli il separatore decimale.'**
+  String get transactionsImportNumberFormatRequired;
+
+  /// No description provided for @transactionsImportDateFormatLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Ordine dei campi data'**
+  String get transactionsImportDateFormatLabel;
+
+  /// No description provided for @transactionsImportDateFormatAuto.
+  ///
+  /// In it, this message translates to:
+  /// **'Non specificato'**
+  String get transactionsImportDateFormatAuto;
+
+  /// No description provided for @transactionsImportDateFormatDmy.
+  ///
+  /// In it, this message translates to:
+  /// **'Giorno/Mese/Anno'**
+  String get transactionsImportDateFormatDmy;
+
+  /// No description provided for @transactionsImportDateFormatMdy.
+  ///
+  /// In it, this message translates to:
+  /// **'Mese/Giorno/Anno'**
+  String get transactionsImportDateFormatMdy;
+
+  /// No description provided for @transactionsImportDateFormatYmd.
+  ///
+  /// In it, this message translates to:
+  /// **'Anno-Mese-Giorno'**
+  String get transactionsImportDateFormatYmd;
+
+  /// No description provided for @transactionsImportDateFormatRequired.
+  ///
+  /// In it, this message translates to:
+  /// **'Il file contiene date ambigue: scegli l\'ordine di giorno e mese.'**
+  String get transactionsImportDateFormatRequired;
+
+  /// No description provided for @transactionsImportSummaryTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Riepilogo analisi'**
+  String get transactionsImportSummaryTitle;
+
+  /// No description provided for @transactionsImportSummaryRead.
+  ///
+  /// In it, this message translates to:
+  /// **'Righe lette: {count}'**
+  String transactionsImportSummaryRead(int count);
+
+  /// No description provided for @transactionsImportSummaryValid.
+  ///
+  /// In it, this message translates to:
+  /// **'Movimenti validi: {count}'**
+  String transactionsImportSummaryValid(int count);
+
+  /// No description provided for @transactionsImportSummaryInvalid.
+  ///
+  /// In it, this message translates to:
+  /// **'Righe con errori: {count}'**
+  String transactionsImportSummaryInvalid(int count);
+
+  /// No description provided for @transactionsImportSummaryPossibleDuplicates.
+  ///
+  /// In it, this message translates to:
+  /// **'Possibili duplicati segnalati: {count}'**
+  String transactionsImportSummaryPossibleDuplicates(int count);
+
+  /// No description provided for @transactionsImportSummaryDuplicatesInFile.
+  ///
+  /// In it, this message translates to:
+  /// **'Duplicati nel file esclusi: {count}'**
+  String transactionsImportSummaryDuplicatesInFile(int count);
+
+  /// No description provided for @transactionsImportSummarySelected.
+  ///
+  /// In it, this message translates to:
+  /// **'Righe da importare: {count}'**
+  String transactionsImportSummarySelected(int count);
+
+  /// No description provided for @transactionsImportSummaryEmpty.
+  ///
+  /// In it, this message translates to:
+  /// **'Righe vuote ignorate: {count}'**
+  String transactionsImportSummaryEmpty(int count);
+
+  /// No description provided for @transactionsImportSummaryWarnings.
+  ///
+  /// In it, this message translates to:
+  /// **'Avvisi: {count}'**
+  String transactionsImportSummaryWarnings(int count);
+
+  /// No description provided for @transactionsImportPreviewTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Anteprima (prime 20 righe)'**
+  String get transactionsImportPreviewTitle;
+
+  /// No description provided for @transactionsImportPreviewRowTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Riga {row} · {status}'**
+  String transactionsImportPreviewRowTitle(int row, String status);
+
+  /// No description provided for @transactionsImportPreviewRowDetail.
+  ///
+  /// In it, this message translates to:
+  /// **'{date} · {kind} {amount} € · {description}'**
+  String transactionsImportPreviewRowDetail(
+    String date,
+    String kind,
+    String amount,
+    String description,
+  );
+
+  /// No description provided for @transactionsImportPreviewStatusOk.
+  ///
+  /// In it, this message translates to:
+  /// **'ok'**
+  String get transactionsImportPreviewStatusOk;
+
+  /// No description provided for @transactionsImportPreviewStatusError.
+  ///
+  /// In it, this message translates to:
+  /// **'errore'**
+  String get transactionsImportPreviewStatusError;
+
+  /// No description provided for @transactionsImportPreviewStatusPossibleDuplicate.
+  ///
+  /// In it, this message translates to:
+  /// **'possibile duplicato'**
+  String get transactionsImportPreviewStatusPossibleDuplicate;
+
+  /// No description provided for @transactionsImportPreviewStatusDuplicateInFile.
+  ///
+  /// In it, this message translates to:
+  /// **'duplicato nel file'**
+  String get transactionsImportPreviewStatusDuplicateInFile;
+
+  /// No description provided for @transactionsImportIncludeDuplicate.
+  ///
+  /// In it, this message translates to:
+  /// **'Importa comunque questa riga'**
+  String get transactionsImportIncludeDuplicate;
+
+  /// No description provided for @transactionsImportIssueWithRow.
+  ///
+  /// In it, this message translates to:
+  /// **'Riga {row} — {message}'**
+  String transactionsImportIssueWithRow(int row, String message);
+
+  /// No description provided for @transactionsImportIssueDateMissing.
+  ///
+  /// In it, this message translates to:
+  /// **'Data mancante.'**
+  String get transactionsImportIssueDateMissing;
+
+  /// No description provided for @transactionsImportIssueDateInvalid.
+  ///
+  /// In it, this message translates to:
+  /// **'Data non valida.'**
+  String get transactionsImportIssueDateInvalid;
+
+  /// No description provided for @transactionsImportIssueDateUnsupportedFormat.
+  ///
+  /// In it, this message translates to:
+  /// **'Formato data non supportato. Usa AAAA-MM-GG oppure GG/MM/AAAA con anno a quattro cifre.'**
+  String get transactionsImportIssueDateUnsupportedFormat;
+
+  /// No description provided for @transactionsImportIssueNeedsDateFormat.
+  ///
+  /// In it, this message translates to:
+  /// **'Giorno e mese sono ambigui: scegli l\'ordine dei campi data.'**
+  String get transactionsImportIssueNeedsDateFormat;
+
+  /// No description provided for @transactionsImportIssueAmountMissing.
+  ///
+  /// In it, this message translates to:
+  /// **'Importo mancante.'**
+  String get transactionsImportIssueAmountMissing;
+
+  /// No description provided for @transactionsImportIssueAmountNotNumeric.
+  ///
+  /// In it, this message translates to:
+  /// **'Importo non numerico.'**
+  String get transactionsImportIssueAmountNotNumeric;
+
+  /// No description provided for @transactionsImportIssueAmountZero.
+  ///
+  /// In it, this message translates to:
+  /// **'L\'importo non può essere zero.'**
+  String get transactionsImportIssueAmountZero;
+
+  /// No description provided for @transactionsImportIssueAmountTooManyDecimals.
+  ///
+  /// In it, this message translates to:
+  /// **'L\'importo ha più di due cifre decimali.'**
+  String get transactionsImportIssueAmountTooManyDecimals;
+
+  /// No description provided for @transactionsImportIssueAmountOutOfRange.
+  ///
+  /// In it, this message translates to:
+  /// **'Importo fuori dai limiti consentiti.'**
+  String get transactionsImportIssueAmountOutOfRange;
+
+  /// No description provided for @transactionsImportIssueAmountSignNotAllowed.
+  ///
+  /// In it, this message translates to:
+  /// **'Nelle colonne Dare e Avere il segno non è ammesso.'**
+  String get transactionsImportIssueAmountSignNotAllowed;
+
+  /// No description provided for @transactionsImportIssueAmountBothDebitAndCredit.
+  ///
+  /// In it, this message translates to:
+  /// **'La riga valorizza sia Dare sia Avere.'**
+  String get transactionsImportIssueAmountBothDebitAndCredit;
+
+  /// No description provided for @transactionsImportIssueNeedsNumberFormat.
+  ///
+  /// In it, this message translates to:
+  /// **'Separatore decimale ambiguo: scegli il formato degli importi.'**
+  String get transactionsImportIssueNeedsNumberFormat;
+
+  /// No description provided for @transactionsImportIssueDescriptionMissing.
+  ///
+  /// In it, this message translates to:
+  /// **'Descrizione mancante.'**
+  String get transactionsImportIssueDescriptionMissing;
+
+  /// No description provided for @transactionsImportIssueDescriptionTooLong.
+  ///
+  /// In it, this message translates to:
+  /// **'Descrizione troppo lunga (massimo 500 caratteri).'**
+  String get transactionsImportIssueDescriptionTooLong;
+
+  /// No description provided for @transactionsImportIssueNotesTooLong.
+  ///
+  /// In it, this message translates to:
+  /// **'Note troppo lunghe (massimo 2000 caratteri).'**
+  String get transactionsImportIssueNotesTooLong;
+
+  /// No description provided for @transactionsImportIssueReferenceTooLong.
+  ///
+  /// In it, this message translates to:
+  /// **'Riferimento troppo lungo (massimo 120 caratteri).'**
+  String get transactionsImportIssueReferenceTooLong;
+
+  /// No description provided for @transactionsImportIssueFormulaCell.
+  ///
+  /// In it, this message translates to:
+  /// **'Le formule Excel non sono supportate in questo campo.'**
+  String get transactionsImportIssueFormulaCell;
+
+  /// No description provided for @transactionsImportIssueDuplicateInFile.
+  ///
+  /// In it, this message translates to:
+  /// **'Riga già presente nel file: verrà importata una sola volta.'**
+  String get transactionsImportIssueDuplicateInFile;
+
+  /// No description provided for @transactionsImportIssuePossibleDuplicate.
+  ///
+  /// In it, this message translates to:
+  /// **'Esiste già un movimento simile in azienda: la riga è esclusa per sicurezza.'**
+  String get transactionsImportIssuePossibleDuplicate;
+
+  /// No description provided for @transactionsImportIssueDateMappingRequired.
+  ///
+  /// In it, this message translates to:
+  /// **'Associa la colonna Data a una sola colonna del file.'**
+  String get transactionsImportIssueDateMappingRequired;
+
+  /// No description provided for @transactionsImportIssueDescriptionMappingRequired.
+  ///
+  /// In it, this message translates to:
+  /// **'Associa la colonna Descrizione a una sola colonna del file.'**
+  String get transactionsImportIssueDescriptionMappingRequired;
+
+  /// No description provided for @transactionsImportIssueAmountMappingRequired.
+  ///
+  /// In it, this message translates to:
+  /// **'Associa una colonna Importo con segno oppure la coppia Dare e Avere.'**
+  String get transactionsImportIssueAmountMappingRequired;
+
+  /// No description provided for @transactionsImportIssueFieldMappedMoreThanOnce.
+  ///
+  /// In it, this message translates to:
+  /// **'Ogni campo può essere associato a una sola colonna.'**
+  String get transactionsImportIssueFieldMappedMoreThanOnce;
+
+  /// No description provided for @transactionsImportIssueFileTooLarge.
+  ///
+  /// In it, this message translates to:
+  /// **'Il file supera il limite di 2 MB.'**
+  String get transactionsImportIssueFileTooLarge;
+
+  /// No description provided for @transactionsImportIssueTooManyRows.
+  ///
+  /// In it, this message translates to:
+  /// **'Il file supera il limite di 500 righe dati.'**
+  String get transactionsImportIssueTooManyRows;
+
+  /// No description provided for @transactionsImportIssueTooManySheets.
+  ///
+  /// In it, this message translates to:
+  /// **'Troppi fogli Excel (massimo 20).'**
+  String get transactionsImportIssueTooManySheets;
+
+  /// No description provided for @transactionsImportIssueGeneric.
+  ///
+  /// In it, this message translates to:
+  /// **'Problema nella riga.'**
+  String get transactionsImportIssueGeneric;
+
+  /// No description provided for @transactionsImportConfirm.
+  ///
+  /// In it, this message translates to:
+  /// **'Conferma importazione'**
+  String get transactionsImportConfirm;
+
+  /// No description provided for @transactionsImportInProgress.
+  ///
+  /// In it, this message translates to:
+  /// **'Importazione in corso...'**
+  String get transactionsImportInProgress;
+
+  /// No description provided for @transactionsImportResultTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Importazione completata'**
+  String get transactionsImportResultTitle;
+
+  /// No description provided for @transactionsImportResultImported.
+  ///
+  /// In it, this message translates to:
+  /// **'Movimenti importati: {count}'**
+  String transactionsImportResultImported(int count);
+
+  /// No description provided for @transactionsImportResultSkippedInvalid.
+  ///
+  /// In it, this message translates to:
+  /// **'Righe scartate dal server: {count}'**
+  String transactionsImportResultSkippedInvalid(int count);
+
+  /// No description provided for @transactionsImportResultSkippedDuplicate.
+  ///
+  /// In it, this message translates to:
+  /// **'Duplicati esclusi dal server: {count}'**
+  String transactionsImportResultSkippedDuplicate(int count);
+
+  /// No description provided for @transactionsImportBackToList.
+  ///
+  /// In it, this message translates to:
+  /// **'Torna ai movimenti'**
+  String get transactionsImportBackToList;
+
   /// No description provided for @transactionNewTitle.
   ///
   /// In it, this message translates to:

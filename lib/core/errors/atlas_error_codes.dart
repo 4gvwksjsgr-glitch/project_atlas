@@ -23,6 +23,11 @@ abstract final class AtlasErrorCodes {
       'ATLAS_CHECKOUT_IDEMPOTENCY_CONFLICT';
   static const providerOutcomeUnknown = 'ATLAS_PROVIDER_OUTCOME_UNKNOWN';
   static const providerRequestRejected = 'ATLAS_PROVIDER_REQUEST_REJECTED';
+  static const insufficientPrivileges = 'ATLAS_INSUFFICIENT_PRIVILEGES';
+  static const importFileAlreadyImported = 'ATLAS_IMPORT_FILE_ALREADY_IMPORTED';
+  static const importPayloadInvalid = 'ATLAS_IMPORT_PAYLOAD_INVALID';
+  static const importTooManyRows = 'ATLAS_IMPORT_TOO_MANY_ROWS';
+  static const importInProgress = 'ATLAS_IMPORT_IN_PROGRESS';
 
   static const Set<String> all = {
     documentQuotaExceeded,
@@ -45,6 +50,11 @@ abstract final class AtlasErrorCodes {
     checkoutIdempotencyConflict,
     providerOutcomeUnknown,
     providerRequestRejected,
+    insufficientPrivileges,
+    importFileAlreadyImported,
+    importPayloadInvalid,
+    importTooManyRows,
+    importInProgress,
   };
 
   /// Estrae il primo codice `ATLAS_*` noto da eccezione PostgREST,

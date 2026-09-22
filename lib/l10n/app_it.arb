@@ -228,6 +228,149 @@
   "transactionsLoadError": "Caricamento movimenti non riuscito. Riprova.",
   "transactionsRetry": "Riprova",
   "transactionsNewButton": "Nuovo movimento",
+  "transactionsImportButton": "Importa movimenti",
+  "transactionsImportTitle": "Importa movimenti",
+  "transactionsImportForbidden": "Non hai i permessi per importare movimenti.",
+  "transactionsImportIntro": "Importa i movimenti di cassa da un file CSV o Excel nell'azienda attiva.",
+  "transactionsImportFieldsNotice": "Questa versione importa soltanto: Data, Descrizione, Importo (colonna con segno oppure Dare e Avere), Riferimento, Note. Il verso del movimento viene dedotto dal segno dell'importo o dalla colonna Dare/Avere.",
+  "transactionsImportLimits": "Limiti: file fino a 2 MB, massimo 500 righe dati, massimo 20 fogli Excel, un foglio alla volta.",
+  "transactionsImportDeferredNotice": "Non sono previsti in questa versione: collegamento alle API bancarie, calcoli fiscali e annullamento di un'importazione.",
+  "transactionsImportPickFile": "Seleziona file CSV o XLSX",
+  "transactionsImportPickSheet": "Scegli il foglio da importare",
+  "transactionsImportSheetRows": "{count} righe dati",
+  "@transactionsImportSheetRows": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "transactionsImportMappingTitle": "Associa le colonne",
+  "transactionsImportMappingHint": "Data e Descrizione sono obbligatorie. Per l'importo scegli una colonna con segno oppure la coppia Dare e Avere. Ogni campo può essere associato a una sola colonna.",
+  "transactionsImportFieldDate": "Data",
+  "transactionsImportFieldDescription": "Descrizione",
+  "transactionsImportFieldSignedAmount": "Importo con segno",
+  "transactionsImportFieldDebit": "Dare (uscite)",
+  "transactionsImportFieldCredit": "Avere (entrate)",
+  "transactionsImportFieldReference": "Riferimento",
+  "transactionsImportFieldNotes": "Note",
+  "transactionsImportFieldIgnore": "Ignora",
+  "transactionsImportContinue": "Continua",
+  "transactionsImportBack": "Indietro",
+  "transactionsImportFormatTitle": "Scegli come leggere i valori",
+  "transactionsImportFormatHint": "Alcuni valori del file possono essere letti in più modi. Nessuna interpretazione viene scelta automaticamente: indica tu il formato corretto.",
+  "transactionsImportNumberFormatLabel": "Separatore decimale",
+  "transactionsImportNumberFormatAuto": "Non specificato",
+  "transactionsImportNumberFormatComma": "Virgola: 1.234,56",
+  "transactionsImportNumberFormatDot": "Punto: 1,234.56",
+  "transactionsImportNumberFormatRequired": "Il file contiene importi ambigui: scegli il separatore decimale.",
+  "transactionsImportDateFormatLabel": "Ordine dei campi data",
+  "transactionsImportDateFormatAuto": "Non specificato",
+  "transactionsImportDateFormatDmy": "Giorno/Mese/Anno",
+  "transactionsImportDateFormatMdy": "Mese/Giorno/Anno",
+  "transactionsImportDateFormatYmd": "Anno-Mese-Giorno",
+  "transactionsImportDateFormatRequired": "Il file contiene date ambigue: scegli l'ordine di giorno e mese.",
+  "transactionsImportSummaryTitle": "Riepilogo analisi",
+  "transactionsImportSummaryRead": "Righe lette: {count}",
+  "@transactionsImportSummaryRead": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "transactionsImportSummaryValid": "Movimenti validi: {count}",
+  "@transactionsImportSummaryValid": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "transactionsImportSummaryInvalid": "Righe con errori: {count}",
+  "@transactionsImportSummaryInvalid": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "transactionsImportSummaryPossibleDuplicates": "Possibili duplicati segnalati: {count}",
+  "@transactionsImportSummaryPossibleDuplicates": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "transactionsImportSummaryDuplicatesInFile": "Duplicati nel file esclusi: {count}",
+  "@transactionsImportSummaryDuplicatesInFile": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "transactionsImportSummarySelected": "Righe da importare: {count}",
+  "@transactionsImportSummarySelected": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "transactionsImportSummaryEmpty": "Righe vuote ignorate: {count}",
+  "@transactionsImportSummaryEmpty": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "transactionsImportSummaryWarnings": "Avvisi: {count}",
+  "@transactionsImportSummaryWarnings": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "transactionsImportPreviewTitle": "Anteprima (prime 20 righe)",
+  "transactionsImportPreviewRowTitle": "Riga {row} · {status}",
+  "@transactionsImportPreviewRowTitle": {
+    "placeholders": {
+      "row": { "type": "int" },
+      "status": { "type": "String" }
+    }
+  },
+  "transactionsImportPreviewRowDetail": "{date} · {kind} {amount} € · {description}",
+  "@transactionsImportPreviewRowDetail": {
+    "placeholders": {
+      "date": { "type": "String" },
+      "kind": { "type": "String" },
+      "amount": { "type": "String" },
+      "description": { "type": "String" }
+    }
+  },
+  "transactionsImportPreviewStatusOk": "ok",
+  "transactionsImportPreviewStatusError": "errore",
+  "transactionsImportPreviewStatusPossibleDuplicate": "possibile duplicato",
+  "transactionsImportPreviewStatusDuplicateInFile": "duplicato nel file",
+  "transactionsImportIncludeDuplicate": "Importa comunque questa riga",
+  "transactionsImportIssueWithRow": "Riga {row} — {message}",
+  "@transactionsImportIssueWithRow": {
+    "placeholders": {
+      "row": { "type": "int" },
+      "message": { "type": "String" }
+    }
+  },
+  "transactionsImportIssueDateMissing": "Data mancante.",
+  "transactionsImportIssueDateInvalid": "Data non valida.",
+  "transactionsImportIssueDateUnsupportedFormat": "Formato data non supportato. Usa AAAA-MM-GG oppure GG/MM/AAAA con anno a quattro cifre.",
+  "transactionsImportIssueNeedsDateFormat": "Giorno e mese sono ambigui: scegli l'ordine dei campi data.",
+  "transactionsImportIssueAmountMissing": "Importo mancante.",
+  "transactionsImportIssueAmountNotNumeric": "Importo non numerico.",
+  "transactionsImportIssueAmountZero": "L'importo non può essere zero.",
+  "transactionsImportIssueAmountTooManyDecimals": "L'importo ha più di due cifre decimali.",
+  "transactionsImportIssueAmountOutOfRange": "Importo fuori dai limiti consentiti.",
+  "transactionsImportIssueAmountSignNotAllowed": "Nelle colonne Dare e Avere il segno non è ammesso.",
+  "transactionsImportIssueAmountBothDebitAndCredit": "La riga valorizza sia Dare sia Avere.",
+  "transactionsImportIssueNeedsNumberFormat": "Separatore decimale ambiguo: scegli il formato degli importi.",
+  "transactionsImportIssueDescriptionMissing": "Descrizione mancante.",
+  "transactionsImportIssueDescriptionTooLong": "Descrizione troppo lunga (massimo 500 caratteri).",
+  "transactionsImportIssueNotesTooLong": "Note troppo lunghe (massimo 2000 caratteri).",
+  "transactionsImportIssueReferenceTooLong": "Riferimento troppo lungo (massimo 120 caratteri).",
+  "transactionsImportIssueFormulaCell": "Le formule Excel non sono supportate in questo campo.",
+  "transactionsImportIssueDuplicateInFile": "Riga già presente nel file: verrà importata una sola volta.",
+  "transactionsImportIssuePossibleDuplicate": "Esiste già un movimento simile in azienda: la riga è esclusa per sicurezza.",
+  "transactionsImportIssueDateMappingRequired": "Associa la colonna Data a una sola colonna del file.",
+  "transactionsImportIssueDescriptionMappingRequired": "Associa la colonna Descrizione a una sola colonna del file.",
+  "transactionsImportIssueAmountMappingRequired": "Associa una colonna Importo con segno oppure la coppia Dare e Avere.",
+  "transactionsImportIssueFieldMappedMoreThanOnce": "Ogni campo può essere associato a una sola colonna.",
+  "transactionsImportIssueFileTooLarge": "Il file supera il limite di 2 MB.",
+  "transactionsImportIssueTooManyRows": "Il file supera il limite di 500 righe dati.",
+  "transactionsImportIssueTooManySheets": "Troppi fogli Excel (massimo 20).",
+  "transactionsImportIssueGeneric": "Problema nella riga.",
+  "transactionsImportConfirm": "Conferma importazione",
+  "transactionsImportInProgress": "Importazione in corso...",
+  "transactionsImportResultTitle": "Importazione completata",
+  "transactionsImportResultImported": "Movimenti importati: {count}",
+  "@transactionsImportResultImported": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "transactionsImportResultSkippedInvalid": "Righe scartate dal server: {count}",
+  "@transactionsImportResultSkippedInvalid": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "transactionsImportResultSkippedDuplicate": "Duplicati esclusi dal server: {count}",
+  "@transactionsImportResultSkippedDuplicate": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "transactionsImportBackToList": "Torna ai movimenti",
   "transactionNewTitle": "Nuovo movimento",
   "transactionEditTitle": "Modifica movimento",
   "transactionNotFound": "Movimento non trovato.",

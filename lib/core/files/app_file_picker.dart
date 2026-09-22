@@ -5,6 +5,9 @@ abstract class AppFilePicker {
   /// CSV / XLSX per import clienti.
   Future<AppFilePickResult> pickCustomerImportFile();
 
+  /// CSV / XLSX per import movimenti.
+  Future<AppFilePickResult> pickTransactionImportFile();
+
   /// PDF / immagini per upload documenti.
   Future<AppFilePickResult> pickDocumentUploadFile();
 }

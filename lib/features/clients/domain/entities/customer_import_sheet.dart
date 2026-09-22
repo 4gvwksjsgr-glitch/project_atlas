@@ -1,9 +1,3 @@
-class CustomerImportSheet {
-  const CustomerImportSheet({required this.name, required this.rowCount});
+import '../../../../core/tabular_import/tabular_import_sheet.dart';
 
-  final String name;
-  final int rowCount;
-
-  @override
-  String toString() => 'CustomerImportSheet(rowCount: $rowCount)';
-}
+typedef CustomerImportSheet = TabularImportSheet;

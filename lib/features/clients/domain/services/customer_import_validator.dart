@@ -1,3 +1,4 @@
+import '../../../../core/tabular_import/tabular_import_source.dart';
 import '../entities/customer_import_issue.dart';
 import '../entities/customer_import_mapping.dart';
 import '../entities/customer_import_payload_row.dart';
@@ -105,7 +106,14 @@ class CustomerImportValidator {
     required Set<String> existingEmailsNormalized,
   }) {
     final sourceIssues = <CustomerImportIssue>[
-      ...source.constraintIssues,
+      ...source.constraintIssues.map(
+        (issue) => CustomerImportIssue(
+          severity: issue.severity == TabularImportIssueSeverity.error
+              ? CustomerImportIssueSeverity.error
+              : CustomerImportIssueSeverity.warning,
+          code: issue.code,
+        ),
+      ),
       ...mapping.validationCodes.map(
         (code) => CustomerImportIssue(
           severity: CustomerImportIssueSeverity.error,

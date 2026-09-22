@@ -78,6 +78,14 @@ class TransactionsListBody extends ConsumerWidget {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
+            if (canManage) ...[
+              const SizedBox(height: AppUiConstants.spacingMedium),
+              OutlinedButton.icon(
+                onPressed: () => context.push(RoutePaths.transactionsImport),
+                icon: const Icon(Icons.upload_file),
+                label: Text(l10n.transactionsImportButton),
+              ),
+            ],
             const SizedBox(height: AppUiConstants.spacingMedium),
             // Fuori da async.when: non viene ricreato al refetch (focus ricerca).
             TransactionFiltersBar(companyId: companyId),

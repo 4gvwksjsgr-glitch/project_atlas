@@ -21,6 +21,7 @@ import '../../features/companies/presentation/screens/company_team_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/documents/presentation/screens/documents_screen.dart';
 import '../../features/transactions/presentation/screens/transaction_form_screen.dart';
+import '../../features/transactions/presentation/screens/transaction_import_screen.dart';
 import '../../features/transactions/presentation/screens/transactions_screen.dart';
 import 'route_guards.dart';
 import 'route_paths.dart';
@@ -146,6 +147,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'new',
                     builder: (context, state) => const TransactionFormScreen(),
+                  ),
+                  // Prima di ':transactionId/edit': 'import' non è un id.
+                  GoRoute(
+                    path: 'import',
+                    builder: (context, state) =>
+                        const TransactionImportScreen(),
                   ),
                   GoRoute(
                     path: ':transactionId/edit',

@@ -584,6 +584,336 @@ class AppLocalizationsIt extends AppLocalizations {
   String get transactionsNewButton => 'Nuovo movimento';
 
   @override
+  String get transactionsImportButton => 'Importa movimenti';
+
+  @override
+  String get transactionsImportTitle => 'Importa movimenti';
+
+  @override
+  String get transactionsImportForbidden =>
+      'Non hai i permessi per importare movimenti.';
+
+  @override
+  String get transactionsImportIntro =>
+      'Importa i movimenti di cassa da un file CSV o Excel nell\'azienda attiva.';
+
+  @override
+  String get transactionsImportFieldsNotice =>
+      'Questa versione importa soltanto: Data, Descrizione, Importo (colonna con segno oppure Dare e Avere), Riferimento, Note. Il verso del movimento viene dedotto dal segno dell\'importo o dalla colonna Dare/Avere.';
+
+  @override
+  String get transactionsImportLimits =>
+      'Limiti: file fino a 2 MB, massimo 500 righe dati, massimo 20 fogli Excel, un foglio alla volta.';
+
+  @override
+  String get transactionsImportDeferredNotice =>
+      'Non sono previsti in questa versione: collegamento alle API bancarie, calcoli fiscali e annullamento di un\'importazione.';
+
+  @override
+  String get transactionsImportPickFile => 'Seleziona file CSV o XLSX';
+
+  @override
+  String get transactionsImportPickSheet => 'Scegli il foglio da importare';
+
+  @override
+  String transactionsImportSheetRows(int count) {
+    return '$count righe dati';
+  }
+
+  @override
+  String get transactionsImportMappingTitle => 'Associa le colonne';
+
+  @override
+  String get transactionsImportMappingHint =>
+      'Data e Descrizione sono obbligatorie. Per l\'importo scegli una colonna con segno oppure la coppia Dare e Avere. Ogni campo può essere associato a una sola colonna.';
+
+  @override
+  String get transactionsImportFieldDate => 'Data';
+
+  @override
+  String get transactionsImportFieldDescription => 'Descrizione';
+
+  @override
+  String get transactionsImportFieldSignedAmount => 'Importo con segno';
+
+  @override
+  String get transactionsImportFieldDebit => 'Dare (uscite)';
+
+  @override
+  String get transactionsImportFieldCredit => 'Avere (entrate)';
+
+  @override
+  String get transactionsImportFieldReference => 'Riferimento';
+
+  @override
+  String get transactionsImportFieldNotes => 'Note';
+
+  @override
+  String get transactionsImportFieldIgnore => 'Ignora';
+
+  @override
+  String get transactionsImportContinue => 'Continua';
+
+  @override
+  String get transactionsImportBack => 'Indietro';
+
+  @override
+  String get transactionsImportFormatTitle => 'Scegli come leggere i valori';
+
+  @override
+  String get transactionsImportFormatHint =>
+      'Alcuni valori del file possono essere letti in più modi. Nessuna interpretazione viene scelta automaticamente: indica tu il formato corretto.';
+
+  @override
+  String get transactionsImportNumberFormatLabel => 'Separatore decimale';
+
+  @override
+  String get transactionsImportNumberFormatAuto => 'Non specificato';
+
+  @override
+  String get transactionsImportNumberFormatComma => 'Virgola: 1.234,56';
+
+  @override
+  String get transactionsImportNumberFormatDot => 'Punto: 1,234.56';
+
+  @override
+  String get transactionsImportNumberFormatRequired =>
+      'Il file contiene importi ambigui: scegli il separatore decimale.';
+
+  @override
+  String get transactionsImportDateFormatLabel => 'Ordine dei campi data';
+
+  @override
+  String get transactionsImportDateFormatAuto => 'Non specificato';
+
+  @override
+  String get transactionsImportDateFormatDmy => 'Giorno/Mese/Anno';
+
+  @override
+  String get transactionsImportDateFormatMdy => 'Mese/Giorno/Anno';
+
+  @override
+  String get transactionsImportDateFormatYmd => 'Anno-Mese-Giorno';
+
+  @override
+  String get transactionsImportDateFormatRequired =>
+      'Il file contiene date ambigue: scegli l\'ordine di giorno e mese.';
+
+  @override
+  String get transactionsImportSummaryTitle => 'Riepilogo analisi';
+
+  @override
+  String transactionsImportSummaryRead(int count) {
+    return 'Righe lette: $count';
+  }
+
+  @override
+  String transactionsImportSummaryValid(int count) {
+    return 'Movimenti validi: $count';
+  }
+
+  @override
+  String transactionsImportSummaryInvalid(int count) {
+    return 'Righe con errori: $count';
+  }
+
+  @override
+  String transactionsImportSummaryPossibleDuplicates(int count) {
+    return 'Possibili duplicati segnalati: $count';
+  }
+
+  @override
+  String transactionsImportSummaryDuplicatesInFile(int count) {
+    return 'Duplicati nel file esclusi: $count';
+  }
+
+  @override
+  String transactionsImportSummarySelected(int count) {
+    return 'Righe da importare: $count';
+  }
+
+  @override
+  String transactionsImportSummaryEmpty(int count) {
+    return 'Righe vuote ignorate: $count';
+  }
+
+  @override
+  String transactionsImportSummaryWarnings(int count) {
+    return 'Avvisi: $count';
+  }
+
+  @override
+  String get transactionsImportPreviewTitle => 'Anteprima (prime 20 righe)';
+
+  @override
+  String transactionsImportPreviewRowTitle(int row, String status) {
+    return 'Riga $row · $status';
+  }
+
+  @override
+  String transactionsImportPreviewRowDetail(
+    String date,
+    String kind,
+    String amount,
+    String description,
+  ) {
+    return '$date · $kind $amount € · $description';
+  }
+
+  @override
+  String get transactionsImportPreviewStatusOk => 'ok';
+
+  @override
+  String get transactionsImportPreviewStatusError => 'errore';
+
+  @override
+  String get transactionsImportPreviewStatusPossibleDuplicate =>
+      'possibile duplicato';
+
+  @override
+  String get transactionsImportPreviewStatusDuplicateInFile =>
+      'duplicato nel file';
+
+  @override
+  String get transactionsImportIncludeDuplicate =>
+      'Importa comunque questa riga';
+
+  @override
+  String transactionsImportIssueWithRow(int row, String message) {
+    return 'Riga $row — $message';
+  }
+
+  @override
+  String get transactionsImportIssueDateMissing => 'Data mancante.';
+
+  @override
+  String get transactionsImportIssueDateInvalid => 'Data non valida.';
+
+  @override
+  String get transactionsImportIssueDateUnsupportedFormat =>
+      'Formato data non supportato. Usa AAAA-MM-GG oppure GG/MM/AAAA con anno a quattro cifre.';
+
+  @override
+  String get transactionsImportIssueNeedsDateFormat =>
+      'Giorno e mese sono ambigui: scegli l\'ordine dei campi data.';
+
+  @override
+  String get transactionsImportIssueAmountMissing => 'Importo mancante.';
+
+  @override
+  String get transactionsImportIssueAmountNotNumeric => 'Importo non numerico.';
+
+  @override
+  String get transactionsImportIssueAmountZero =>
+      'L\'importo non può essere zero.';
+
+  @override
+  String get transactionsImportIssueAmountTooManyDecimals =>
+      'L\'importo ha più di due cifre decimali.';
+
+  @override
+  String get transactionsImportIssueAmountOutOfRange =>
+      'Importo fuori dai limiti consentiti.';
+
+  @override
+  String get transactionsImportIssueAmountSignNotAllowed =>
+      'Nelle colonne Dare e Avere il segno non è ammesso.';
+
+  @override
+  String get transactionsImportIssueAmountBothDebitAndCredit =>
+      'La riga valorizza sia Dare sia Avere.';
+
+  @override
+  String get transactionsImportIssueNeedsNumberFormat =>
+      'Separatore decimale ambiguo: scegli il formato degli importi.';
+
+  @override
+  String get transactionsImportIssueDescriptionMissing =>
+      'Descrizione mancante.';
+
+  @override
+  String get transactionsImportIssueDescriptionTooLong =>
+      'Descrizione troppo lunga (massimo 500 caratteri).';
+
+  @override
+  String get transactionsImportIssueNotesTooLong =>
+      'Note troppo lunghe (massimo 2000 caratteri).';
+
+  @override
+  String get transactionsImportIssueReferenceTooLong =>
+      'Riferimento troppo lungo (massimo 120 caratteri).';
+
+  @override
+  String get transactionsImportIssueFormulaCell =>
+      'Le formule Excel non sono supportate in questo campo.';
+
+  @override
+  String get transactionsImportIssueDuplicateInFile =>
+      'Riga già presente nel file: verrà importata una sola volta.';
+
+  @override
+  String get transactionsImportIssuePossibleDuplicate =>
+      'Esiste già un movimento simile in azienda: la riga è esclusa per sicurezza.';
+
+  @override
+  String get transactionsImportIssueDateMappingRequired =>
+      'Associa la colonna Data a una sola colonna del file.';
+
+  @override
+  String get transactionsImportIssueDescriptionMappingRequired =>
+      'Associa la colonna Descrizione a una sola colonna del file.';
+
+  @override
+  String get transactionsImportIssueAmountMappingRequired =>
+      'Associa una colonna Importo con segno oppure la coppia Dare e Avere.';
+
+  @override
+  String get transactionsImportIssueFieldMappedMoreThanOnce =>
+      'Ogni campo può essere associato a una sola colonna.';
+
+  @override
+  String get transactionsImportIssueFileTooLarge =>
+      'Il file supera il limite di 2 MB.';
+
+  @override
+  String get transactionsImportIssueTooManyRows =>
+      'Il file supera il limite di 500 righe dati.';
+
+  @override
+  String get transactionsImportIssueTooManySheets =>
+      'Troppi fogli Excel (massimo 20).';
+
+  @override
+  String get transactionsImportIssueGeneric => 'Problema nella riga.';
+
+  @override
+  String get transactionsImportConfirm => 'Conferma importazione';
+
+  @override
+  String get transactionsImportInProgress => 'Importazione in corso...';
+
+  @override
+  String get transactionsImportResultTitle => 'Importazione completata';
+
+  @override
+  String transactionsImportResultImported(int count) {
+    return 'Movimenti importati: $count';
+  }
+
+  @override
+  String transactionsImportResultSkippedInvalid(int count) {
+    return 'Righe scartate dal server: $count';
+  }
+
+  @override
+  String transactionsImportResultSkippedDuplicate(int count) {
+    return 'Duplicati esclusi dal server: $count';
+  }
+
+  @override
+  String get transactionsImportBackToList => 'Torna ai movimenti';
+
+  @override
   String get transactionNewTitle => 'Nuovo movimento';
 
   @override

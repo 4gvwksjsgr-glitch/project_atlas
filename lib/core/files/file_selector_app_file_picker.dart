@@ -20,8 +20,11 @@ class FileSelectorAppFilePicker implements AppFilePicker {
 
   final OpenPickedFile _openPickedFile;
 
-  /// Allineato a `CustomerImportSource.maxFileBytes`.
+  /// Allineato a `TabularImportSource.maxFileBytes`.
   static const customerImportMaxBytes = 2 * 1024 * 1024;
+
+  /// Stesso limite tabellare dell'import clienti.
+  static const transactionImportMaxBytes = customerImportMaxBytes;
 
   /// Allineato a `DocumentFileRules.maxSizeBytes`.
   static const documentUploadMaxBytes = 6291456;
@@ -52,6 +55,9 @@ class FileSelectorAppFilePicker implements AppFilePicker {
     ),
   ];
 
+  /// Stessi tipi dell'import clienti: entrambi accettano CSV/XLSX.
+  static final transactionImportTypeGroups = customerImportTypeGroups;
+
   static final documentUploadTypeGroups = <XTypeGroup>[
     XTypeGroup(
       label: 'Documenti',
@@ -79,6 +85,15 @@ class FileSelectorAppFilePicker implements AppFilePicker {
     return _pickSingle(
       acceptedTypeGroups: customerImportTypeGroups,
       maxBytesBeforeRead: customerImportMaxBytes,
+      tooLargeMessage: 'Il file supera il limite di 2 MB.',
+    );
+  }
+
+  @override
+  Future<AppFilePickResult> pickTransactionImportFile() {
+    return _pickSingle(
+      acceptedTypeGroups: transactionImportTypeGroups,
+      maxBytesBeforeRead: transactionImportMaxBytes,
       tooLargeMessage: 'Il file supera il limite di 2 MB.',
     );
   }

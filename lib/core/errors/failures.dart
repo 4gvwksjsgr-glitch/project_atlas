@@ -172,6 +172,27 @@ final class AtlasCheckoutInvalidUrlFailure extends Failure {
   ]);
 }
 
+final class AtlasImportFileAlreadyImportedFailure extends Failure {
+  const AtlasImportFileAlreadyImportedFailure([
+    super.message =
+        'Questo file è già stato importato per questa azienda. '
+        'I movimenti non sono stati duplicati.',
+  ]);
+}
+
+final class AtlasImportPayloadInvalidFailure extends Failure {
+  const AtlasImportPayloadInvalidFailure([
+    super.message =
+        'Payload di importazione non valido. Controlla il file e riprova.',
+  ]);
+}
+
+final class AtlasImportTooManyRowsFailure extends Failure {
+  const AtlasImportTooManyRowsFailure([
+    super.message = 'Il file supera il limite di 500 righe dati.',
+  ]);
+}
+
 final class AtlasCheckoutOpenFailure extends Failure {
   const AtlasCheckoutOpenFailure([
     super.message = 'Impossibile aprire la pagina di pagamento.',

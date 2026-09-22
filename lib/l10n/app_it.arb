@@ -625,5 +625,45 @@
   "atlasCheckoutAlreadyOpen": "Esiste già un checkout aperto.",
   "atlasCheckoutInProgress": "Checkout già in preparazione. Attendi qualche secondo.",
   "atlasProviderOutcomeUnknown": "Stato del pagamento non ancora confermato.",
-  "atlasCheckoutOpenFailed": "Impossibile aprire la pagina di pagamento."
+  "atlasCheckoutOpenFailed": "Impossibile aprire la pagina di pagamento.",
+  "referralSectionTitle": "Invita un amico",
+  "referralLoading": "Caricamento referral...",
+  "referralLoadError": "Caricamento referral non riuscito. Riprova.",
+  "referralProgressCount": "{rewardedCount} di {maxRewards} mesi Premium",
+  "@referralProgressCount": {
+    "placeholders": {
+      "rewardedCount": {
+        "type": "int"
+      },
+      "maxRewards": {
+        "type": "int"
+      }
+    }
+  },
+  "referralPremiumMonthsEarned": "{count} mesi Premium guadagnati",
+  "@referralPremiumMonthsEarned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "referralLinkLabel": "Il tuo link di invito",
+  "referralCopyLink": "Copia link",
+  "referralLinkCopied": "Link copiato.",
+  "referralRegenerateLink": "Rigenera link",
+  "referralHistoryTitle": "Cronologia",
+  "referralFriendLabel": "Amico iscritto",
+  "referralStatusClaimed": "In attesa",
+  "referralStatusRewarded": "Premiato",
+  "referralStatusLimitReached": "Limite raggiunto",
+  "referralStatusUnknown": "Sconosciuto",
+  "referralLandingTitle": "Invito referral",
+  "referralLandingSubtitle": "Hai ricevuto un invito. Crea un account o accedi per continuare.",
+  "referralCodeSaved": "Codice referral salvato. Completa registrazione o accesso.",
+  "referralContinueSignup": "Crea account",
+  "referralContinueLogin": "Accedi",
+  "referralContinueAuthenticated": "Continua",
+  "referralCodeInvalid": "Il codice referral non è valido.",
+  "referralStashError": "Impossibile salvare il codice referral. Riprova."
 }

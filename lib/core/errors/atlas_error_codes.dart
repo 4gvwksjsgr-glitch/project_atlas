@@ -28,6 +28,11 @@ abstract final class AtlasErrorCodes {
   static const importPayloadInvalid = 'ATLAS_IMPORT_PAYLOAD_INVALID';
   static const importTooManyRows = 'ATLAS_IMPORT_TOO_MANY_ROWS';
   static const importInProgress = 'ATLAS_IMPORT_IN_PROGRESS';
+  static const referralCodeInvalid = 'ATLAS_REFERRAL_CODE_INVALID';
+  static const referralClaimWindowClosed = 'ATLAS_REFERRAL_CLAIM_WINDOW_CLOSED';
+  static const referralSelfDenied = 'ATLAS_REFERRAL_SELF_DENIED';
+  static const referralCodeGenerateFailed =
+      'ATLAS_REFERRAL_CODE_GENERATE_FAILED';
 
   static const Set<String> all = {
     documentQuotaExceeded,
@@ -55,6 +60,10 @@ abstract final class AtlasErrorCodes {
     importPayloadInvalid,
     importTooManyRows,
     importInProgress,
+    referralCodeInvalid,
+    referralClaimWindowClosed,
+    referralSelfDenied,
+    referralCodeGenerateFailed,
   };
 
   /// Estrae il primo codice `ATLAS_*` noto da eccezione PostgREST,

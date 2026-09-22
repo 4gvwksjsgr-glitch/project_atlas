@@ -10,6 +10,11 @@ abstract final class AuthRedirectConfig {
     RoutePaths.updatePassword,
   };
 
+  /// Public deep-link prefix (no auth required).
+  static bool isReferralRoute(String location) {
+    return location == '/ref' || location.startsWith('/ref/');
+  }
+
   static const restrictedAuthRoutes = {
     RoutePaths.login,
     RoutePaths.signup,

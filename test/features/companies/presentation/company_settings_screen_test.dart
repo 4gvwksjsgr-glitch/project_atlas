@@ -26,6 +26,8 @@ import 'package:project_atlas/features/companies/presentation/widgets/active_com
 import 'package:project_atlas/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:project_atlas/features/subscription/domain/entities/company_subscription_overview.dart';
 import 'package:project_atlas/features/subscription/presentation/providers/subscription_providers.dart';
+import 'package:project_atlas/features/referrals/domain/entities/referral_overview.dart';
+import 'package:project_atlas/features/referrals/presentation/providers/referral_providers.dart';
 import 'package:project_atlas/features/transactions/domain/usecases/get_transactions.dart';
 import 'package:project_atlas/features/transactions/presentation/providers/transaction_providers.dart';
 import 'package:project_atlas/features/transactions/presentation/screens/transactions_screen.dart';
@@ -190,6 +192,18 @@ Future<(ProviderContainer, GoRouter)> _pumpSettings({
               isTrialActive: false,
             );
           }),
+          referralOverviewProvider.overrideWith((ref, id) async {
+            return ReferralOverview(
+              companyId: id,
+              code: 'SettingsTestCode1234',
+              rewardedCount: 0,
+              maxRewards: 5,
+              pendingRedemptionMonths: 0,
+              isOwner: true,
+              items: const [],
+            );
+          }),
+          referralAppBaseUrlProvider.overrideWithValue('https://app.test'),
         ],
       ),
       child: Consumer(

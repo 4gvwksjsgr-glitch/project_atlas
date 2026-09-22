@@ -20,6 +20,7 @@ import '../../features/companies/presentation/screens/company_settings_screen.da
 import '../../features/companies/presentation/screens/company_team_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/documents/presentation/screens/documents_screen.dart';
+import '../../features/referrals/presentation/screens/referral_landing_screen.dart';
 import '../../features/transactions/presentation/screens/transaction_form_screen.dart';
 import '../../features/transactions/presentation/screens/transaction_import_screen.dart';
 import '../../features/transactions/presentation/screens/transactions_screen.dart';
@@ -96,6 +97,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RoutePaths.acceptInvite,
         builder: (context, state) => const AcceptInviteScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.referralPath,
+        builder: (context, state) {
+          final code = state.pathParameters['code'] ?? '';
+          return ReferralLandingScreen(code: code);
+        },
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {

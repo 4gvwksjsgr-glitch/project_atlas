@@ -1530,4 +1530,80 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get atlasCheckoutOpenFailed =>
       'Impossibile aprire la pagina di pagamento.';
+
+  @override
+  String get referralSectionTitle => 'Invita un amico';
+
+  @override
+  String get referralLoading => 'Caricamento referral...';
+
+  @override
+  String get referralLoadError => 'Caricamento referral non riuscito. Riprova.';
+
+  @override
+  String referralProgressCount(int rewardedCount, int maxRewards) {
+    return '$rewardedCount di $maxRewards mesi Premium';
+  }
+
+  @override
+  String referralPremiumMonthsEarned(int count) {
+    return '$count mesi Premium guadagnati';
+  }
+
+  @override
+  String get referralLinkLabel => 'Il tuo link di invito';
+
+  @override
+  String get referralCopyLink => 'Copia link';
+
+  @override
+  String get referralLinkCopied => 'Link copiato.';
+
+  @override
+  String get referralRegenerateLink => 'Rigenera link';
+
+  @override
+  String get referralHistoryTitle => 'Cronologia';
+
+  @override
+  String get referralFriendLabel => 'Amico iscritto';
+
+  @override
+  String get referralStatusClaimed => 'In attesa';
+
+  @override
+  String get referralStatusRewarded => 'Premiato';
+
+  @override
+  String get referralStatusLimitReached => 'Limite raggiunto';
+
+  @override
+  String get referralStatusUnknown => 'Sconosciuto';
+
+  @override
+  String get referralLandingTitle => 'Invito referral';
+
+  @override
+  String get referralLandingSubtitle =>
+      'Hai ricevuto un invito. Crea un account o accedi per continuare.';
+
+  @override
+  String get referralCodeSaved =>
+      'Codice referral salvato. Completa registrazione o accesso.';
+
+  @override
+  String get referralContinueSignup => 'Crea account';
+
+  @override
+  String get referralContinueLogin => 'Accedi';
+
+  @override
+  String get referralContinueAuthenticated => 'Continua';
+
+  @override
+  String get referralCodeInvalid => 'Il codice referral non è valido.';
+
+  @override
+  String get referralStashError =>
+      'Impossibile salvare il codice referral. Riprova.';
 }

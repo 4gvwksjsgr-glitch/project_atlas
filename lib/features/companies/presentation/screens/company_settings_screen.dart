@@ -7,6 +7,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/constants/app_ui_constants.dart';
 import '../../../../shared/helpers/validators.dart';
 import '../../domain/entities/active_company_context.dart';
+import '../../../referrals/presentation/widgets/company_referral_card.dart';
 import '../../../subscription/presentation/widgets/company_plan_card.dart';
 import '../controllers/active_company_controller.dart';
 import '../controllers/company_onboarding_controller.dart';
@@ -158,6 +159,8 @@ class _CompanySettingsFormState extends ConsumerState<CompanySettingsForm> {
               ),
               const SizedBox(height: AppUiConstants.spacingLarge),
               CompanyPlanCard(companyId: _company.companyId),
+              const SizedBox(height: AppUiConstants.spacingLarge),
+              CompanyReferralCard(companyId: _company.companyId),
               const SizedBox(height: AppUiConstants.spacingLarge),
               ListTile(
                 contentPadding: EdgeInsets.zero,

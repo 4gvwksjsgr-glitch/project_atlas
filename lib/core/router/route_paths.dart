@@ -19,9 +19,12 @@ abstract final class RoutePaths {
   static const settingsCategories = '/settings/company/categories';
   static const settingsTeam = '/settings/company/team';
   static const acceptInvite = '/invites/accept';
+  static const referralPath = '/ref/:code';
 
   static String customerEdit(String customerId) => '/clients/$customerId/edit';
 
   static String transactionEdit(String transactionId) =>
       '/transactions/$transactionId/edit';
+
+  static String referral(String code) => '/ref/$code';
 }

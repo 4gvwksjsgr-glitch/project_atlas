@@ -2723,6 +2723,144 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Impossibile aprire la pagina di pagamento.'**
   String get atlasCheckoutOpenFailed;
+
+  /// No description provided for @referralSectionTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Invita un amico'**
+  String get referralSectionTitle;
+
+  /// No description provided for @referralLoading.
+  ///
+  /// In it, this message translates to:
+  /// **'Caricamento referral...'**
+  String get referralLoading;
+
+  /// No description provided for @referralLoadError.
+  ///
+  /// In it, this message translates to:
+  /// **'Caricamento referral non riuscito. Riprova.'**
+  String get referralLoadError;
+
+  /// No description provided for @referralProgressCount.
+  ///
+  /// In it, this message translates to:
+  /// **'{rewardedCount} di {maxRewards} mesi Premium'**
+  String referralProgressCount(int rewardedCount, int maxRewards);
+
+  /// No description provided for @referralPremiumMonthsEarned.
+  ///
+  /// In it, this message translates to:
+  /// **'{count} mesi Premium guadagnati'**
+  String referralPremiumMonthsEarned(int count);
+
+  /// No description provided for @referralLinkLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Il tuo link di invito'**
+  String get referralLinkLabel;
+
+  /// No description provided for @referralCopyLink.
+  ///
+  /// In it, this message translates to:
+  /// **'Copia link'**
+  String get referralCopyLink;
+
+  /// No description provided for @referralLinkCopied.
+  ///
+  /// In it, this message translates to:
+  /// **'Link copiato.'**
+  String get referralLinkCopied;
+
+  /// No description provided for @referralRegenerateLink.
+  ///
+  /// In it, this message translates to:
+  /// **'Rigenera link'**
+  String get referralRegenerateLink;
+
+  /// No description provided for @referralHistoryTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Cronologia'**
+  String get referralHistoryTitle;
+
+  /// No description provided for @referralFriendLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Amico iscritto'**
+  String get referralFriendLabel;
+
+  /// No description provided for @referralStatusClaimed.
+  ///
+  /// In it, this message translates to:
+  /// **'In attesa'**
+  String get referralStatusClaimed;
+
+  /// No description provided for @referralStatusRewarded.
+  ///
+  /// In it, this message translates to:
+  /// **'Premiato'**
+  String get referralStatusRewarded;
+
+  /// No description provided for @referralStatusLimitReached.
+  ///
+  /// In it, this message translates to:
+  /// **'Limite raggiunto'**
+  String get referralStatusLimitReached;
+
+  /// No description provided for @referralStatusUnknown.
+  ///
+  /// In it, this message translates to:
+  /// **'Sconosciuto'**
+  String get referralStatusUnknown;
+
+  /// No description provided for @referralLandingTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Invito referral'**
+  String get referralLandingTitle;
+
+  /// No description provided for @referralLandingSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Hai ricevuto un invito. Crea un account o accedi per continuare.'**
+  String get referralLandingSubtitle;
+
+  /// No description provided for @referralCodeSaved.
+  ///
+  /// In it, this message translates to:
+  /// **'Codice referral salvato. Completa registrazione o accesso.'**
+  String get referralCodeSaved;
+
+  /// No description provided for @referralContinueSignup.
+  ///
+  /// In it, this message translates to:
+  /// **'Crea account'**
+  String get referralContinueSignup;
+
+  /// No description provided for @referralContinueLogin.
+  ///
+  /// In it, this message translates to:
+  /// **'Accedi'**
+  String get referralContinueLogin;
+
+  /// No description provided for @referralContinueAuthenticated.
+  ///
+  /// In it, this message translates to:
+  /// **'Continua'**
+  String get referralContinueAuthenticated;
+
+  /// No description provided for @referralCodeInvalid.
+  ///
+  /// In it, this message translates to:
+  /// **'Il codice referral non è valido.'**
+  String get referralCodeInvalid;
+
+  /// No description provided for @referralStashError.
+  ///
+  /// In it, this message translates to:
+  /// **'Impossibile salvare il codice referral. Riprova.'**
+  String get referralStashError;
 }
 
 class _AppLocalizationsDelegate

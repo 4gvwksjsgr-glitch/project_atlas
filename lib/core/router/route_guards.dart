@@ -28,6 +28,11 @@ String? resolveAuthRedirect({
     return null;
   }
 
+  // Authenticated users may still open /ref/:code to stash+claim.
+  if (AuthRedirectConfig.isReferralRoute(location)) {
+    return null;
+  }
+
   return switch (companiesState) {
     UserCompaniesLoading() => null,
     UserCompaniesEmpty() => _redirectWithoutCompanies(location),

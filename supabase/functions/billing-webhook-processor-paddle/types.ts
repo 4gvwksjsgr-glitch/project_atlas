@@ -108,6 +108,11 @@ export interface HandlerDeps {
   rpc: ProcessorRpcClient;
   /** Optional override for tests; defaults to crypto.subtle. */
   subtle?: SubtleCrypto;
+  /**
+   * Step 18B: after terminal subscription apply, best-effort auto redeem.
+   * Must not throw; must not fail the processor outcome.
+   */
+  maybeAutoRedeem?: (companyId: string | null) => Promise<void>;
 }
 
 export type ProcessorHttpOutcome =

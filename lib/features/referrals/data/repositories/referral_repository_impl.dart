@@ -78,4 +78,23 @@ class ReferralRepositoryImpl implements ReferralRepository {
       );
     }
   }
+
+  @override
+  Future<Result<RetryReferralRedemptionResult>> retryReferralRedemption({
+    required String companyId,
+  }) async {
+    try {
+      final model = await _remote.retryReferralRedemption(
+        companyId: companyId,
+      );
+      return Success(model.toEntity());
+    } catch (error) {
+      return Error(
+        ReferralErrorMapper.mapException(
+          error,
+          ReferralOperation.retryRedemption,
+        ),
+      );
+    }
+  }
 }

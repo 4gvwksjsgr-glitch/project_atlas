@@ -156,6 +156,10 @@ class ReferralOverviewModel {
     required this.rewardedCount,
     required this.maxRewards,
     required this.pendingRedemptionMonths,
+    required this.applyingRedemptionMonths,
+    required this.redeemedRedemptionMonths,
+    this.redemptionBlockReason,
+    this.openOperationStatus,
     required this.isOwner,
     required this.items,
   });
@@ -165,6 +169,10 @@ class ReferralOverviewModel {
   final int rewardedCount;
   final int maxRewards;
   final int pendingRedemptionMonths;
+  final int applyingRedemptionMonths;
+  final int redeemedRedemptionMonths;
+  final String? redemptionBlockReason;
+  final String? openOperationStatus;
   final bool isOwner;
   final List<ReferralHistoryItemModel> items;
 
@@ -186,6 +194,18 @@ class ReferralOverviewModel {
         json['pending_redemption_months'],
         fallback: 0,
       ),
+      applyingRedemptionMonths: _parseInt(
+        json['applying_redemption_months'],
+        fallback: 0,
+      ),
+      redeemedRedemptionMonths: _parseInt(
+        json['redeemed_redemption_months'],
+        fallback: 0,
+      ),
+      redemptionBlockReason: _parseOptionalString(
+        json['redemption_block_reason'],
+      ),
+      openOperationStatus: _parseOptionalString(json['open_operation_status']),
       isOwner: json['is_owner'] == true,
       items: _parseItems(json['items']),
     );
@@ -198,6 +218,10 @@ class ReferralOverviewModel {
       rewardedCount: rewardedCount,
       maxRewards: maxRewards,
       pendingRedemptionMonths: pendingRedemptionMonths,
+      applyingRedemptionMonths: applyingRedemptionMonths,
+      redeemedRedemptionMonths: redeemedRedemptionMonths,
+      redemptionBlockReason: redemptionBlockReason,
+      openOperationStatus: openOperationStatus,
       isOwner: isOwner,
       items: items.map((item) => item.toEntity()).toList(growable: false),
     );
@@ -222,6 +246,58 @@ class ReferralOverviewModel {
       throw FormatException('Elemento items referral non valido', entry);
     }).toList(growable: false);
   }
+}
+
+class RetryReferralRedemptionResultModel {
+  const RetryReferralRedemptionResultModel({
+    required this.outcome,
+    this.operationStatus,
+    this.errorCode,
+    required this.pendingMonths,
+    required this.applyingMonths,
+    required this.redeemedMonths,
+  });
+
+  final String outcome;
+  final String? operationStatus;
+  final String? errorCode;
+  final int pendingMonths;
+  final int applyingMonths;
+  final int redeemedMonths;
+
+  factory RetryReferralRedemptionResultModel.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    final outcome = _parseOptionalString(json['outcome']);
+    if (outcome == null) {
+      throw const FormatException('Payload retry_referral_redemption non valido');
+    }
+
+    return RetryReferralRedemptionResultModel(
+      outcome: outcome,
+      operationStatus: _parseOptionalString(json['operation_status']),
+      errorCode: _parseOptionalString(json['error_code']),
+      pendingMonths: _parseInt(json['pending_months'], fallback: 0),
+      applyingMonths: _parseInt(json['applying_months'], fallback: 0),
+      redeemedMonths: _parseInt(json['redeemed_months'], fallback: 0),
+    );
+  }
+
+  RetryReferralRedemptionResult toEntity() {
+    return RetryReferralRedemptionResult(
+      outcome: outcome,
+      operationStatus: operationStatus,
+      errorCode: errorCode,
+      pendingMonths: pendingMonths,
+      applyingMonths: applyingMonths,
+      redeemedMonths: redeemedMonths,
+    );
+  }
+}
+
+String? _parseOptionalString(Object? value) {
+  final text = value?.toString().trim();
+  return (text == null || text.isEmpty) ? null : text;
 }
 
 int _parseInt(Object? value, {required int fallback}) {

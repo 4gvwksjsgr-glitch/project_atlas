@@ -414,8 +414,10 @@ DECLARE
   v_t8 TIMESTAMPTZ := TIMESTAMPTZ '2026-08-17 10:40:00+00';
   -- 14C-2I: equal occurred_at for created→activated (mirrors Sandbox E2E).
   v_t_conv TIMESTAMPTZ := TIMESTAMPTZ '2026-08-17 12:00:00+00';
-  v_period_start TIMESTAMPTZ := TIMESTAMPTZ '2026-08-17 10:00:00+00';
-  v_period_end TIMESTAMPTZ := TIMESTAMPTZ '2026-09-17 10:00:00+00';
+  v_period_start TIMESTAMPTZ := now() - interval '10 days';
+  -- Active entitlement requires period_end > now(). Clock-relative UTC-stable
+  -- fixtures avoid calendar time-bombs (fixed 2026-09-17 / 2027-09-17).
+  v_period_end TIMESTAMPTZ := now() + interval '20 days';
 
   v_apply_sig TEXT :=
     'public.apply_paddle_sandbox_webhook_event_server(uuid)';

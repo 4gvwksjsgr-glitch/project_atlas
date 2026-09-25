@@ -396,6 +396,18 @@ export async function handleBillingReconciliation(
       provider_updated_at: snap.provider_updated_at,
     });
 
+    // Step 18B AUTO: heal/confirm open ops or claim pending when eligible.
+    if (
+      deps.maybeAutoRedeem &&
+      (applied.result === "updated" || applied.result === "in_sync")
+    ) {
+      try {
+        await deps.maybeAutoRedeem(applied.company_id);
+      } catch {
+        // Never fail reconciliation on auto-redeem errors.
+      }
+    }
+
     return responseForReconciliationOutcome(
       applied.result,
       applied.company_id,

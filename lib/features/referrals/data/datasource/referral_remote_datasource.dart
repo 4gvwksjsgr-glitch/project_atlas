@@ -66,6 +66,22 @@ class ReferralRemoteDataSource {
     return ReferralOverviewModel.fromJson(_singleRow(response));
   }
 
+  /// Owner-only; the server derives months and target dates.
+  Future<RetryReferralRedemptionResultModel> retryReferralRedemption({
+    required String companyId,
+  }) async {
+    if (companyId.isEmpty) {
+      throw ArgumentError.value(companyId, 'companyId', 'obbligatorio');
+    }
+
+    final response = await _client.rpc(
+      'retry_referral_redemption',
+      params: {'p_company_id': companyId},
+    );
+
+    return RetryReferralRedemptionResultModel.fromJson(_singleRow(response));
+  }
+
   static Map<String, dynamic> _singleRow(Object? response) {
     if (response is List) {
       if (response.isEmpty) {

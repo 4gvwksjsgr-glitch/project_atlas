@@ -31,6 +31,7 @@ function baseDeps(overrides: {
   env?: Record<string, string | undefined>;
   rpc?: Partial<ProcessorRpcClient>;
   calls?: Call[];
+  maybeAutoRedeem?: (companyId: string | null) => Promise<void>;
 }): HandlerDeps {
   const calls = overrides.calls ?? [];
   const envMap: Record<string, string | undefined> = {
@@ -91,6 +92,7 @@ function baseDeps(overrides: {
     uuid: () => CORR,
     env: (k) => envMap[k],
     rpc,
+    maybeAutoRedeem: overrides.maybeAutoRedeem,
   };
 }
 
@@ -834,3 +836,84 @@ for (
     assertEquals(calls.filter((c) => c.name === "fail").length, 1);
   });
 }
+
+// ---------------------------------------------------------------------------
+// Step 18B AUTO redeem after terminal apply
+// ---------------------------------------------------------------------------
+
+Deno.test("applied → maybeAutoRedeem once with company_id", async () => {
+  const calls: Call[] = [];
+  const auto: string[] = [];
+  const COMPANY = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+  const handler = createHandler(baseDeps({
+    calls,
+    maybeAutoRedeem: async (id) => {
+      auto.push(id ?? "null");
+    },
+    rpc: {
+      claimNextPaddleSandboxWebhookEventServer: async () => claimedRow(),
+      applyPaddleSandboxWebhookEventServer: async () =>
+        appliedRow("applied", { company_id: COMPANY }),
+    },
+  }));
+  const res = await handler(post(SYNTH_SECRET, "{}"));
+  assertEquals(res.status, 200);
+  assertEquals(auto, [COMPANY]);
+});
+
+Deno.test("stale apply → maybeAutoRedeem once (heal path allowed)", async () => {
+  const auto: string[] = [];
+  const handler = createHandler(baseDeps({
+    maybeAutoRedeem: async (id) => {
+      auto.push(id ?? "null");
+    },
+    rpc: {
+      claimNextPaddleSandboxWebhookEventServer: async () => claimedRow(),
+      applyPaddleSandboxWebhookEventServer: async () =>
+        appliedRow("stale", {
+          company_id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        }),
+    },
+  }));
+  await handler(post(SYNTH_SECRET, "{}"));
+  assertEquals(auto.length, 1);
+});
+
+Deno.test("claim_next disabled → zero maybeAutoRedeem (processor kill switch)", async () => {
+  let auto = 0;
+  const handler = createHandler(baseDeps({
+    maybeAutoRedeem: async () => {
+      auto++;
+    },
+    rpc: {
+      claimNextPaddleSandboxWebhookEventServer: async () => ({
+        outcome: "disabled",
+        inbox_event_id: null,
+        processing_status: null,
+        attempt_count: null,
+      }),
+    },
+  }));
+  const res = await handler(post(SYNTH_SECRET, "{}"));
+  assertEquals(res.status, 200);
+  assertEquals(auto, 0);
+});
+
+Deno.test("autoRedeem throw does not fail processor response", async () => {
+  const handler = createHandler(baseDeps({
+    maybeAutoRedeem: async () => {
+      throw new Error("boom");
+    },
+    rpc: {
+      claimNextPaddleSandboxWebhookEventServer: async () => claimedRow(),
+      applyPaddleSandboxWebhookEventServer: async () =>
+        appliedRow("applied", {
+          company_id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        }),
+    },
+  }));
+  const res = await handler(post(SYNTH_SECRET, "{}"));
+  assertEquals(res.status, 200);
+  const body = await readJson(res);
+  assertEquals(body.outcome, "processed");
+});

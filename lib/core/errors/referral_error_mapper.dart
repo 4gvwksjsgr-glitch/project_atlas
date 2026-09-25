@@ -9,6 +9,7 @@ enum ReferralOperation {
   getOrCreateLink,
   regenerateLink,
   claim,
+  retryRedemption,
 }
 
 abstract final class ReferralErrorMapper {
@@ -76,6 +77,38 @@ abstract final class ReferralErrorMapper {
       AtlasErrorCodes.referralCodeGenerateFailed => const UnknownFailure(
         'Generazione del codice referral non riuscita. Riprova.',
       ),
+      AtlasErrorCodes.referralRedemptionDisabled => const ValidationFailure(
+        "L'applicazione dei premi non è al momento disponibile.",
+      ),
+      AtlasErrorCodes.referralNoPendingRewards => const ValidationFailure(
+        'Non ci sono premi da applicare.',
+      ),
+      AtlasErrorCodes.referralProviderUnlinked ||
+      AtlasErrorCodes.referralProviderNotActive ||
+      AtlasErrorCodes.referralProviderTrialing ||
+      AtlasErrorCodes.referralProviderCanceled => const ValidationFailure(
+        "Il premio verrà applicato quando l'abbonamento Premium sarà attivo.",
+      ),
+      AtlasErrorCodes.referralProviderPastDue => const ValidationFailure(
+        "Il premio è in attesa della regolarizzazione dell'abbonamento.",
+      ),
+      AtlasErrorCodes.referralScheduledCancel => const ValidationFailure(
+        "Il premio è in attesa: l'abbonamento Premium non risulta in rinnovo.",
+      ),
+      AtlasErrorCodes.referralNearRenewal => const ValidationFailure(
+        'Il premio verrà applicato dopo il prossimo rinnovo. Riprova più tardi.',
+      ),
+      AtlasErrorCodes.referralPreviewNotSafe ||
+      AtlasErrorCodes.referralProviderTimeoutUnknown ||
+      AtlasErrorCodes.referralProviderStateConflict ||
+      AtlasErrorCodes.referralReconcileRequired ||
+      AtlasErrorCodes.referralProviderSubscriptionChanged ||
+      AtlasErrorCodes.referralProviderNotApplied => const UnknownFailure(
+        'Applicazione del premio non ancora completata. Riprova più tardi.',
+      ),
+      AtlasErrorCodes.referralProviderRejected => const UnknownFailure(
+        'Applicazione del premio non riuscita. Contatta il supporto.',
+      ),
       _ => const UnknownFailure(),
     };
   }
@@ -100,6 +133,8 @@ abstract final class ReferralErrorMapper {
         'Rigenerazione link referral non riuscita. Riprova.',
       ReferralOperation.claim =>
         'Reclamo del codice referral non riuscito. Riprova.',
+      ReferralOperation.retryRedemption =>
+        'Nuovo tentativo di applicazione del premio non riuscito. Riprova.',
     };
   }
 }

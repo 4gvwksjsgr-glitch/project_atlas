@@ -2751,8 +2751,86 @@ abstract class AppLocalizations {
   /// No description provided for @referralPremiumMonthsEarned.
   ///
   /// In it, this message translates to:
-  /// **'{count} mesi Premium guadagnati'**
+  /// **'{count, plural, =1{1 mese Premium guadagnato} other{{count} mesi Premium guadagnati}}'**
   String referralPremiumMonthsEarned(int count);
+
+  /// No description provided for @referralRedemptionPendingAvailable.
+  ///
+  /// In it, this message translates to:
+  /// **'{count, plural, =1{1 mese Premium disponibile} other{{count} mesi Premium disponibili}}'**
+  String referralRedemptionPendingAvailable(int count);
+
+  /// No description provided for @referralRedemptionApplying.
+  ///
+  /// In it, this message translates to:
+  /// **'Applicazione del premio in corso'**
+  String get referralRedemptionApplying;
+
+  /// No description provided for @referralRedemptionRedeemed.
+  ///
+  /// In it, this message translates to:
+  /// **'{count, plural, =1{Premio applicato: 1 mese Premium} other{Premio applicato: {count} mesi Premium}}'**
+  String referralRedemptionRedeemed(int count);
+
+  /// No description provided for @referralRedemptionRetryableFailed.
+  ///
+  /// In it, this message translates to:
+  /// **'Applicazione del premio non completata. Puoi riprovare.'**
+  String get referralRedemptionRetryableFailed;
+
+  /// No description provided for @referralRedemptionBlockedInactive.
+  ///
+  /// In it, this message translates to:
+  /// **'Il premio verrà applicato quando l\'abbonamento Premium sarà attivo'**
+  String get referralRedemptionBlockedInactive;
+
+  /// No description provided for @referralRedemptionBlockedTrial.
+  ///
+  /// In it, this message translates to:
+  /// **'Il premio verrà applicato al termine della prova, quando l\'abbonamento Premium sarà attivo'**
+  String get referralRedemptionBlockedTrial;
+
+  /// No description provided for @referralRedemptionBlockedPastDue.
+  ///
+  /// In it, this message translates to:
+  /// **'Il premio è in attesa della regolarizzazione dell\'abbonamento'**
+  String get referralRedemptionBlockedPastDue;
+
+  /// No description provided for @referralRedemptionBlockedScheduledCancel.
+  ///
+  /// In it, this message translates to:
+  /// **'Il premio è in attesa: l\'abbonamento Premium non risulta in rinnovo'**
+  String get referralRedemptionBlockedScheduledCancel;
+
+  /// No description provided for @referralRedemptionBlockedCanceled.
+  ///
+  /// In it, this message translates to:
+  /// **'Il premio non è stato applicato perché l\'abbonamento Premium non è attivo'**
+  String get referralRedemptionBlockedCanceled;
+
+  /// No description provided for @referralRedemptionBlockedNearRenewal.
+  ///
+  /// In it, this message translates to:
+  /// **'Il premio verrà applicato dopo il prossimo rinnovo'**
+  String get referralRedemptionBlockedNearRenewal;
+
+  /// No description provided for @referralRedemptionDisabled.
+  ///
+  /// In it, this message translates to:
+  /// **'L\'applicazione dei premi non è al momento disponibile'**
+  String get referralRedemptionDisabled;
+
+  /// No description provided for @referralRedemptionDelayed.
+  ///
+  /// In it, this message translates to:
+  /// **'Il premio non è ancora stato applicato'**
+  String get referralRedemptionDelayed;
+
+  /// No description provided for @referralRedemptionRetry.
+  ///
+  /// In it, this message translates to:
+  /// **'Riprova'**
+  String get referralRedemptionRetry;
 
   /// No description provided for @referralLinkLabel.
   ///

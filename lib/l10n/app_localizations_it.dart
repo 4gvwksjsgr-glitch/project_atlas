@@ -1547,8 +1547,78 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String referralPremiumMonthsEarned(int count) {
-    return '$count mesi Premium guadagnati';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mesi Premium guadagnati',
+      one: '1 mese Premium guadagnato',
+    );
+    return '$_temp0';
   }
+
+  @override
+  String referralRedemptionPendingAvailable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mesi Premium disponibili',
+      one: '1 mese Premium disponibile',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get referralRedemptionApplying => 'Applicazione del premio in corso';
+
+  @override
+  String referralRedemptionRedeemed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Premio applicato: $count mesi Premium',
+      one: 'Premio applicato: 1 mese Premium',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get referralRedemptionRetryableFailed =>
+      'Applicazione del premio non completata. Puoi riprovare.';
+
+  @override
+  String get referralRedemptionBlockedInactive =>
+      'Il premio verrà applicato quando l\'abbonamento Premium sarà attivo';
+
+  @override
+  String get referralRedemptionBlockedTrial =>
+      'Il premio verrà applicato al termine della prova, quando l\'abbonamento Premium sarà attivo';
+
+  @override
+  String get referralRedemptionBlockedPastDue =>
+      'Il premio è in attesa della regolarizzazione dell\'abbonamento';
+
+  @override
+  String get referralRedemptionBlockedScheduledCancel =>
+      'Il premio è in attesa: l\'abbonamento Premium non risulta in rinnovo';
+
+  @override
+  String get referralRedemptionBlockedCanceled =>
+      'Il premio non è stato applicato perché l\'abbonamento Premium non è attivo';
+
+  @override
+  String get referralRedemptionBlockedNearRenewal =>
+      'Il premio verrà applicato dopo il prossimo rinnovo';
+
+  @override
+  String get referralRedemptionDisabled =>
+      'L\'applicazione dei premi non è al momento disponibile';
+
+  @override
+  String get referralRedemptionDelayed =>
+      'Il premio non è ancora stato applicato';
+
+  @override
+  String get referralRedemptionRetry => 'Riprova';
 
   @override
   String get referralLinkLabel => 'Il tuo link di invito';

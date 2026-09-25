@@ -33,6 +33,28 @@ abstract final class AtlasErrorCodes {
   static const referralSelfDenied = 'ATLAS_REFERRAL_SELF_DENIED';
   static const referralCodeGenerateFailed =
       'ATLAS_REFERRAL_CODE_GENERATE_FAILED';
+  static const referralRedemptionDisabled =
+      'ATLAS_REFERRAL_REDEMPTION_DISABLED';
+  static const referralNoPendingRewards = 'ATLAS_REFERRAL_NO_PENDING_REWARDS';
+  static const referralProviderUnlinked = 'ATLAS_REFERRAL_PROVIDER_UNLINKED';
+  static const referralProviderNotActive =
+      'ATLAS_REFERRAL_PROVIDER_NOT_ACTIVE';
+  static const referralProviderPastDue = 'ATLAS_REFERRAL_PROVIDER_PAST_DUE';
+  static const referralProviderTrialing = 'ATLAS_REFERRAL_PROVIDER_TRIALING';
+  static const referralProviderCanceled = 'ATLAS_REFERRAL_PROVIDER_CANCELED';
+  static const referralScheduledCancel = 'ATLAS_REFERRAL_SCHEDULED_CANCEL';
+  static const referralNearRenewal = 'ATLAS_REFERRAL_NEAR_RENEWAL';
+  static const referralPreviewNotSafe = 'ATLAS_REFERRAL_PREVIEW_NOT_SAFE';
+  static const referralProviderTimeoutUnknown =
+      'ATLAS_REFERRAL_PROVIDER_TIMEOUT_UNKNOWN';
+  static const referralProviderRejected = 'ATLAS_REFERRAL_PROVIDER_REJECTED';
+  static const referralProviderNotApplied =
+      'ATLAS_REFERRAL_PROVIDER_NOT_APPLIED';
+  static const referralProviderSubscriptionChanged =
+      'ATLAS_REFERRAL_PROVIDER_SUBSCRIPTION_CHANGED';
+  static const referralProviderStateConflict =
+      'ATLAS_REFERRAL_PROVIDER_STATE_CONFLICT';
+  static const referralReconcileRequired = 'ATLAS_REFERRAL_RECONCILE_REQUIRED';
 
   static const Set<String> all = {
     documentQuotaExceeded,
@@ -64,6 +86,22 @@ abstract final class AtlasErrorCodes {
     referralClaimWindowClosed,
     referralSelfDenied,
     referralCodeGenerateFailed,
+    referralRedemptionDisabled,
+    referralNoPendingRewards,
+    referralProviderUnlinked,
+    referralProviderNotActive,
+    referralProviderPastDue,
+    referralProviderTrialing,
+    referralProviderCanceled,
+    referralScheduledCancel,
+    referralNearRenewal,
+    referralPreviewNotSafe,
+    referralProviderTimeoutUnknown,
+    referralProviderRejected,
+    referralProviderNotApplied,
+    referralProviderSubscriptionChanged,
+    referralProviderStateConflict,
+    referralReconcileRequired,
   };
 
   /// Estrae il primo codice `ATLAS_*` noto da eccezione PostgREST,

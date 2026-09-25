@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/errors/atlas_error_codes.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/constants/app_ui_constants.dart';
 import '../../../companies/presentation/controllers/company_onboarding_controller.dart';
@@ -159,12 +160,30 @@ class _ReferralDetailsState extends ConsumerState<_ReferralDetails> {
         ),
         const SizedBox(height: AppUiConstants.spacingSmall),
         Text(
-          l10n.referralPremiumMonthsEarned(overview.pendingRedemptionMonths),
+          l10n.referralPremiumMonthsEarned(overview.earnedRedemptionMonths),
           style: theme.textTheme.bodyLarge?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
         if (overview.isOwner) ...[
+          _RedemptionStatus(overview: overview),
+          if (overview.canRetryRedemption) ...[
+            const SizedBox(height: AppUiConstants.spacingSmall),
+            OutlinedButton(
+              onPressed: widget.isActionLoading
+                  ? null
+                  : () async {
+                      await ref
+                          .read(
+                            referralOverviewControllerProvider(
+                              widget.companyId,
+                            ).notifier,
+                          )
+                          .retryRedemption();
+                    },
+              child: Text(l10n.referralRedemptionRetry),
+            ),
+          ],
           const SizedBox(height: AppUiConstants.spacingMedium),
           if (url != null) ...[
             Text(
@@ -231,6 +250,90 @@ class _ReferralDetailsState extends ConsumerState<_ReferralDetails> {
         ],
       ],
     );
+  }
+}
+
+/// Owner-only redemption lines; never shows provider/operation ids or raw errors.
+class _RedemptionStatus extends StatelessWidget {
+  const _RedemptionStatus({required this.overview});
+
+  static const _inFlightStatuses = {
+    'claimed',
+    'previewing',
+    'ready_to_apply',
+    'provider_accepted',
+    'needs_reconcile',
+  };
+
+  final ReferralOverview overview;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final status = overview.openOperationStatus;
+    final lines = <String>[
+      if (overview.redeemedRedemptionMonths > 0)
+        l10n.referralRedemptionRedeemed(overview.redeemedRedemptionMonths),
+      if (status == 'retryable_failed')
+        l10n.referralRedemptionRetryableFailed
+      else if (overview.applyingRedemptionMonths > 0 ||
+          _inFlightStatuses.contains(status))
+        l10n.referralRedemptionApplying,
+      if (overview.pendingRedemptionMonths > 0)
+        l10n.referralRedemptionPendingAvailable(
+          overview.pendingRedemptionMonths,
+        ),
+    ];
+
+    if (status == null && overview.pendingRedemptionMonths > 0) {
+      final blocked = _blockMessage(l10n, overview.redemptionBlockReason);
+      if (blocked != null) {
+        lines.add(blocked);
+      }
+    }
+
+    if (lines.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: AppUiConstants.spacingSmall),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final line in lines)
+            Text(
+              line,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  static String? _blockMessage(AppLocalizations l10n, String? reason) {
+    return switch (reason) {
+      null || AtlasErrorCodes.referralNoPendingRewards => null,
+      AtlasErrorCodes.referralProviderUnlinked ||
+      AtlasErrorCodes.referralProviderNotActive =>
+        l10n.referralRedemptionBlockedInactive,
+      AtlasErrorCodes.referralProviderTrialing =>
+        l10n.referralRedemptionBlockedTrial,
+      AtlasErrorCodes.referralProviderPastDue =>
+        l10n.referralRedemptionBlockedPastDue,
+      AtlasErrorCodes.referralScheduledCancel =>
+        l10n.referralRedemptionBlockedScheduledCancel,
+      AtlasErrorCodes.referralProviderCanceled =>
+        l10n.referralRedemptionBlockedCanceled,
+      AtlasErrorCodes.referralNearRenewal =>
+        l10n.referralRedemptionBlockedNearRenewal,
+      AtlasErrorCodes.referralRedemptionDisabled =>
+        l10n.referralRedemptionDisabled,
+      _ => l10n.referralRedemptionDelayed,
+    };
   }
 }
 

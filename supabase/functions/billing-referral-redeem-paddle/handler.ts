@@ -165,11 +165,23 @@ async function runProviderPath(
       status: "retryable_failed",
       error_code: code,
     });
-    return jsonResponse(200, {
+    const body: Record<string, unknown> = {
       result: "preview_not_safe",
       error_code: code,
       paddle_calls: { get: 1, preview: 1, patch: 0 },
-    });
+    };
+    // Privileged redeem Edge only: expose already-sanitized Paddle status/code
+    // for definitive preview rejections (e.g. HTTP 409 conflict codes).
+    if (preview.kind === "definitive_client_error") {
+      body.provider_http_status = preview.http_status;
+      if (
+        typeof preview.paddle_error_code === "string" &&
+        preview.paddle_error_code.length > 0
+      ) {
+        body.provider_error_code = preview.paddle_error_code;
+      }
+    }
+    return jsonResponse(200, body);
   }
 
   await deps.rpc.updateReferralRedemptionOperationStatusServer({

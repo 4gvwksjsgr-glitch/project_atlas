@@ -15,12 +15,25 @@ export const PADDLE_CUSTOMER_ID_RE = /^ctm_[a-z0-9]{26}$/;
 /** Matches SQL webhook mapper: ^pri_[a-z0-9]{26}$ */
 export const PADDLE_PRICE_ID_RE = /^pri_[a-z0-9]{26}$/;
 
-/** Explicit whitelist of definitive client-rejection HTTP statuses. */
+/** Explicit whitelist of definitive client-rejection HTTP statuses (checkout). */
 export const PADDLE_DEFINITIVE_CLIENT_STATUSES = [
   400,
   401,
   403,
   404,
+  422,
+] as const;
+
+/**
+ * Definitive client-rejection statuses for subscription next_billed_at
+ * PATCH / preview only. Includes HTTP 409 (Paddle subscription conflicts).
+ */
+export const PADDLE_DEFINITIVE_SUBSCRIPTION_PATCH_STATUSES = [
+  400,
+  401,
+  403,
+  404,
+  409,
   422,
 ] as const;
 

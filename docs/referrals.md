@@ -8,7 +8,7 @@
 - After authentication, the client calls `claim_referral` when a pending code exists.
 - **Qualification** happens server-side when the referred user creates their first company (`create_company` hook). No client entitlement grant.
 - Max **5** rewarded referrals per referring company (advisory lock + unique `reward_slot` 1..5).
-- Billing classification **B**: rewards are recorded as pending ledger months; provider redemption is deferred. UI copy uses **mesi Premium guadagnati** (never “pagamento annullato”).
+- Billing classification **B**: rewards are recorded as ledger months; **provider redemption** is implemented in Step 18B (`docs/referral-redemption.md`) via Paddle `next_billed_at` + `do_not_bill`, gated by `referral_redemption_enabled` (default **false**). Trigger model is **AUTO** after authoritative subscription apply (processor/reconcile → evaluate → redeem Edge); UI copy uses **mesi Premium** status lines (never “pagamento annullato” until confirmed).
 
 ## Anti-abuse
 
@@ -32,5 +32,6 @@
 | `regenerate_company_referral_link` | owner |
 | `claim_referral` | authenticated, before first owned company |
 | `get_referral_overview` | any company member |
+| `retry_referral_redemption` | owner (heal/claim only; never chooses months/dates) |
 
-No client APIs for entitlement redemption or Paddle mutation.
+Client never calls Paddle. Redemption mutation is server-only (`billing-referral-redeem-paddle`) when the kill switch is enabled.

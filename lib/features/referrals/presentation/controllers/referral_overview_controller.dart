@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/errors/referral_error_mapper.dart';
 import '../../../../core/utils/result.dart';
 import '../../../companies/presentation/controllers/company_onboarding_controller.dart';
 import '../providers/referral_providers.dart';
@@ -29,8 +30,14 @@ class ReferralOverviewControllerState {
 
 class ReferralOverviewController
     extends AutoDisposeFamilyNotifier<ReferralOverviewControllerState, String> {
+  bool _disposed = false;
+
   @override
   ReferralOverviewControllerState build(String companyId) {
+    _disposed = false;
+    ref.onDispose(() {
+      _disposed = true;
+    });
     return const ReferralOverviewControllerState();
   }
 
@@ -89,6 +96,56 @@ class ReferralOverviewController
         try {
           await ref.read(referralOverviewProvider(arg).future);
         } catch (_) {}
+        state = state.copyWith(
+          actionStatus: CompanyActionStatus.success,
+          clearError: true,
+        );
+        return true;
+      case Error(:final failure):
+        state = state.copyWith(
+          actionStatus: CompanyActionStatus.error,
+          errorMessage: failure.message,
+        );
+        return false;
+    }
+  }
+
+  /// Owner-only retry; the server chooses months and dates.
+  Future<bool> retryRedemption() async {
+    if (state.isLoading) {
+      return false;
+    }
+
+    state = state.copyWith(
+      actionStatus: CompanyActionStatus.loading,
+      clearError: true,
+    );
+
+    final result = await ref
+        .read(referralRepositoryProvider)
+        .retryReferralRedemption(companyId: arg);
+    if (_disposed) {
+      return false;
+    }
+
+    switch (result) {
+      case Success(value: final data):
+        ref.invalidate(referralOverviewProvider(arg));
+        try {
+          await ref.read(referralOverviewProvider(arg).future);
+        } catch (_) {}
+        if (_disposed) {
+          return false;
+        }
+        final errorCode = data.errorCode;
+        if ((data.outcome == 'disabled' || data.outcome == 'error') &&
+            errorCode != null) {
+          state = state.copyWith(
+            actionStatus: CompanyActionStatus.error,
+            errorMessage: ReferralErrorMapper.mapAtlasCode(errorCode).message,
+          );
+          return false;
+        }
         state = state.copyWith(
           actionStatus: CompanyActionStatus.success,
           clearError: true,

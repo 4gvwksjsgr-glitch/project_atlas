@@ -640,7 +640,7 @@
       }
     }
   },
-  "referralPremiumMonthsEarned": "{count} mesi Premium guadagnati",
+  "referralPremiumMonthsEarned": "{count, plural, =1{1 mese Premium guadagnato} other{{count} mesi Premium guadagnati}}",
   "@referralPremiumMonthsEarned": {
     "placeholders": {
       "count": {
@@ -648,6 +648,33 @@
       }
     }
   },
+  "referralRedemptionPendingAvailable": "{count, plural, =1{1 mese Premium disponibile} other{{count} mesi Premium disponibili}}",
+  "@referralRedemptionPendingAvailable": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "referralRedemptionApplying": "Applicazione del premio in corso",
+  "referralRedemptionRedeemed": "{count, plural, =1{Premio applicato: 1 mese Premium} other{Premio applicato: {count} mesi Premium}}",
+  "@referralRedemptionRedeemed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "referralRedemptionRetryableFailed": "Applicazione del premio non completata. Puoi riprovare.",
+  "referralRedemptionBlockedInactive": "Il premio verrà applicato quando l'abbonamento Premium sarà attivo",
+  "referralRedemptionBlockedTrial": "Il premio verrà applicato al termine della prova, quando l'abbonamento Premium sarà attivo",
+  "referralRedemptionBlockedPastDue": "Il premio è in attesa della regolarizzazione dell'abbonamento",
+  "referralRedemptionBlockedScheduledCancel": "Il premio è in attesa: l'abbonamento Premium non risulta in rinnovo",
+  "referralRedemptionBlockedCanceled": "Il premio non è stato applicato perché l'abbonamento Premium non è attivo",
+  "referralRedemptionBlockedNearRenewal": "Il premio verrà applicato dopo il prossimo rinnovo",
+  "referralRedemptionDisabled": "L'applicazione dei premi non è al momento disponibile",
+  "referralRedemptionDelayed": "Il premio non è ancora stato applicato",
+  "referralRedemptionRetry": "Riprova",
   "referralLinkLabel": "Il tuo link di invito",
   "referralCopyLink": "Copia link",
   "referralLinkCopied": "Link copiato.",

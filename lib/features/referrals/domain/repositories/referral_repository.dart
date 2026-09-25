@@ -16,4 +16,8 @@ abstract class ReferralRepository {
   Future<Result<ReferralOverview>> getReferralOverview({
     required String companyId,
   });
+
+  Future<Result<RetryReferralRedemptionResult>> retryReferralRedemption({
+    required String companyId,
+  });
 }

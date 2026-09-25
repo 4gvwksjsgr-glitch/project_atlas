@@ -9,13 +9,16 @@ import {
   createPaddleSandboxSubscriptionReader,
   getPaddleSandboxSubscription,
   isValidPaddleTransactionId,
+  previewPaddleSandboxSubscriptionNextBilledAt,
   readResponseBodyWithLimit,
+  updatePaddleSandboxSubscriptionNextBilledAt,
   validatePaddleCheckoutUrl,
 } from "./paddle_adapter.ts";
 import {
   PADDLE_MAX_RESPONSE_BYTES,
   PADDLE_SANDBOX_BASE_URL,
   type PaddleCreateCheckoutInput,
+  type PaddleUpdateNextBilledAtInput,
 } from "./paddle_types.ts";
 
 const TXN = "txn_01h4exampletxnid000000abc";
@@ -639,4 +642,357 @@ Deno.test("getSubscription valid response no retry via reader", async () => {
     assertEquals(result.data.customer_id, CTM_ID);
   }
   assertEquals(calls, 1);
+});
+
+Deno.test("getSubscription returns next_billed_at from data", async () => {
+  const result = await getPaddleSandboxSubscription(SUB_ID, {
+    env: () => "k",
+    fetch: async () =>
+      new Response(
+        JSON.stringify(
+          subscriptionEnvelope({ next_billed_at: "2026-10-01T00:00:00.000Z" }),
+        ),
+        { status: 200 },
+      ),
+  });
+  assertEquals(result.kind, "success");
+  if (result.kind === "success") {
+    assertEquals(result.data.next_billed_at, "2026-10-01T00:00:00.000Z");
+  }
+});
+
+// ---------------------------------------------------------------------------
+// PATCH next_billed_at preview + update — Step 18B
+// ---------------------------------------------------------------------------
+
+const NEXT = "2026-11-01T00:00:00.000Z";
+
+const nextInput: PaddleUpdateNextBilledAtInput = {
+  external_subscription_id: SUB_ID,
+  next_billed_at: NEXT,
+  proration_billing_mode: "do_not_bill",
+};
+
+interface SeenRequest {
+  url: string;
+  method: string;
+  headers: Headers;
+  bodyText: string;
+}
+
+function recordingFetch(
+  seen: SeenRequest[],
+  respond: () => Response,
+): typeof fetch {
+  return async (url, init) => {
+    const opts = (init ?? {}) as RequestInit;
+    seen.push({
+      url: String(url),
+      method: String(opts.method ?? "GET"),
+      headers: new Headers(opts.headers),
+      bodyText: String(opts.body ?? ""),
+    });
+    return respond();
+  };
+}
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+function previewEnvelope(overrides: Record<string, unknown> = {}) {
+  return {
+    data: {
+      ...subscriptionEnvelope().data,
+      next_billed_at: NEXT,
+      immediate_transaction: null,
+      next_transaction: {
+        details: { totals: { total: "1000", grand_total: "1000" } },
+      },
+      update_summary: null,
+      ...overrides,
+    },
+  };
+}
+
+function assertMinimalPatch(req: SeenRequest, expectedUrl: string) {
+  assertEquals(req.url, expectedUrl);
+  assertEquals(req.method, "PATCH");
+  assertEquals(req.headers.get("Authorization"), "Bearer k");
+  assertEquals(req.headers.get("Paddle-Version"), "1");
+  assertEquals(req.headers.get("Content-Type"), "application/json");
+  assertEquals(req.headers.get("Idempotency-Key"), null);
+  assertEquals(
+    req.bodyText,
+    JSON.stringify({
+      next_billed_at: NEXT,
+      proration_billing_mode: "do_not_bill",
+    }),
+  );
+  assertEquals(Object.keys(JSON.parse(req.bodyText)), [
+    "next_billed_at",
+    "proration_billing_mode",
+  ]);
+}
+
+Deno.test("preview do_not_bill with no immediate charge is safe", async () => {
+  const seen: SeenRequest[] = [];
+  const result = await previewPaddleSandboxSubscriptionNextBilledAt(
+    nextInput,
+    {
+      env: () => "k",
+      fetch: recordingFetch(seen, () => jsonResponse(previewEnvelope())),
+    },
+  );
+  assertEquals(result.kind, "safe");
+  if (result.kind === "safe") {
+    assertEquals(result.preview_next_billed_at, NEXT);
+  }
+  assertEquals(seen.length, 1);
+  assertMinimalPatch(
+    seen[0],
+    `${PADDLE_SANDBOX_BASE_URL}/subscriptions/${SUB_ID}/preview`,
+  );
+});
+
+Deno.test("preview with zero-total immediate_transaction is safe", async () => {
+  const result = await previewPaddleSandboxSubscriptionNextBilledAt(
+    nextInput,
+    {
+      env: () => "k",
+      fetch: async () =>
+        jsonResponse(previewEnvelope({
+          immediate_transaction: {
+            details: { totals: { total: "0", grand_total: "0" } },
+          },
+        })),
+    },
+  );
+  assertEquals(result.kind, "safe");
+});
+
+Deno.test("preview with immediate_transaction charge is unsafe_immediate_charge", async () => {
+  const result = await previewPaddleSandboxSubscriptionNextBilledAt(
+    nextInput,
+    {
+      env: () => "k",
+      fetch: async () =>
+        jsonResponse(previewEnvelope({
+          immediate_transaction: {
+            details: { totals: { total: "1000", grand_total: "1190" } },
+          },
+        })),
+    },
+  );
+  assertEquals(result.kind, "unsafe_immediate_charge");
+  if (result.kind === "unsafe_immediate_charge") {
+    assertEquals(result.immediate_grand_total, "1190");
+  }
+});
+
+Deno.test("preview with update_summary charge is unsafe_immediate_charge", async () => {
+  const result = await previewPaddleSandboxSubscriptionNextBilledAt(
+    nextInput,
+    {
+      env: () => "k",
+      fetch: async () =>
+        jsonResponse(previewEnvelope({
+          update_summary: {
+            credit: { amount: "0", currency_code: "EUR" },
+            charge: { amount: "500", currency_code: "EUR" },
+            result: { action: "charge", amount: "500", currency_code: "EUR" },
+          },
+        })),
+    },
+  );
+  assertEquals(result.kind, "unsafe_immediate_charge");
+});
+
+Deno.test("preview fails closed on unexpected shapes", async () => {
+  const cases: Array<Record<string, unknown>> = [
+    { immediate_transaction: { details: {} } },
+    { immediate_transaction: { details: { totals: { grand_total: "abc" } } } },
+    { immediate_transaction: { details: { totals: { grand_total: "-5" } } } },
+    { next_billed_at: "2026-11-02T00:00:00.000Z" },
+    { next_billed_at: null },
+    { update_summary: { charge: { amount: null } } },
+  ];
+  for (const overrides of cases) {
+    const result = await previewPaddleSandboxSubscriptionNextBilledAt(
+      nextInput,
+      {
+        env: () => "k",
+        fetch: async () => jsonResponse(previewEnvelope(overrides)),
+      },
+    );
+    assertEquals(
+      result.kind,
+      "unsafe_unexpected",
+      JSON.stringify(overrides),
+    );
+  }
+});
+
+Deno.test("preview maps definitive 4xx and 5xx", async () => {
+  const rejected = await previewPaddleSandboxSubscriptionNextBilledAt(
+    nextInput,
+    {
+      env: () => "k",
+      fetch: async () =>
+        jsonResponse(
+          { error: { code: "subscription_locked", detail: "locked" } },
+          422,
+        ),
+    },
+  );
+  assertEquals(rejected.kind, "definitive_client_error");
+  if (rejected.kind === "definitive_client_error") {
+    assertEquals(rejected.http_status, 422);
+    assertEquals(rejected.paddle_error_code, "subscription_locked");
+  }
+
+  const boom = await previewPaddleSandboxSubscriptionNextBilledAt(nextInput, {
+    env: () => "k",
+    fetch: async () => jsonResponse({ error: { detail: "boom" } }, 503),
+  });
+  assertEquals(boom.kind, "uncertain");
+  if (boom.kind === "uncertain") assertEquals(boom.reason, "http_5xx");
+});
+
+Deno.test("update PATCH sends exact minimal body and parses result", async () => {
+  const seen: SeenRequest[] = [];
+  const result = await updatePaddleSandboxSubscriptionNextBilledAt(
+    nextInput,
+    {
+      env: () => "k",
+      fetch: recordingFetch(
+        seen,
+        () =>
+          jsonResponse(subscriptionEnvelope({
+            next_billed_at: NEXT,
+            current_billing_period: {
+              starts_at: "2026-09-01T00:00:00.000Z",
+              ends_at: NEXT,
+            },
+          })),
+      ),
+    },
+  );
+  assertEquals(seen.length, 1);
+  assertMinimalPatch(
+    seen[0],
+    `${PADDLE_SANDBOX_BASE_URL}/subscriptions/${SUB_ID}`,
+  );
+  assertEquals(result.kind, "success");
+  if (result.kind === "success") {
+    assertEquals(result.next_billed_at, NEXT);
+    assertEquals(result.current_period_ends_at, NEXT);
+    assertEquals(result.data.id, SUB_ID);
+  }
+});
+
+Deno.test("update timeout and network are uncertain", async () => {
+  const timeout = await updatePaddleSandboxSubscriptionNextBilledAt(
+    nextInput,
+    {
+      env: () => "k",
+      fetch: async () => {
+        const err = new Error("The signal has been aborted");
+        err.name = "AbortError";
+        throw err;
+      },
+    },
+  );
+  assertEquals(timeout.kind, "uncertain");
+  if (timeout.kind === "uncertain") assertEquals(timeout.reason, "timeout");
+
+  const network = await updatePaddleSandboxSubscriptionNextBilledAt(
+    nextInput,
+    {
+      env: () => "k",
+      fetch: async () => {
+        throw new TypeError("network down");
+      },
+    },
+  );
+  assertEquals(network.kind, "uncertain");
+  if (network.kind === "uncertain") assertEquals(network.reason, "network");
+});
+
+Deno.test("preview timeout is uncertain", async () => {
+  const result = await previewPaddleSandboxSubscriptionNextBilledAt(
+    nextInput,
+    {
+      env: () => "k",
+      fetch: async () => {
+        const err = new Error("Aborted");
+        err.name = "AbortError";
+        throw err;
+      },
+    },
+  );
+  assertEquals(result.kind, "uncertain");
+  if (result.kind === "uncertain") assertEquals(result.reason, "timeout");
+});
+
+Deno.test("update 2xx without data or with mismatched id is uncertain", async () => {
+  const missing = await updatePaddleSandboxSubscriptionNextBilledAt(
+    nextInput,
+    { env: () => "k", fetch: async () => jsonResponse({ ok: true }) },
+  );
+  assertEquals(missing.kind, "uncertain");
+
+  const mismatch = await updatePaddleSandboxSubscriptionNextBilledAt(
+    nextInput,
+    {
+      env: () => "k",
+      fetch: async () =>
+        jsonResponse(
+          subscriptionEnvelope({ id: "sub_01h4examplesubid0000000002" }),
+        ),
+    },
+  );
+  assertEquals(mismatch.kind, "uncertain");
+});
+
+Deno.test("update rejects invalid input locally without fetching", async () => {
+  const invalid: PaddleUpdateNextBilledAtInput[] = [
+    { ...nextInput, external_subscription_id: "sub_bad" },
+    { ...nextInput, next_billed_at: "2026-11-01" },
+    { ...nextInput, next_billed_at: "2026-11-01T00:00:00+02:00" },
+    { ...nextInput, next_billed_at: "2026-02-30T00:00:00.000Z" },
+    {
+      ...nextInput,
+      proration_billing_mode: "prorated_immediately" as "do_not_bill",
+    },
+  ];
+  for (const input of invalid) {
+    let calls = 0;
+    const result = await updatePaddleSandboxSubscriptionNextBilledAt(input, {
+      env: () => "k",
+      fetch: async () => {
+        calls += 1;
+        return jsonResponse(subscriptionEnvelope());
+      },
+    });
+    assertEquals(calls, 0, JSON.stringify(input));
+    assertEquals(result.kind, "definitive_client_error");
+    if (result.kind === "definitive_client_error") {
+      assertEquals(result.http_status, 0);
+    }
+  }
+
+  let calls = 0;
+  const noKey = await updatePaddleSandboxSubscriptionNextBilledAt(nextInput, {
+    env: () => undefined,
+    fetch: async () => {
+      calls += 1;
+      return jsonResponse(subscriptionEnvelope());
+    },
+  });
+  assertEquals(calls, 0);
+  assertEquals(noKey.kind, "definitive_client_error");
 });

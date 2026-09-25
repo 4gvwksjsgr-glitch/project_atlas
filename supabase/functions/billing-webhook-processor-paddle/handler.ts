@@ -198,6 +198,7 @@ function parseApplyRow(
   inboxEventId: string;
   processingStatus: string;
   attemptCount: number;
+  companyId: string | null;
 } {
   if (typeof row.outcome !== "string" || row.outcome.length === 0) {
     throw internalError();
@@ -216,11 +217,15 @@ function parseApplyRow(
   if (row.attempt_count !== claimedAttempt) {
     throw internalError();
   }
+  const companyId = typeof row.company_id === "string" && row.company_id.length > 0
+    ? row.company_id
+    : null;
   return {
     outcome: row.outcome,
     inboxEventId: id,
     processingStatus: row.processing_status,
     attemptCount: row.attempt_count,
+    companyId,
   };
 }
 
@@ -438,6 +443,22 @@ export function createHandler(
           apply_outcome: applied.outcome,
           duration_ms: deps.clock().getTime() - started,
         });
+
+        // Step 18B AUTO: after authoritative apply, best-effort redeem enqueue.
+        // Confirm-from-trigger runs inside apply when period_end matches target.
+        // Recursion-safe: subsequent redeem sees no pending / confirms only.
+        if (deps.maybeAutoRedeem) {
+          try {
+            await deps.maybeAutoRedeem(applied.companyId);
+          } catch {
+            logSafe("warn", "processor_auto_redeem_unexpected", {
+              correlation_id: correlationId,
+              event: "auto_redeem_unexpected",
+              inbox_event_id: ready.inboxEventId,
+            });
+          }
+        }
+
         return jsonOk({
           ok: true,
           outcome: "processed",

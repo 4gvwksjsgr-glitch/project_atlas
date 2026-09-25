@@ -136,4 +136,6 @@ export interface HandlerDeps {
   paddle: BillingProviderSubscriptionReader;
   corsAllowlist: readonly string[];
   env: EnvReader;
+  /** Step 18B best-effort auto redeem after successful apply. */
+  maybeAutoRedeem?: (companyId: string | null) => Promise<void>;
 }

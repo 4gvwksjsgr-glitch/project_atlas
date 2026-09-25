@@ -100,6 +100,7 @@ function makeHarness(opts: {
     ) => Promise<RecordBillingReconciliationResult>);
   corsAllowlist?: string[];
   paddleKey?: string | null;
+  maybeAutoRedeem?: (companyId: string | null) => Promise<void>;
 }): Harness {
   const prepareCalls: Harness["prepareCalls"] = [];
   const applyCalls: ApplyBillingReconciliationArgs[] = [];
@@ -164,6 +165,7 @@ function makeHarness(opts: {
       }
       return undefined;
     },
+    maybeAutoRedeem: opts.maybeAutoRedeem,
   };
 
   return {
@@ -670,4 +672,67 @@ Deno.test("missing paddle key → 503; no prepare", async () => {
   const res = await handler(postJson({ company_id: COMPANY }));
   assertEquals(res.status, 503);
   assertCallBounds(h, {});
+});
+
+// ---------------------------------------------------------------------------
+// Step 18B AUTO redeem after successful observation apply
+// ---------------------------------------------------------------------------
+
+Deno.test("reconcile updated → maybeAutoRedeem once; no extra paddle mutation", async () => {
+  const auto: string[] = [];
+  const h = makeHarness({
+    maybeAutoRedeem: async (id) => {
+      auto.push(id ?? "null");
+    },
+  });
+  const handler = createHandler(h.deps);
+  const res = await handler(postJson({ company_id: COMPANY }));
+  assertEquals(res.status, 200);
+  assertEquals(auto, [COMPANY]);
+  assertCallBounds(h, { prepare: 1, paddle: 1, apply: 1, finalizer: 0 });
+});
+
+Deno.test("reconcile in_sync → maybeAutoRedeem once", async () => {
+  const auto: string[] = [];
+  const h = makeHarness({
+    apply: {
+      result: "in_sync",
+      company_id: COMPANY,
+      provider_updated_at: UPDATED,
+    },
+    maybeAutoRedeem: async (id) => {
+      auto.push(id ?? "null");
+    },
+  });
+  const handler = createHandler(h.deps);
+  await handler(postJson({ company_id: COMPANY }));
+  assertEquals(auto, [COMPANY]);
+});
+
+Deno.test("reconcile apply conflict → zero maybeAutoRedeem", async () => {
+  let auto = 0;
+  const h = makeHarness({
+    apply: {
+      result: "stale_snapshot",
+      company_id: COMPANY,
+      provider_updated_at: UPDATED,
+    },
+    maybeAutoRedeem: async () => {
+      auto++;
+    },
+  });
+  const handler = createHandler(h.deps);
+  await handler(postJson({ company_id: COMPANY }));
+  assertEquals(auto, 0);
+});
+
+Deno.test("reconcile autoRedeem throw does not fail response", async () => {
+  const h = makeHarness({
+    maybeAutoRedeem: async () => {
+      throw new Error("boom");
+    },
+  });
+  const handler = createHandler(h.deps);
+  const res = await handler(postJson({ company_id: COMPANY }));
+  assertEquals(res.status, 200);
 });

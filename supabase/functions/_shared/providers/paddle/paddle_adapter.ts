@@ -10,6 +10,7 @@ import {
   type BillingProviderSubscriptionReader,
   PADDLE_API_VERSION,
   PADDLE_DEFINITIVE_CLIENT_STATUSES,
+  PADDLE_DEFINITIVE_SUBSCRIPTION_PATCH_STATUSES,
   PADDLE_MAX_RESPONSE_BYTES,
   PADDLE_REQUEST_TIMEOUT_MS,
   PADDLE_SANDBOX_BASE_URL,
@@ -54,11 +55,23 @@ export function validatePaddleCheckoutUrl(
   );
 }
 
-/** Fail-closed whitelist for definitive client rejections. */
+/** Fail-closed whitelist for definitive client rejections (checkout). */
 export function isDefinitivePaddleClientStatus(status: number): boolean {
   return (PADDLE_DEFINITIVE_CLIENT_STATUSES as readonly number[]).includes(
     status,
   );
+}
+
+/**
+ * Fail-closed whitelist for subscription next_billed_at PATCH / preview.
+ * Includes HTTP 409 (documented Paddle subscription conflicts).
+ */
+export function isDefinitivePaddleSubscriptionPatchStatus(
+  status: number,
+): boolean {
+  return (
+    PADDLE_DEFINITIVE_SUBSCRIPTION_PATCH_STATUSES as readonly number[]
+  ).includes(status);
 }
 
 /**
@@ -704,7 +717,7 @@ async function sendNextBilledAtPatch<T extends PaddleSubscriptionData>(
       );
       parsed = JSON.parse(text);
     } catch {
-      if (isDefinitivePaddleClientStatus(status)) {
+      if (isDefinitivePaddleSubscriptionPatchStatus(status)) {
         return {
           kind: "definitive_client_error",
           http_status: status,
@@ -737,7 +750,7 @@ async function sendNextBilledAtPatch<T extends PaddleSubscriptionData>(
   }
 
   if (status >= 400) {
-    if (isDefinitivePaddleClientStatus(status)) {
+    if (isDefinitivePaddleSubscriptionPatchStatus(status)) {
       return {
         kind: "definitive_client_error",
         http_status: status,

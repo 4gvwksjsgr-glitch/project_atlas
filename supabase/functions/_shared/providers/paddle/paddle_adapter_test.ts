@@ -862,6 +862,163 @@ Deno.test("preview maps definitive 4xx and 5xx", async () => {
   if (boom.kind === "uncertain") assertEquals(boom.reason, "http_5xx");
 });
 
+Deno.test("preview HTTP 409 consent lock is definitive_client_error", async () => {
+  const result = await previewPaddleSandboxSubscriptionNextBilledAt(
+    nextInput,
+    {
+      env: () => "k",
+      fetch: async () =>
+        jsonResponse(
+          {
+            error: {
+              code: "subscription_locked_consent_review_period",
+              detail: "Subscription is locked during consent review",
+            },
+          },
+          409,
+        ),
+    },
+  );
+  assertEquals(result.kind, "definitive_client_error");
+  if (result.kind === "definitive_client_error") {
+    assertEquals(result.http_status, 409);
+    assertEquals(
+      result.paddle_error_code,
+      "subscription_locked_consent_review_period",
+    );
+    // Sanitized message may exist, but raw detail must not be required for code.
+    assertEquals(
+      typeof result.sanitized_message === "string" &&
+        result.sanitized_message.length > 0,
+      true,
+    );
+  }
+});
+
+Deno.test("preview HTTP 409 next_billed_at_too_soon is definitive_client_error", async () => {
+  const result = await previewPaddleSandboxSubscriptionNextBilledAt(
+    nextInput,
+    {
+      env: () => "k",
+      fetch: async () =>
+        jsonResponse(
+          {
+            error: {
+              code: "subscription_next_billed_at_too_soon",
+              detail: "next_billed_at is too soon",
+            },
+          },
+          409,
+        ),
+    },
+  );
+  assertEquals(result.kind, "definitive_client_error");
+  if (result.kind === "definitive_client_error") {
+    assertEquals(result.http_status, 409);
+    assertEquals(
+      result.paddle_error_code,
+      "subscription_next_billed_at_too_soon",
+    );
+  }
+});
+
+Deno.test("update PATCH HTTP 409 is definitive_client_error", async () => {
+  const result = await updatePaddleSandboxSubscriptionNextBilledAt(
+    nextInput,
+    {
+      env: () => "k",
+      fetch: async () =>
+        jsonResponse(
+          {
+            error: {
+              code: "subscription_locked_consent_review_period",
+              detail: "locked",
+            },
+          },
+          409,
+        ),
+    },
+  );
+  assertEquals(result.kind, "definitive_client_error");
+  if (result.kind === "definitive_client_error") {
+    assertEquals(result.http_status, 409);
+    assertEquals(
+      result.paddle_error_code,
+      "subscription_locked_consent_review_period",
+    );
+  }
+});
+
+Deno.test("createCheckout HTTP 409 remains uncertain (not subscription patch)", async () => {
+  const adapter = createPaddleSandboxCheckoutAdapter({
+    env: () => "k",
+    fetch: async () =>
+      new Response(
+        JSON.stringify({
+          error: {
+            code: "subscription_locked_consent_review_period",
+            detail: "locked",
+          },
+        }),
+        { status: 409 },
+      ),
+  });
+  const result = await adapter.createCheckout(input);
+  assertEquals(result.kind, "uncertain");
+});
+
+Deno.test("preview HTTP 409 with unsafe error.code drops code", async () => {
+  const result = await previewPaddleSandboxSubscriptionNextBilledAt(
+    nextInput,
+    {
+      env: () => "k",
+      fetch: async () =>
+        jsonResponse(
+          {
+            error: {
+              code: "bad code with spaces!!!",
+              detail: "secret raw detail should be sanitized",
+            },
+          },
+          409,
+        ),
+    },
+  );
+  assertEquals(result.kind, "definitive_client_error");
+  if (result.kind === "definitive_client_error") {
+    assertEquals(result.http_status, 409);
+    assertEquals(result.paddle_error_code, null);
+  }
+});
+
+Deno.test("preview timeout and network remain uncertain", async () => {
+  const timeout = await previewPaddleSandboxSubscriptionNextBilledAt(
+    nextInput,
+    {
+      env: () => "k",
+      fetch: async () => {
+        const err = new Error("Aborted");
+        err.name = "AbortError";
+        throw err;
+      },
+    },
+  );
+  assertEquals(timeout.kind, "uncertain");
+  if (timeout.kind === "uncertain") assertEquals(timeout.reason, "timeout");
+
+  const network = await previewPaddleSandboxSubscriptionNextBilledAt(
+    nextInput,
+    {
+      env: () => "k",
+      fetch: async () => {
+        throw new Error("connect ECONNREFUSED");
+      },
+    },
+  );
+  assertEquals(network.kind, "uncertain");
+  if (network.kind === "uncertain") assertEquals(network.reason, "network");
+});
+
 Deno.test("update PATCH sends exact minimal body and parses result", async () => {
   const seen: SeenRequest[] = [];
   const result = await updatePaddleSandboxSubscriptionNextBilledAt(

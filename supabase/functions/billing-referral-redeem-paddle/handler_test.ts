@@ -38,7 +38,13 @@ function makeDeps(opts: {
   claim?: ClaimRedemptionRow;
   getKind?: "success" | "not_found";
   liveNext?: string;
-  previewKind?: "safe" | "unsafe_immediate_charge";
+  previewKind?:
+    | "safe"
+    | "unsafe_immediate_charge"
+    | "definitive_client_error";
+  previewHttpStatus?: number;
+  previewErrorCode?: string | null;
+  previewSanitizedMessage?: string;
   updateKind?: "success" | "uncertain";
   updateNext?: string;
 }): {
@@ -99,6 +105,17 @@ function makeDeps(opts: {
           kind: "unsafe_immediate_charge",
           sanitized_message: "charge",
           immediate_grand_total: "1000",
+        };
+      }
+      if (opts.previewKind === "definitive_client_error") {
+        return {
+          kind: "definitive_client_error",
+          http_status: opts.previewHttpStatus ?? 409,
+          sanitized_message: opts.previewSanitizedMessage ??
+            "Paddle rejected the request",
+          paddle_error_code: opts.previewErrorCode === undefined
+            ? "subscription_locked_consent_review_period"
+            : opts.previewErrorCode,
         };
       }
       return {
@@ -208,6 +225,60 @@ Deno.test("preview unsafe → zero PATCH", async () => {
   assertEquals(out.json.result, "preview_not_safe");
   assertEquals(calls.get, 1);
   assertEquals(calls.preview, 1);
+  assertEquals(calls.patch, 0);
+});
+
+Deno.test("preview definitive 409 → safe diagnostics only, zero PATCH", async () => {
+  const { deps, calls } = makeDeps({
+    previewKind: "definitive_client_error",
+    previewHttpStatus: 409,
+    previewErrorCode: "subscription_locked_consent_review_period",
+    previewSanitizedMessage: "raw provider detail must not leak",
+  });
+  const out = await post(createHandler(deps), { company_id: COMPANY });
+  assertEquals(out.json.result, "preview_not_safe");
+  assertEquals(out.json.error_code, "ATLAS_REFERRAL_PROVIDER_REJECTED");
+  assertEquals(out.json.provider_http_status, 409);
+  assertEquals(
+    out.json.provider_error_code,
+    "subscription_locked_consent_review_period",
+  );
+  const paddleCalls = out.json.paddle_calls as
+    | { get?: number; preview?: number; patch?: number }
+    | undefined;
+  assertEquals(paddleCalls?.patch, 0);
+  assertEquals(calls.patch, 0);
+  assertEquals(calls.status.includes("retryable_failed"), true);
+  // Must not leak sanitized/raw detail text fields
+  assertEquals(out.json.sanitized_message, undefined);
+  assertEquals(out.json.provider_detail, undefined);
+  assertEquals(out.json.message, undefined);
+  const raw = JSON.stringify(out.json);
+  assertEquals(raw.includes("raw provider detail must not leak"), false);
+});
+
+Deno.test("preview definitive without error code omits provider_error_code", async () => {
+  const { deps, calls } = makeDeps({
+    previewKind: "definitive_client_error",
+    previewHttpStatus: 409,
+    previewErrorCode: null,
+  });
+  const out = await post(createHandler(deps), { company_id: COMPANY });
+  assertEquals(out.json.result, "preview_not_safe");
+  assertEquals(out.json.error_code, "ATLAS_REFERRAL_PROVIDER_REJECTED");
+  assertEquals(out.json.provider_http_status, 409);
+  assertEquals(out.json.provider_error_code, undefined);
+  assertEquals(calls.patch, 0);
+});
+
+Deno.test("preview unsafe charge does not expose provider diagnostics", async () => {
+  const { deps, calls } = makeDeps({
+    previewKind: "unsafe_immediate_charge",
+  });
+  const out = await post(createHandler(deps), { company_id: COMPANY });
+  assertEquals(out.json.error_code, "ATLAS_REFERRAL_PREVIEW_NOT_SAFE");
+  assertEquals(out.json.provider_http_status, undefined);
+  assertEquals(out.json.provider_error_code, undefined);
   assertEquals(calls.patch, 0);
 });
 

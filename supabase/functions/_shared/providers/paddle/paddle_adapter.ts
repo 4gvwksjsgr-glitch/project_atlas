@@ -564,9 +564,12 @@ export function createPaddleSandboxSubscriptionReader(
 // PATCH /subscriptions/{id} and /subscriptions/{id}/preview — next_billed_at
 // ---------------------------------------------------------------------------
 
-const RFC3339_UTC_RE = /^(\d{4}-\d{2}-\d{2})T\d{2}:\d{2}:\d{2}(\.\d{1,9})?Z$/;
+// Accept terminal Z or exact zero-offset +00:00 (PostgREST TIMESTAMPTZ JSON).
+// Non-zero offsets are rejected fail-closed.
+const RFC3339_UTC_RE =
+  /^(\d{4}-\d{2}-\d{2})T\d{2}:\d{2}:\d{2}(\.\d{1,9})?(Z|\+00:00)$/;
 
-/** Strict RFC3339 UTC ("Z") timestamp that round-trips to the same date. */
+/** RFC3339 UTC timestamp (`Z` or exact `+00:00`) that round-trips to the same date. */
 export function isRfc3339UtcTimestamp(value: unknown): value is string {
   if (typeof value !== "string") return false;
   const m = RFC3339_UTC_RE.exec(value);
@@ -574,6 +577,18 @@ export function isRfc3339UtcTimestamp(value: unknown): value is string {
   const ms = Date.parse(value);
   if (Number.isNaN(ms)) return false;
   return new Date(ms).toISOString().slice(0, 10) === m[1];
+}
+
+/**
+ * Losslessly normalize an accepted UTC timestamp to terminal `Z`.
+ * Replaces only a trailing `+00:00`; never reformats via Date.toISOString()
+ * (which would truncate PostgreSQL microseconds).
+ */
+export function normalizeRfc3339UtcToZ(value: string): string {
+  if (value.endsWith("+00:00")) {
+    return `${value.slice(0, -"+00:00".length)}Z`;
+  }
+  return value;
 }
 
 function sameInstant(a: unknown, b: string): boolean {
@@ -650,7 +665,7 @@ async function sendNextBilledAtPatch<T extends PaddleSubscriptionData>(
   }
 
   const body = {
-    next_billed_at: input.next_billed_at,
+    next_billed_at: normalizeRfc3339UtcToZ(input.next_billed_at),
     proration_billing_mode: "do_not_bill",
   };
 

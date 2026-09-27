@@ -58,10 +58,23 @@ final billingCheckoutIdempotencyKeyGeneratorProvider =
       return uuid.v4;
     });
 
-/// Produzione: solo Flutter Web. Override nei test senza indebolire il gate.
-final isBillingCheckoutWebPlatformProvider = Provider<bool>((ref) {
-  return kIsWeb;
+/// Produzione: checkout Premium supportato su Web, Android e iOS.
+/// Desktop (Windows/macOS/Linux) resta bloccato.
+final isBillingCheckoutSupportedPlatformProvider = Provider<bool>((ref) {
+  if (kIsWeb) {
+    return true;
+  }
+  return switch (defaultTargetPlatform) {
+    TargetPlatform.android || TargetPlatform.iOS => true,
+    _ => false,
+  };
 });
+
+/// @nodoc Backward-compatible name used in older tests; prefer
+/// [isBillingCheckoutSupportedPlatformProvider].
+@Deprecated('Use isBillingCheckoutSupportedPlatformProvider')
+final isBillingCheckoutWebPlatformProvider =
+    isBillingCheckoutSupportedPlatformProvider;
 
 /// Overview piano keyed per company: al cambio companyId nuova query.
 final companySubscriptionOverviewProvider = FutureProvider.autoDispose

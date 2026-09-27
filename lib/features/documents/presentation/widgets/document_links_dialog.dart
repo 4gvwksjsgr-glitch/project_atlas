@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -145,10 +146,13 @@ class _DocumentLinksDialogState extends ConsumerState<_DocumentLinksDialog> {
     final customersAsync = ref.watch(customersProvider(widget.companyId));
     final clientQuery = _clientQuery.text.trim().toLowerCase();
 
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final dialogWidth = math.min(420.0, math.max(0.0, screenWidth - 48.0));
+
     return AlertDialog(
       title: Text(l10n.documentManageLinks),
       content: SizedBox(
-        width: 420,
+        width: dialogWidth,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,

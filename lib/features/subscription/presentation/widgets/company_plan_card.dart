@@ -116,8 +116,8 @@ class _PlanDetails extends ConsumerWidget {
     final checkoutState = ref.watch(
       createPremiumCheckoutControllerProvider(companyId),
     );
-    final isWebCheckoutPlatform = ref.watch(
-      isBillingCheckoutWebPlatformProvider,
+    final isCheckoutSupportedPlatform = ref.watch(
+      isBillingCheckoutSupportedPlatformProvider,
     );
 
     final planTitle = overview.isTrialActive
@@ -140,7 +140,9 @@ class _PlanDetails extends ConsumerWidget {
 
     final showTrialCta = overview.canActivateTrial;
     final showCheckoutCta =
-        !showTrialCta && isWebCheckoutPlatform && overview.isCheckoutEligible;
+        !showTrialCta &&
+        isCheckoutSupportedPlatform &&
+        overview.isCheckoutEligible;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

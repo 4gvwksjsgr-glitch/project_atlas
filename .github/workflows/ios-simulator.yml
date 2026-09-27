@@ -1,0 +1,40 @@
+name: iOS Simulator
+on:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - "ios/**"
+      - "lib/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - ".github/workflows/ios-simulator.yml"
+permissions:
+  contents: read
+jobs:
+  ios-simulator-build:
+    name: iOS simulator build
+    runs-on: macos-14
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Flutter 3.44.8
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.44.8"
+          channel: stable
+          cache: true
+      - name: Toolchain info
+        run: |
+          flutter --version
+          dart --version
+          xcodebuild -version
+          pod --version
+          xcodebuild -showsdks
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Prepare environment file
+        run: cp .env.example .env
+      - name: Build iOS Simulator
+        run: flutter build ios --simulator --no-codesign

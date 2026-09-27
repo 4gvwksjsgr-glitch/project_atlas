@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +15,11 @@ import '../../domain/entities/company_member.dart';
 import '../controllers/active_company_controller.dart';
 import '../controllers/company_onboarding_controller.dart';
 import '../controllers/company_team_controller.dart';
+
+double _teamDialogWidth(BuildContext context) {
+  final screenWidth = MediaQuery.sizeOf(context).width;
+  return math.min(420.0, math.max(0.0, screenWidth - 48.0));
+}
 
 class CompanyTeamScreen extends ConsumerWidget {
   const CompanyTeamScreen({super.key});
@@ -120,19 +127,24 @@ class _CompanyTeamBodyState extends ConsumerState<CompanyTeamBody> {
       builder: (dialogContext) {
         return AlertDialog(
           title: Text(l10n.teamInviteTokenTitle),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(l10n.teamInviteTokenWarning),
-              const SizedBox(height: AppUiConstants.spacingMedium),
-              SelectableText(
-                token,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontFamily: 'monospace',
-                ),
+          content: SizedBox(
+            width: _teamDialogWidth(dialogContext),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(l10n.teamInviteTokenWarning),
+                  const SizedBox(height: AppUiConstants.spacingMedium),
+                  SelectableText(
+                    token,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
           actions: [
             TextButton(
@@ -190,7 +202,12 @@ class _CompanyTeamBodyState extends ConsumerState<CompanyTeamBody> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(l10n.teamRevokeInviteTitle),
-        content: Text(l10n.teamRevokeInviteMessage(invite.emailNormalized)),
+        content: SizedBox(
+          width: _teamDialogWidth(dialogContext),
+          child: SingleChildScrollView(
+            child: Text(l10n.teamRevokeInviteMessage(invite.emailNormalized)),
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -228,26 +245,31 @@ class _CompanyTeamBodyState extends ConsumerState<CompanyTeamBody> {
           builder: (context, setDialogState) {
             return AlertDialog(
               title: Text(l10n.teamChangeRoleTitle),
-              content: DropdownButtonFormField<CompanyRole>(
-                key: ValueKey(selected),
-                initialValue: selected,
-                decoration: InputDecoration(
-                  labelText: l10n.teamRoleLabel,
-                  border: const OutlineInputBorder(),
+              content: SizedBox(
+                width: _teamDialogWidth(dialogContext),
+                child: SingleChildScrollView(
+                  child: DropdownButtonFormField<CompanyRole>(
+                    key: ValueKey(selected),
+                    initialValue: selected,
+                    decoration: InputDecoration(
+                      labelText: l10n.teamRoleLabel,
+                      border: const OutlineInputBorder(),
+                    ),
+                    items: roles
+                        .map(
+                          (role) => DropdownMenuItem(
+                            value: role,
+                            child: Text(role.label),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setDialogState(() => selected = value);
+                      }
+                    },
+                  ),
                 ),
-                items: roles
-                    .map(
-                      (role) => DropdownMenuItem(
-                        value: role,
-                        child: Text(role.label),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setDialogState(() => selected = value);
-                  }
-                },
               ),
               actions: [
                 TextButton(
@@ -294,7 +316,12 @@ class _CompanyTeamBodyState extends ConsumerState<CompanyTeamBody> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(l10n.teamRemoveMemberTitle),
-        content: Text(l10n.teamRemoveMemberMessage(label)),
+        content: SizedBox(
+          width: _teamDialogWidth(dialogContext),
+          child: SingleChildScrollView(
+            child: Text(l10n.teamRemoveMemberMessage(label)),
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),

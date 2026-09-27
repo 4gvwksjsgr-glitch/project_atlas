@@ -45,8 +45,11 @@ function makeDeps(opts: {
   previewHttpStatus?: number;
   previewErrorCode?: string | null;
   previewSanitizedMessage?: string;
-  updateKind?: "success" | "uncertain";
+  updateKind?: "success" | "uncertain" | "definitive_client_error";
   updateNext?: string;
+  updateHttpStatus?: number;
+  updateErrorCode?: string | null;
+  updateSanitizedMessage?: string;
 }): {
   deps: HandlerDeps;
   calls: { get: number; preview: number; patch: number; status: string[] };
@@ -134,6 +137,17 @@ function makeDeps(opts: {
           kind: "uncertain",
           reason: "timeout",
           sanitized_message: "timeout",
+        };
+      }
+      if (opts.updateKind === "definitive_client_error") {
+        return {
+          kind: "definitive_client_error",
+          http_status: opts.updateHttpStatus ?? 409,
+          sanitized_message: opts.updateSanitizedMessage ??
+            "raw patch detail must not leak",
+          paddle_error_code: opts.updateErrorCode === undefined
+            ? "subscription_locked_consent_review_period"
+            : opts.updateErrorCode,
         };
       }
       return {
@@ -296,6 +310,53 @@ Deno.test("timeout after PATCH → needs_reconcile", async () => {
   const out = await post(createHandler(deps), { company_id: COMPANY });
   assertEquals(out.json.result, "needs_reconcile");
   assertEquals(calls.patch, 1);
+});
+
+Deno.test("PATCH definitive 409 → safe diagnostics, retryable_failed", async () => {
+  const { deps, calls } = makeDeps({
+    updateKind: "definitive_client_error",
+    updateHttpStatus: 409,
+    updateErrorCode: "subscription_locked_consent_review_period",
+    updateSanitizedMessage: "raw patch detail must not leak",
+  });
+  const out = await post(createHandler(deps), { company_id: COMPANY });
+  assertEquals(out.json.result, "provider_rejected");
+  assertEquals(out.json.error_code, "ATLAS_REFERRAL_PROVIDER_REJECTED");
+  assertEquals(out.json.provider_http_status, 409);
+  assertEquals(
+    out.json.provider_error_code,
+    "subscription_locked_consent_review_period",
+  );
+  const paddleCalls = out.json.paddle_calls as
+    | { get?: number; preview?: number; patch?: number }
+    | undefined;
+  assertEquals(paddleCalls?.get, 1);
+  assertEquals(paddleCalls?.preview, 1);
+  assertEquals(paddleCalls?.patch, 1);
+  assertEquals(calls.get, 1);
+  assertEquals(calls.preview, 1);
+  assertEquals(calls.patch, 1);
+  assertEquals(calls.status.includes("retryable_failed"), true);
+  assertEquals(out.json.sanitized_message, undefined);
+  assertEquals(out.json.provider_detail, undefined);
+  assertEquals(out.json.message, undefined);
+  const raw = JSON.stringify(out.json);
+  assertEquals(raw.includes("raw patch detail must not leak"), false);
+});
+
+Deno.test("PATCH definitive without error code omits provider_error_code", async () => {
+  const { deps, calls } = makeDeps({
+    updateKind: "definitive_client_error",
+    updateHttpStatus: 422,
+    updateErrorCode: null,
+  });
+  const out = await post(createHandler(deps), { company_id: COMPANY });
+  assertEquals(out.json.result, "provider_rejected");
+  assertEquals(out.json.error_code, "ATLAS_REFERRAL_PROVIDER_REJECTED");
+  assertEquals(out.json.provider_http_status, 422);
+  assertEquals(out.json.provider_error_code, undefined);
+  assertEquals(calls.patch, 1);
+  assertEquals(calls.status.includes("retryable_failed"), true);
 });
 
 Deno.test("GET exact target → confirm, zero PATCH", async () => {

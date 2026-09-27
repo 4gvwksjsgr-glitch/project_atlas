@@ -215,11 +215,23 @@ async function runProviderPath(
       status: "retryable_failed",
       error_code: "ATLAS_REFERRAL_PROVIDER_REJECTED",
     });
-    return jsonResponse(200, {
+    const body: Record<string, unknown> = {
       result: "provider_rejected",
       error_code: "ATLAS_REFERRAL_PROVIDER_REJECTED",
       paddle_calls: { get: 1, preview: 1, patch: 1 },
-    });
+    };
+    // Privileged redeem Edge only: expose already-sanitized Paddle status/code
+    // for definitive PATCH rejections (same contract as preview definitive path).
+    if (updated.kind === "definitive_client_error") {
+      body.provider_http_status = updated.http_status;
+      if (
+        typeof updated.paddle_error_code === "string" &&
+        updated.paddle_error_code.length > 0
+      ) {
+        body.provider_error_code = updated.paddle_error_code;
+      }
+    }
+    return jsonResponse(200, body);
   }
 
   const returned = updated.next_billed_at ??

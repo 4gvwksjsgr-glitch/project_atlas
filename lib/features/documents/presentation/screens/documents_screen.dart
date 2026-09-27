@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -19,6 +20,11 @@ import '../providers/document_providers.dart';
 import '../widgets/document_delete_dialog.dart';
 import '../widgets/document_links_dialog.dart';
 import '../../domain/entities/document_link_summaries.dart';
+
+double _documentsDialogWidth(BuildContext context) {
+  final screenWidth = MediaQuery.sizeOf(context).width;
+  return math.min(420.0, math.max(0.0, screenWidth - 48.0));
+}
 
 class DocumentsScreen extends ConsumerWidget {
   const DocumentsScreen({super.key});
@@ -159,13 +165,18 @@ class DocumentsScreen extends ConsumerWidget {
       builder: (dialogContext) {
         return AlertDialog(
           title: Text(l10n.documentsUpload),
-          content: TextField(
-            controller: titleController,
-            decoration: InputDecoration(
-              labelText: l10n.documentTitleLabel,
-              border: const OutlineInputBorder(),
+          content: SizedBox(
+            width: _documentsDialogWidth(dialogContext),
+            child: SingleChildScrollView(
+              child: TextField(
+                controller: titleController,
+                decoration: InputDecoration(
+                  labelText: l10n.documentTitleLabel,
+                  border: const OutlineInputBorder(),
+                ),
+                maxLength: DocumentFileRules.maxTitleLength,
+              ),
             ),
-            maxLength: DocumentFileRules.maxTitleLength,
           ),
           actions: [
             TextButton(

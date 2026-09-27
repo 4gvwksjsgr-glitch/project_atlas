@@ -124,6 +124,60 @@ void main() {
       expect(find.textContaining('Amico iscritto'), findsNothing);
     });
 
+    testWidgets(
+      'errore overview mostra Riprova, ricarica provider e non riscatta',
+      (tester) async {
+        var overviewCalls = 0;
+        final repo = _FakeReferralRepo();
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              referralOverviewProvider.overrideWith((ref, id) async {
+                overviewCalls++;
+                if (overviewCalls == 1) {
+                  throw StateError(
+                    'Caricamento referral non riuscito. Riprova.',
+                  );
+                }
+                return ownerOverview();
+              }),
+              referralAppBaseUrlProvider.overrideWithValue('https://app.test'),
+              referralRepositoryProvider.overrideWithValue(repo),
+            ],
+            child: const MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              locale: Locale('it'),
+              home: Scaffold(
+                body: SingleChildScrollView(
+                  child: CompanyReferralCard(companyId: 'c1'),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Caricamento referral non riuscito. Riprova.'),
+          findsOneWidget,
+        );
+        expect(find.byKey(const Key('referral-overview-retry')), findsOneWidget);
+        expect(overviewCalls, 1);
+        expect(repo.retryCalls, isEmpty);
+
+        await tester.tap(find.byKey(const Key('referral-overview-retry')));
+        await tester.pumpAndSettle();
+
+        expect(overviewCalls, 2);
+        expect(repo.retryCalls, isEmpty);
+        expect(find.text('2 di 5 mesi Premium'), findsNothing);
+        expect(find.text('1 di 5 mesi Premium'), findsOneWidget);
+        expect(find.byKey(const Key('referral-overview-retry')), findsNothing);
+      },
+    );
+
     group('stato riscatto premio (owner)', () {
       testWidgets('pending: mesi disponibili plurale e singolare', (
         tester,

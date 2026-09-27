@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +12,11 @@ import '../../../transactions/domain/entities/cash_transaction.dart';
 import '../../domain/entities/transaction_category.dart';
 import '../controllers/category_mutation_controller.dart';
 import '../providers/category_providers.dart';
+
+double _categoriesDialogWidth(BuildContext context) {
+  final screenWidth = MediaQuery.sizeOf(context).width;
+  return math.min(420.0, math.max(0.0, screenWidth - 48.0));
+}
 
 class CategoriesScreen extends ConsumerWidget {
   const CategoriesScreen({super.key});
@@ -202,47 +209,52 @@ class CategoriesBody extends ConsumerWidget {
           builder: (context, setLocalState) {
             return AlertDialog(
               title: Text(l10n.categoriesCreateTitle),
-              content: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SegmentedButton<TransactionKind>(
-                      segments: [
-                        ButtonSegment(
-                          value: TransactionKind.income,
-                          label: Text(l10n.transactionKindIncome),
+              content: SizedBox(
+                width: _categoriesDialogWidth(dialogContext),
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SegmentedButton<TransactionKind>(
+                          segments: [
+                            ButtonSegment(
+                              value: TransactionKind.income,
+                              label: Text(l10n.transactionKindIncome),
+                            ),
+                            ButtonSegment(
+                              value: TransactionKind.expense,
+                              label: Text(l10n.transactionKindExpense),
+                            ),
+                          ],
+                          selected: {kind},
+                          onSelectionChanged: (selection) {
+                            setLocalState(() => kind = selection.first);
+                          },
                         ),
-                        ButtonSegment(
-                          value: TransactionKind.expense,
-                          label: Text(l10n.transactionKindExpense),
+                        const SizedBox(height: AppUiConstants.spacingMedium),
+                        TextFormField(
+                          controller: nameController,
+                          autofocus: true,
+                          decoration: InputDecoration(
+                            labelText: l10n.categoriesNameLabel,
+                            border: const OutlineInputBorder(),
+                          ),
+                          validator: (value) {
+                            final normalized = (value ?? '').trim();
+                            if (normalized.isEmpty) {
+                              return l10n.categoriesNameRequired;
+                            }
+                            if (normalized.length > 80) {
+                              return l10n.categoriesNameTooLong;
+                            }
+                            return null;
+                          },
                         ),
                       ],
-                      selected: {kind},
-                      onSelectionChanged: (selection) {
-                        setLocalState(() => kind = selection.first);
-                      },
                     ),
-                    const SizedBox(height: AppUiConstants.spacingMedium),
-                    TextFormField(
-                      controller: nameController,
-                      autofocus: true,
-                      decoration: InputDecoration(
-                        labelText: l10n.categoriesNameLabel,
-                        border: const OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        final normalized = (value ?? '').trim();
-                        if (normalized.isEmpty) {
-                          return l10n.categoriesNameRequired;
-                        }
-                        if (normalized.length > 80) {
-                          return l10n.categoriesNameTooLong;
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
+                  ),
                 ),
               ),
               actions: [

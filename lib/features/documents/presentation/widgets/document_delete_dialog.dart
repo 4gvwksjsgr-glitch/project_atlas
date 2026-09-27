@@ -1,9 +1,17 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/constants/app_ui_constants.dart';
 import '../../domain/entities/company_document.dart';
 import '../controllers/document_controllers.dart';
+
+double _documentDeleteDialogWidth(BuildContext context) {
+  final screenWidth = MediaQuery.sizeOf(context).width;
+  return math.min(420.0, math.max(0.0, screenWidth - 48.0));
+}
 
 Future<void> showDocumentDeleteDialog({
   required BuildContext context,
@@ -75,17 +83,22 @@ class _DocumentDeleteDialogState extends ConsumerState<_DocumentDeleteDialog> {
     final l10n = AppLocalizations.of(context);
     return AlertDialog(
       title: Text(l10n.documentDeleteConfirmTitle),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            widget.document.title,
-            style: Theme.of(context).textTheme.titleMedium,
+      content: SizedBox(
+        width: _documentDeleteDialogWidth(context),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.document.title,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: AppUiConstants.spacingMedium),
+              Text(l10n.documentDeleteIrreversible),
+            ],
           ),
-          const SizedBox(height: 12),
-          Text(l10n.documentDeleteIrreversible),
-        ],
+        ),
       ),
       actions: [
         TextButton(

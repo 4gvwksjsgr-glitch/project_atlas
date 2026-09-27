@@ -617,6 +617,7 @@
   "subscriptionPlanManagementComingSoon": "La gestione del piano sarà disponibile prossimamente.",
   "subscriptionLoading": "Caricamento piano...",
   "subscriptionLoadError": "Caricamento piano non riuscito. Riprova.",
+  "subscriptionRetry": "Riprova",
   "subscriptionUpgradeToPremiumCta": "Passa a Premium",
   "subscriptionCheckoutPreparing": "Preparazione del checkout...",
   "atlasCheckoutStartFailed": "Impossibile avviare il checkout.",
@@ -629,6 +630,7 @@
   "referralSectionTitle": "Invita un amico",
   "referralLoading": "Caricamento referral...",
   "referralLoadError": "Caricamento referral non riuscito. Riprova.",
+  "referralRetry": "Riprova",
   "referralProgressCount": "{rewardedCount} di {maxRewards} mesi Premium",
   "@referralProgressCount": {
     "placeholders": {

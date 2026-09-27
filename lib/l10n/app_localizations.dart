@@ -2670,6 +2670,12 @@ abstract class AppLocalizations {
   /// **'Caricamento piano non riuscito. Riprova.'**
   String get subscriptionLoadError;
 
+  /// No description provided for @subscriptionRetry.
+  ///
+  /// In it, this message translates to:
+  /// **'Riprova'**
+  String get subscriptionRetry;
+
   /// No description provided for @subscriptionUpgradeToPremiumCta.
   ///
   /// In it, this message translates to:
@@ -2741,6 +2747,12 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Caricamento referral non riuscito. Riprova.'**
   String get referralLoadError;
+
+  /// No description provided for @referralRetry.
+  ///
+  /// In it, this message translates to:
+  /// **'Riprova'**
+  String get referralRetry;
 
   /// No description provided for @referralProgressCount.
   ///

@@ -556,6 +556,48 @@ void main() {
       expect(find.text('Attiva la prova Premium'), findsNothing);
     });
 
+    testWidgets('errore overview mostra Riprova e ricarica solo il provider', (
+      tester,
+    ) async {
+      var overviewCalls = 0;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            companySubscriptionOverviewProvider.overrideWith((ref, id) async {
+              overviewCalls++;
+              if (overviewCalls == 1) {
+                throw StateError('Caricamento piano non riuscito. Riprova.');
+              }
+              return _sampleFree();
+            }),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('it'),
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: CompanyPlanCard(companyId: 'c1'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Caricamento piano non riuscito. Riprova.'), findsOneWidget);
+      expect(find.byKey(const Key('subscription-overview-retry')), findsOneWidget);
+      expect(find.text('Piano Free'), findsNothing);
+      expect(overviewCalls, 1);
+
+      await tester.tap(find.byKey(const Key('subscription-overview-retry')));
+      await tester.pumpAndSettle();
+
+      expect(overviewCalls, 2);
+      expect(find.text('Piano Free'), findsOneWidget);
+      expect(find.byKey(const Key('subscription-overview-retry')), findsNothing);
+    });
+
     testWidgets('dialog annullato non attiva', (tester) async {
       final repo = _FakeRepo();
       await tester.pumpWidget(

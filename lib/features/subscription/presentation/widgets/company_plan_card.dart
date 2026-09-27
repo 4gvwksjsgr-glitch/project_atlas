@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -9,6 +11,11 @@ import '../../domain/entities/company_subscription_overview.dart';
 import '../controllers/activate_premium_trial_controller.dart';
 import '../controllers/create_premium_checkout_controller.dart';
 import '../providers/subscription_providers.dart';
+
+double _planDialogWidth(BuildContext context) {
+  final screenWidth = MediaQuery.sizeOf(context).width;
+  return math.min(420.0, math.max(0.0, screenWidth - 48.0));
+}
 
 class CompanyPlanCard extends ConsumerWidget {
   const CompanyPlanCard({super.key, required this.companyId});
@@ -85,11 +92,24 @@ class CompanyPlanCard extends ConsumerWidget {
             final message = error is StateError
                 ? error.message
                 : l10n.subscriptionLoadError;
-            return Text(
-              message,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.error,
-              ),
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  message,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+                const SizedBox(height: AppUiConstants.spacingMedium),
+                OutlinedButton(
+                  key: const Key('subscription-overview-retry'),
+                  onPressed: () => ref.invalidate(
+                    companySubscriptionOverviewProvider(companyId),
+                  ),
+                  child: Text(l10n.subscriptionRetry),
+                ),
+              ],
             );
           },
           data: (overview) =>
@@ -250,17 +270,24 @@ class _ActivateTrialButton extends ConsumerWidget {
           : () async {
               final confirmed = await showDialog<bool>(
                 context: context,
-                builder: (context) {
+                builder: (dialogContext) {
                   return AlertDialog(
                     title: Text(l10n.subscriptionActivateTrialDialogTitle),
-                    content: Text(l10n.subscriptionActivateTrialDialogBody),
+                    content: SizedBox(
+                      width: _planDialogWidth(dialogContext),
+                      child: SingleChildScrollView(
+                        child: Text(l10n.subscriptionActivateTrialDialogBody),
+                      ),
+                    ),
                     actions: [
                       TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
+                        onPressed: () =>
+                            Navigator.of(dialogContext).pop(false),
                         child: Text(l10n.subscriptionActivateTrialCancel),
                       ),
                       FilledButton(
-                        onPressed: () => Navigator.of(context).pop(true),
+                        onPressed: () =>
+                            Navigator.of(dialogContext).pop(true),
                         child: Text(l10n.subscriptionActivateTrialConfirm),
                       ),
                     ],

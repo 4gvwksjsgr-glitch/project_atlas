@@ -1500,6 +1500,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Caricamento piano non riuscito. Riprova.';
 
   @override
+  String get subscriptionRetry => 'Riprova';
+
+  @override
   String get subscriptionUpgradeToPremiumCta => 'Passa a Premium';
 
   @override
@@ -1539,6 +1542,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get referralLoadError => 'Caricamento referral non riuscito. Riprova.';
+
+  @override
+  String get referralRetry => 'Riprova';
 
   @override
   String referralProgressCount(int rewardedCount, int maxRewards) {

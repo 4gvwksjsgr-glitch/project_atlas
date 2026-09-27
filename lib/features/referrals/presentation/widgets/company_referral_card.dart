@@ -55,11 +55,23 @@ class CompanyReferralCard extends ConsumerWidget {
             final message = error is StateError
                 ? error.message
                 : l10n.referralLoadError;
-            return Text(
-              message,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.error,
-              ),
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  message,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+                const SizedBox(height: AppUiConstants.spacingMedium),
+                OutlinedButton(
+                  key: const Key('referral-overview-retry'),
+                  onPressed: () =>
+                      ref.invalidate(referralOverviewProvider(companyId)),
+                  child: Text(l10n.referralRetry),
+                ),
+              ],
             );
           },
           data: (overview) => _ReferralDetails(

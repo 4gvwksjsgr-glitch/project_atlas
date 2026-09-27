@@ -19,6 +19,15 @@ void main() {
 
     // Universal Links / Associated Domains deferred.
     expect(plist.contains('com.apple.developer.associated-domains'), isFalse);
+
+    // Flutter default deep linking disabled so app_links owns custom schemes.
+    expect(plist.contains('<key>FlutterDeepLinkingEnabled</key>'), isTrue);
+    expect(
+      RegExp(
+        r'<key>FlutterDeepLinkingEnabled</key>\s*<false/>',
+      ).hasMatch(plist),
+      isTrue,
+    );
   });
 
   test('ios deployment target unchanged in pbxproj', () {
@@ -34,5 +43,14 @@ void main() {
         File('android/app/src/main/AndroidManifest.xml').readAsStringSync();
     expect(manifest.contains('android:scheme="projectatlas"'), isTrue);
     expect(manifest.contains('android:autoVerify="true"'), isFalse);
+
+    // Flutter default deep linking disabled so app_links owns custom schemes.
+    expect(
+      RegExp(
+        r'android:name="flutter_deeplinking_enabled"\s*'
+        r'android:value="false"',
+      ).hasMatch(manifest),
+      isTrue,
+    );
   });
 }

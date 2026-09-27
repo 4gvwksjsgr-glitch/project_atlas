@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/config/app_constants.dart';
 import 'core/di/providers.dart';
+import 'core/links/atlas_deep_link_providers.dart';
 import 'core/theme/app_theme.dart';
 import 'features/companies/presentation/controllers/active_company_resolution_coordinator.dart';
 import 'features/referrals/presentation/providers/referral_providers.dart';
@@ -15,6 +16,7 @@ class App extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(activeCompanyResolutionCoordinatorProvider);
     ref.watch(pendingReferralClaimCoordinatorProvider);
+    ref.watch(atlasDeepLinkCoordinatorProvider);
     final router = ref.watch(goRouterProvider);
 
     return MaterialApp.router(

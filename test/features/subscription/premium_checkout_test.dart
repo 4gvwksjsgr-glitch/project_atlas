@@ -650,7 +650,7 @@ void main() {
     Future<void> pumpCard(
       WidgetTester tester,
       CompanySubscriptionOverview overview, {
-      bool isWeb = true,
+      bool isSupportedPlatform = true,
       List<Override> extraOverrides = const [],
     }) async {
       await tester.pumpWidget(
@@ -659,7 +659,9 @@ void main() {
             companySubscriptionOverviewProvider.overrideWith((ref, id) async {
               return overview;
             }),
-            isBillingCheckoutWebPlatformProvider.overrideWithValue(isWeb),
+            isBillingCheckoutSupportedPlatformProvider.overrideWithValue(
+              isSupportedPlatform,
+            ),
             ...extraOverrides,
           ],
           child: const MaterialApp(
@@ -701,9 +703,24 @@ void main() {
       expect(find.text('Passa a Premium'), findsNothing);
     });
 
-    testWidgets('non-web → purchase CTA absent', (tester) async {
-      await pumpCard(tester, _checkoutEligibleFree(), isWeb: false);
+    testWidgets('unsupported platform → purchase CTA absent', (tester) async {
+      await pumpCard(
+        tester,
+        _checkoutEligibleFree(),
+        isSupportedPlatform: false,
+      );
       expect(find.text('Passa a Premium'), findsNothing);
+    });
+
+    testWidgets('supported non-web override → purchase CTA visible', (
+      tester,
+    ) async {
+      await pumpCard(
+        tester,
+        _checkoutEligibleFree(),
+        isSupportedPlatform: true,
+      );
+      expect(find.text('Passa a Premium'), findsOneWidget);
     });
 
     testWidgets('loading disables CTA', (tester) async {

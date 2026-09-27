@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/env.dart';
@@ -10,9 +11,10 @@ Future<SupabaseClient> initializeSupabase() async {
   await Supabase.initialize(
     url: Env.supabaseUrl,
     publishableKey: Env.supabaseAnonKey,
-    authOptions: const FlutterAuthClientOptions(
-      // Gestione esplicita del callback PKCE in bootstrap (hash routing).
-      detectSessionInUri: false,
+    authOptions: FlutterAuthClientOptions(
+      // Web: keep detectSessionInUri=false — explicit PKCE in bootstrap.
+      // Native: let supabase_flutter observe projectatlas://auth/callback.
+      detectSessionInUri: !kIsWeb,
     ),
   );
 

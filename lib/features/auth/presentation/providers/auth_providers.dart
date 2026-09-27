@@ -1,10 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/auth/auth_recovery_bootstrap.dart';
+import '../../../../core/config/env.dart';
 import '../../../../core/di/providers.dart';
+import '../../../../core/links/atlas_deep_link_config.dart';
 import '../../../../core/router/go_router_auth_refresh.dart';
 import '../../../companies/domain/entities/active_company_context.dart';
 import '../../../companies/domain/entities/company_membership.dart';
@@ -20,8 +23,19 @@ import '../../domain/usecases/sign_out.dart';
 import '../../domain/usecases/sign_up.dart';
 import '../../domain/usecases/update_password.dart';
 
+/// Injectable password-reset redirect (Web → APP_URL, native → custom scheme).
+final passwordResetRedirectToProvider = Provider<String Function()>((ref) {
+  return () => resolvePasswordResetRedirectTo(
+    isWeb: kIsWeb,
+    webAppUrl: Env.appUrl,
+  );
+});
+
 final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
-  return AuthRemoteDataSource(ref.watch(supabaseClientProvider));
+  return AuthRemoteDataSource(
+    ref.watch(supabaseClientProvider),
+    passwordResetRedirectTo: ref.watch(passwordResetRedirectToProvider),
+  );
 });
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {

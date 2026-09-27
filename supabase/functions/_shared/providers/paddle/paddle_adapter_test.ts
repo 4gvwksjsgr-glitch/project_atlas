@@ -8,7 +8,9 @@ import {
   createPaddleSandboxCheckoutAdapter,
   createPaddleSandboxSubscriptionReader,
   getPaddleSandboxSubscription,
+  isRfc3339UtcTimestamp,
   isValidPaddleTransactionId,
+  normalizeRfc3339UtcToZ,
   previewPaddleSandboxSubscriptionNextBilledAt,
   readResponseBodyWithLimit,
   updatePaddleSandboxSubscriptionNextBilledAt,
@@ -1113,6 +1115,80 @@ Deno.test("update 2xx without data or with mismatched id is uncertain", async ()
     },
   );
   assertEquals(mismatch.kind, "uncertain");
+});
+
+Deno.test("RFC3339 UTC accepts Z and exact +00:00; rejects non-zero offset", () => {
+  const z = "2026-11-25T13:13:53.014405Z";
+  const plus00 = "2026-11-25T13:13:53.014405+00:00";
+  const plus01 = "2026-11-25T14:13:53.014405+01:00";
+  assertEquals(isRfc3339UtcTimestamp(z), true);
+  assertEquals(isRfc3339UtcTimestamp(plus00), true);
+  assertEquals(isRfc3339UtcTimestamp(plus01), false);
+  assertEquals(isRfc3339UtcTimestamp("2026-11-01"), false);
+  assertEquals(isRfc3339UtcTimestamp("not-a-timestamp"), false);
+  assertEquals(isRfc3339UtcTimestamp("2026-02-30T00:00:00.000Z"), false);
+});
+
+Deno.test("normalizeRfc3339UtcToZ preserves microseconds for +00:00", () => {
+  const plus00 = "2026-11-25T13:13:53.014405+00:00";
+  const normalized = normalizeRfc3339UtcToZ(plus00);
+  assertEquals(normalized, "2026-11-25T13:13:53.014405Z");
+  assertEquals(normalized.includes("014405"), true);
+  assertEquals(normalized.endsWith("Z"), true);
+  assertEquals(
+    normalizeRfc3339UtcToZ("2026-11-25T13:13:53.014405Z"),
+    "2026-11-25T13:13:53.014405Z",
+  );
+});
+
+Deno.test("preview +00:00 target sends exact Z body with microseconds", async () => {
+  const plus00 = "2026-11-25T13:13:53.014405+00:00";
+  const seen: SeenRequest[] = [];
+  const result = await previewPaddleSandboxSubscriptionNextBilledAt(
+    {
+      external_subscription_id: SUB_ID,
+      next_billed_at: plus00,
+      proration_billing_mode: "do_not_bill",
+    },
+    {
+      env: () => "k",
+      fetch: recordingFetch(seen, () =>
+        jsonResponse(
+          previewEnvelope({ next_billed_at: "2026-11-25T13:13:53.014405Z" }),
+        )),
+    },
+  );
+  assertEquals(result.kind, "safe");
+  assertEquals(seen.length, 1);
+  assertEquals(
+    seen[0]!.bodyText,
+    JSON.stringify({
+      next_billed_at: "2026-11-25T13:13:53.014405Z",
+      proration_billing_mode: "do_not_bill",
+    }),
+  );
+});
+
+Deno.test("invalid timestamp does not PATCH (no fetch)", async () => {
+  let calls = 0;
+  const result = await updatePaddleSandboxSubscriptionNextBilledAt(
+    {
+      ...nextInput,
+      next_billed_at: "2026-11-25T14:13:53.014405+01:00",
+    },
+    {
+      env: () => "k",
+      fetch: async () => {
+        calls += 1;
+        return jsonResponse(subscriptionEnvelope());
+      },
+    },
+  );
+  assertEquals(calls, 0);
+  assertEquals(result.kind, "definitive_client_error");
+  if (result.kind === "definitive_client_error") {
+    assertEquals(result.http_status, 0);
+  }
 });
 
 Deno.test("update rejects invalid input locally without fetching", async () => {

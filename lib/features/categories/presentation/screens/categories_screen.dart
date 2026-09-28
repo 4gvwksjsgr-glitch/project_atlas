@@ -198,94 +198,17 @@ class CategoriesBody extends ConsumerWidget {
 
   Future<void> _showCreateDialog(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
-    var kind = TransactionKind.income;
-    final nameController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
-    final confirmed = await showDialog<bool>(
+    final result = await showDialog<_CreateCategoryDialogResult>(
       context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setLocalState) {
-            return AlertDialog(
-              title: Text(l10n.categoriesCreateTitle),
-              content: SizedBox(
-                width: _categoriesDialogWidth(dialogContext),
-                child: SingleChildScrollView(
-                  child: Form(
-                    key: formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SegmentedButton<TransactionKind>(
-                          segments: [
-                            ButtonSegment(
-                              value: TransactionKind.income,
-                              label: Text(l10n.transactionKindIncome),
-                            ),
-                            ButtonSegment(
-                              value: TransactionKind.expense,
-                              label: Text(l10n.transactionKindExpense),
-                            ),
-                          ],
-                          selected: {kind},
-                          onSelectionChanged: (selection) {
-                            setLocalState(() => kind = selection.first);
-                          },
-                        ),
-                        const SizedBox(height: AppUiConstants.spacingMedium),
-                        TextFormField(
-                          controller: nameController,
-                          autofocus: true,
-                          decoration: InputDecoration(
-                            labelText: l10n.categoriesNameLabel,
-                            border: const OutlineInputBorder(),
-                          ),
-                          validator: (value) {
-                            final normalized = (value ?? '').trim();
-                            if (normalized.isEmpty) {
-                              return l10n.categoriesNameRequired;
-                            }
-                            if (normalized.length > 80) {
-                              return l10n.categoriesNameTooLong;
-                            }
-                            return null;
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: Text(l10n.categoriesCancel),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    if (formKey.currentState?.validate() ?? false) {
-                      Navigator.of(dialogContext).pop(true);
-                    }
-                  },
-                  child: Text(l10n.categoriesSave),
-                ),
-              ],
-            );
-          },
-        );
-      },
+      builder: (dialogContext) => const _CreateCategoryDialog(),
     );
-
-    final name = nameController.text;
-    nameController.dispose();
-    if (confirmed != true || !context.mounted) {
+    if (result == null || !context.mounted) {
       return;
     }
 
     final ok = await ref
         .read(categoryMutationControllerProvider(companyId).notifier)
-        .create(name: name, kind: kind);
+        .create(name: result.name, kind: result.kind);
     if (ok && context.mounted) {
       ScaffoldMessenger.of(
         context,
@@ -294,6 +217,115 @@ class CategoriesBody extends ConsumerWidget {
           .read(categoryMutationControllerProvider(companyId).notifier)
           .clearFeedback();
     }
+  }
+}
+
+/// Result returned by [_CreateCategoryDialog] after a confirmed save.
+class _CreateCategoryDialogResult {
+  const _CreateCategoryDialogResult({required this.name, required this.kind});
+
+  final String name;
+  final TransactionKind kind;
+}
+
+class _CreateCategoryDialog extends StatefulWidget {
+  const _CreateCategoryDialog();
+
+  @override
+  State<_CreateCategoryDialog> createState() => _CreateCategoryDialogState();
+}
+
+class _CreateCategoryDialogState extends State<_CreateCategoryDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _nameController;
+  TransactionKind _kind = TransactionKind.income;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
+    Navigator.of(context).pop(
+      _CreateCategoryDialogResult(name: _nameController.text, kind: _kind),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(l10n.categoriesCreateTitle),
+      content: SizedBox(
+        width: _categoriesDialogWidth(context),
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SegmentedButton<TransactionKind>(
+                  segments: [
+                    ButtonSegment(
+                      value: TransactionKind.income,
+                      label: Text(l10n.transactionKindIncome),
+                    ),
+                    ButtonSegment(
+                      value: TransactionKind.expense,
+                      label: Text(l10n.transactionKindExpense),
+                    ),
+                  ],
+                  selected: {_kind},
+                  onSelectionChanged: (selection) {
+                    setState(() => _kind = selection.first);
+                  },
+                ),
+                const SizedBox(height: AppUiConstants.spacingMedium),
+                TextFormField(
+                  key: const Key('categories-create-name-field'),
+                  controller: _nameController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    labelText: l10n.categoriesNameLabel,
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    final normalized = (value ?? '').trim();
+                    if (normalized.isEmpty) {
+                      return l10n.categoriesNameRequired;
+                    }
+                    if (normalized.length > 80) {
+                      return l10n.categoriesNameTooLong;
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.categoriesCancel),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: Text(l10n.categoriesSave),
+        ),
+      ],
+    );
   }
 }
 
@@ -435,56 +467,12 @@ class _CategoryTile extends ConsumerWidget {
 
   Future<void> _rename(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
-    final controller = TextEditingController(text: category.name);
-    final formKey = GlobalKey<FormState>();
-
-    final confirmed = await showDialog<bool>(
+    final name = await showDialog<String>(
       context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(l10n.categoriesRenameTitle),
-          content: Form(
-            key: formKey,
-            child: TextFormField(
-              controller: controller,
-              autofocus: true,
-              decoration: InputDecoration(
-                labelText: l10n.categoriesNameLabel,
-                border: const OutlineInputBorder(),
-              ),
-              validator: (value) {
-                final normalized = (value ?? '').trim();
-                if (normalized.isEmpty) {
-                  return l10n.categoriesNameRequired;
-                }
-                if (normalized.length > 80) {
-                  return l10n.categoriesNameTooLong;
-                }
-                return null;
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(l10n.categoriesCancel),
-            ),
-            FilledButton(
-              onPressed: () {
-                if (formKey.currentState?.validate() ?? false) {
-                  Navigator.of(dialogContext).pop(true);
-                }
-              },
-              child: Text(l10n.categoriesSave),
-            ),
-          ],
-        );
-      },
+      builder: (dialogContext) =>
+          _RenameCategoryDialog(initialName: category.name),
     );
-
-    final name = controller.text;
-    controller.dispose();
-    if (confirmed != true || !context.mounted) {
+    if (name == null || !context.mounted) {
       return;
     }
 
@@ -524,5 +512,83 @@ class _CategoryTile extends ConsumerWidget {
           .read(categoryMutationControllerProvider(companyId).notifier)
           .clearFeedback();
     }
+  }
+}
+
+class _RenameCategoryDialog extends StatefulWidget {
+  const _RenameCategoryDialog({required this.initialName});
+
+  final String initialName;
+
+  @override
+  State<_RenameCategoryDialog> createState() => _RenameCategoryDialogState();
+}
+
+class _RenameCategoryDialogState extends State<_RenameCategoryDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _nameController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.initialName);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
+    Navigator.of(context).pop(_nameController.text);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(l10n.categoriesRenameTitle),
+      content: SizedBox(
+        width: _categoriesDialogWidth(context),
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: TextFormField(
+              key: const Key('categories-rename-name-field'),
+              controller: _nameController,
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: l10n.categoriesNameLabel,
+                border: const OutlineInputBorder(),
+              ),
+              validator: (value) {
+                final normalized = (value ?? '').trim();
+                if (normalized.isEmpty) {
+                  return l10n.categoriesNameRequired;
+                }
+                if (normalized.length > 80) {
+                  return l10n.categoriesNameTooLong;
+                }
+                return null;
+              },
+            ),
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.categoriesCancel),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: Text(l10n.categoriesSave),
+        ),
+      ],
+    );
   }
 }

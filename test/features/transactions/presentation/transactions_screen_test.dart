@@ -277,8 +277,9 @@ Future<(ProviderContainer, GoRouter)> _pumpTransactions({
   String initialLocation = RoutePaths.transactions,
   bool customersError = false,
   List<TransactionCategory> categories = const [],
+  Size surfaceSize = const Size(900, 1600),
 }) async {
-  tester.view.physicalSize = const Size(900, 1600);
+  tester.view.physicalSize = surfaceSize;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
@@ -927,6 +928,166 @@ void main() {
         container.read(transactionFiltersProvider('c2')).hasActiveFilters,
         isFalse,
       );
+    });
+
+    testWidgets('viewport basso landscape: nessun overflow e filtri raggiungibili', (
+      tester,
+    ) async {
+      final repository = _TransactionsRepo({
+        'c1': [
+          for (var i = 0; i < 8; i++)
+            _transaction(
+              id: 't$i',
+              companyId: 'c1',
+              description: 'Movimento $i',
+            ),
+        ],
+      });
+      final (container, _) = await _pumpTransactions(
+        tester: tester,
+        memberships: [_membership(companyId: 'c1', name: 'Acme')],
+        repository: repository,
+        surfaceSize: const Size(800, 360),
+      );
+      addTearDown(container.dispose);
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(TransactionFiltersBar), findsOneWidget);
+      expect(find.byType(CustomScrollView), findsWidgets);
+
+      await tester.scrollUntilVisible(
+        find.text('Movimento 7'),
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(TransactionsListBody),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Movimento 7'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      expect(
+        find.byKey(
+          const Key('transaction-description-filter'),
+          skipOffstage: false,
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('tastiera su viewport basso: nessun overflow e focus filtrabile', (
+      tester,
+    ) async {
+      final repository = _TransactionsRepo({
+        'c1': [
+          for (var i = 0; i < 5; i++)
+            _transaction(
+              id: 't$i',
+              companyId: 'c1',
+              description: 'Movimento $i',
+            ),
+        ],
+      });
+      final (container, _) = await _pumpTransactions(
+        tester: tester,
+        memberships: [_membership(companyId: 'c1', name: 'Acme')],
+        repository: repository,
+        surfaceSize: const Size(390, 844),
+      );
+      addTearDown(container.dispose);
+
+      final field = find.byKey(const Key('transaction-description-filter'));
+      await tester.ensureVisible(field);
+      await tester.tap(field);
+      await tester.pump();
+
+      tester.view.viewInsets = const FakeViewPadding(bottom: 320);
+      addTearDown(() {
+        tester.view.viewInsets = FakeViewPadding.zero;
+      });
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+
+      await tester.enterText(field, 'Mov');
+      await tester.pump();
+      expect(tester.widget<TextField>(field).focusNode!.hasFocus, isTrue);
+      expect(tester.takeException(), isNull);
+
+      await tester.pump(TransactionFiltersBar.descriptionDebounce);
+      await tester.pumpAndSettle();
+      expect(tester.widget<TextField>(field).focusNode!.hasFocus, isTrue);
+      expect(find.text('Movimento 0'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('lista ha spazio sotto il FAB per l ultima riga', (
+      tester,
+    ) async {
+      final repository = _TransactionsRepo({
+        'c1': [
+          for (var i = 0; i < 12; i++)
+            _transaction(
+              id: 't$i',
+              companyId: 'c1',
+              description: 'Riga movimento $i',
+            ),
+        ],
+      });
+      final (container, _) = await _pumpTransactions(
+        tester: tester,
+        memberships: [_membership(companyId: 'c1', name: 'Acme')],
+        repository: repository,
+        surfaceSize: const Size(390, 844),
+      );
+      addTearDown(container.dispose);
+
+      expect(find.text('Nuovo movimento'), findsOneWidget);
+      expect(find.text('Riga movimento 0'), findsOneWidget);
+
+      await tester.scrollUntilVisible(
+        find.text('Riga movimento 11'),
+        300,
+        scrollable: find
+            .descendant(
+              of: find.byType(TransactionsListBody),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('transactions-fab-clearance'), skipOffstage: false),
+        findsOneWidget,
+      );
+      expect(find.text('Riga movimento 11'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('viewport normale portrait resta utilizzabile', (tester) async {
+      final repository = _TransactionsRepo({
+        'c1': [
+          _transaction(id: 't1', companyId: 'c1', description: 'Affitto'),
+        ],
+      });
+      final (container, _) = await _pumpTransactions(
+        tester: tester,
+        memberships: [_membership(companyId: 'c1', name: 'Acme')],
+        repository: repository,
+        surfaceSize: const Size(390, 844),
+      );
+      addTearDown(container.dispose);
+
+      expect(find.text('Affitto'), findsOneWidget);
+      expect(find.byType(TransactionFiltersBar), findsOneWidget);
+      expect(find.text('Nuovo movimento'), findsOneWidget);
+      expect(
+        find.byKey(const Key('transactions-fab-clearance'), skipOffstage: false),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
     });
   });
 }

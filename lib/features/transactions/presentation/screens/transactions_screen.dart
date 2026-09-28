@@ -11,6 +11,10 @@ import '../providers/transaction_providers.dart';
 import '../widgets/transaction_filters_bar.dart';
 import '../widgets/transaction_list_tile.dart';
 
+/// Clears [FloatingActionButton.extended] + [kFloatingActionButtonMargin]
+/// so the last list rows remain reachable above the FAB.
+const double _transactionsFabClearance = 96;
+
 class TransactionsScreen extends ConsumerWidget {
   const TransactionsScreen({super.key});
 
@@ -67,105 +71,147 @@ class TransactionsListBody extends ConsumerWidget {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(AppUiConstants.spacingLarge),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.transactionsTitle, style: theme.textTheme.headlineMedium),
-            const SizedBox(height: AppUiConstants.spacingSmall),
-            Text(
-              l10n.transactionsSubtitle,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+        child: CustomScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          slivers: [
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.transactionsTitle,
+                    style: theme.textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: AppUiConstants.spacingSmall),
+                  Text(
+                    l10n.transactionsSubtitle,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  if (canManage) ...[
+                    const SizedBox(height: AppUiConstants.spacingMedium),
+                    OutlinedButton.icon(
+                      onPressed: () =>
+                          context.push(RoutePaths.transactionsImport),
+                      icon: const Icon(Icons.upload_file),
+                      label: Text(l10n.transactionsImportButton),
+                    ),
+                  ],
+                  const SizedBox(height: AppUiConstants.spacingMedium),
+                  // Fuori da async.when: non viene ricreato al refetch (focus ricerca).
+                  TransactionFiltersBar(companyId: companyId),
+                  const SizedBox(height: AppUiConstants.spacingMedium),
+                ],
               ),
             ),
-            if (canManage) ...[
-              const SizedBox(height: AppUiConstants.spacingMedium),
-              OutlinedButton.icon(
-                onPressed: () => context.push(RoutePaths.transactionsImport),
-                icon: const Icon(Icons.upload_file),
-                label: Text(l10n.transactionsImportButton),
-              ),
-            ],
-            const SizedBox(height: AppUiConstants.spacingMedium),
-            // Fuori da async.when: non viene ricreato al refetch (focus ricerca).
-            TransactionFiltersBar(companyId: companyId),
-            const SizedBox(height: AppUiConstants.spacingMedium),
-            Expanded(
-              child: transactionsAsync.when(
-                skipLoadingOnReload: true,
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, _) {
-                  final message = error is StateError
-                      ? error.message
-                      : l10n.transactionsLoadError;
-                  return ListView(
-                    children: [
-                      Text(
-                        message,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: theme.colorScheme.error,
+            ...transactionsAsync.when(
+              skipLoadingOnReload: true,
+              loading: () => [
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 48),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                ),
+              ],
+              error: (error, _) {
+                final message = error is StateError
+                    ? error.message
+                    : l10n.transactionsLoadError;
+                return [
+                  SliverToBoxAdapter(
+                    child: Column(
+                      children: [
+                        Text(
+                          message,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: theme.colorScheme.error,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: AppUiConstants.spacingMedium),
-                      Center(
-                        child: FilledButton(
-                          onPressed: () =>
-                              ref.invalidate(transactionsProvider(companyId)),
+                        const SizedBox(height: AppUiConstants.spacingMedium),
+                        FilledButton(
+                          onPressed: () => ref.invalidate(
+                            transactionsProvider(companyId),
+                          ),
                           child: Text(l10n.transactionsRetry),
                         ),
-                      ),
-                    ],
-                  );
-                },
-                data: (transactions) {
-                  if (transactions.isEmpty) {
-                    return Center(
-                      child: Text(
-                        filters.hasActiveFilters
-                            ? l10n.transactionsFilterEmpty
-                            : l10n.transactionsEmpty,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    );
-                  }
-
-                  return ListView.separated(
-                    itemCount: transactions.length + 1,
-                    separatorBuilder: (context, index) {
-                      if (index == 0) {
-                        return const SizedBox(
-                          height: AppUiConstants.spacingSmall,
-                        );
-                      }
-                      return const Divider(height: 1);
-                    },
-                    itemBuilder: (context, index) {
-                      if (index == 0) {
-                        return Text(
-                          l10n.transactionsResultsCount(transactions.length),
-                          style: theme.textTheme.bodyMedium?.copyWith(
+                      ],
+                    ),
+                  ),
+                ];
+              },
+              data: (transactions) {
+                if (transactions.isEmpty) {
+                  return [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        child: Text(
+                          filters.hasActiveFilters
+                              ? l10n.transactionsFilterEmpty
+                              : l10n.transactionsEmpty,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodyLarge?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
-                        );
-                      }
-                      final transaction = transactions[index - 1];
-                      return TransactionListTile(
-                        transaction: transaction,
-                        kindLabel: transaction.kind == TransactionKind.income
-                            ? l10n.transactionKindIncome
-                            : l10n.transactionKindExpense,
-                        onTap: () => context.push(
-                          RoutePaths.transactionEdit(transaction.id),
                         ),
-                      );
-                    },
-                  );
-                },
-              ),
+                      ),
+                    ),
+                    if (canManage)
+                      const SliverToBoxAdapter(
+                        child: SizedBox(
+                          key: Key('transactions-fab-clearance'),
+                          height: _transactionsFabClearance,
+                        ),
+                      ),
+                  ];
+                }
+
+                return [
+                  SliverToBoxAdapter(
+                    child: Text(
+                      l10n.transactionsResultsCount(transactions.length),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: AppUiConstants.spacingSmall),
+                  ),
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        if (index.isOdd) {
+                          return const Divider(height: 1);
+                        }
+                        final itemIndex = index ~/ 2;
+                        final transaction = transactions[itemIndex];
+                        return TransactionListTile(
+                          transaction: transaction,
+                          kindLabel:
+                              transaction.kind == TransactionKind.income
+                              ? l10n.transactionKindIncome
+                              : l10n.transactionKindExpense,
+                          onTap: () => context.push(
+                            RoutePaths.transactionEdit(transaction.id),
+                          ),
+                        );
+                      },
+                      childCount: transactions.length * 2 - 1,
+                    ),
+                  ),
+                  if (canManage)
+                    const SliverToBoxAdapter(
+                      child: SizedBox(
+                        key: Key('transactions-fab-clearance'),
+                        height: _transactionsFabClearance,
+                      ),
+                    ),
+                ];
+              },
             ),
           ],
         ),

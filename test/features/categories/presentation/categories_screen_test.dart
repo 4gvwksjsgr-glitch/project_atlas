@@ -101,7 +101,12 @@ class _CategoriesRepo implements CategoryRepository {
   final Map<String, List<TransactionCategory>> byCompany;
   final Failure? listError;
   int createCount = 0;
+  int renameCount = 0;
   String? lastCreateCompanyId;
+  String? lastCreateName;
+  TransactionKind? lastCreateKind;
+  String? lastRenameCategoryId;
+  String? lastRenameName;
 
   @override
   Future<Result<List<TransactionCategory>>> getCategories({
@@ -138,6 +143,8 @@ class _CategoriesRepo implements CategoryRepository {
   }) async {
     createCount++;
     lastCreateCompanyId = companyId;
+    lastCreateName = name;
+    lastCreateKind = kind;
     final created = _category(
       id: 'new-$createCount',
       companyId: companyId,
@@ -154,6 +161,9 @@ class _CategoriesRepo implements CategoryRepository {
     required String categoryId,
     required String name,
   }) async {
+    renameCount++;
+    lastRenameCategoryId = categoryId;
+    lastRenameName = name;
     final list = byCompany[companyId]!;
     final index = list.indexWhere((c) => c.id == categoryId);
     final updated = _category(
@@ -496,5 +506,161 @@ void main() {
       expect(find.text('Solo A'), findsNothing);
       expect(find.text('Solo B'), findsOneWidget);
     });
+
+    testWidgets(
+      'create dialog Cancel after typing: no exception / no mutation',
+      (tester) async {
+        final repository = _CategoriesRepo({'c1': []});
+        final (container, _) = await _pumpCategories(
+          tester: tester,
+          memberships: [_membership(companyId: 'c1', name: 'Acme')],
+          repository: repository,
+        );
+        addTearDown(container.dispose);
+
+        await tester.tap(find.text('Nuova categoria'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Nuova categoria'), findsWidgets);
+        expect(
+          find.byKey(const Key('categories-create-name-field')),
+          findsOneWidget,
+        );
+
+        await tester.enterText(
+          find.byKey(const Key('categories-create-name-field')),
+          'Consulenza',
+        );
+        await tester.pump();
+        await tester.tap(find.text('Annulla'));
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.byType(AlertDialog), findsNothing);
+        expect(repository.createCount, 0);
+      },
+    );
+
+    testWidgets(
+      'create dialog Save: no exception and creates category',
+      (tester) async {
+        final repository = _CategoriesRepo({'c1': []});
+        final (container, _) = await _pumpCategories(
+          tester: tester,
+          memberships: [_membership(companyId: 'c1', name: 'Acme')],
+          repository: repository,
+        );
+        addTearDown(container.dispose);
+
+        await tester.tap(find.text('Nuova categoria'));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(
+          find.byKey(const Key('categories-create-name-field')),
+          'Consulenza',
+        );
+        await tester.pump();
+        await tester.tap(find.text('Salva'));
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.byType(AlertDialog), findsNothing);
+        expect(repository.createCount, 1);
+        expect(repository.lastCreateCompanyId, 'c1');
+        expect(repository.lastCreateName, 'Consulenza');
+        expect(repository.lastCreateKind, TransactionKind.income);
+        expect(find.text('Consulenza'), findsOneWidget);
+        expect(find.text('Categoria creata.'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'rename dialog Cancel after typing: no exception / no mutation',
+      (tester) async {
+        final repository = _CategoriesRepo({
+          'c1': [
+            _category(
+              id: 'i1',
+              companyId: 'c1',
+              name: 'Vendite',
+              kind: TransactionKind.income,
+            ),
+          ],
+        });
+        final (container, _) = await _pumpCategories(
+          tester: tester,
+          memberships: [_membership(companyId: 'c1', name: 'Acme')],
+          repository: repository,
+        );
+        addTearDown(container.dispose);
+
+        await tester.tap(find.byType(PopupMenuButton<String>));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Rinomina'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.byKey(const Key('categories-rename-name-field')),
+          findsOneWidget,
+        );
+        await tester.enterText(
+          find.byKey(const Key('categories-rename-name-field')),
+          'Vendite aggiornate',
+        );
+        await tester.pump();
+        await tester.tap(find.text('Annulla'));
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.byType(AlertDialog), findsNothing);
+        expect(repository.renameCount, 0);
+        expect(find.text('Vendite'), findsOneWidget);
+        expect(find.text('Vendite aggiornate'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'rename dialog Save: no exception and renames category',
+      (tester) async {
+        final repository = _CategoriesRepo({
+          'c1': [
+            _category(
+              id: 'i1',
+              companyId: 'c1',
+              name: 'Vendite',
+              kind: TransactionKind.income,
+            ),
+          ],
+        });
+        final (container, _) = await _pumpCategories(
+          tester: tester,
+          memberships: [_membership(companyId: 'c1', name: 'Acme')],
+          repository: repository,
+        );
+        addTearDown(container.dispose);
+
+        await tester.tap(find.byType(PopupMenuButton<String>));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Rinomina'));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(
+          find.byKey(const Key('categories-rename-name-field')),
+          'Vendite B2B',
+        );
+        await tester.pump();
+        await tester.tap(find.text('Salva'));
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.byType(AlertDialog), findsNothing);
+        expect(repository.renameCount, 1);
+        expect(repository.lastRenameCategoryId, 'i1');
+        expect(repository.lastRenameName, 'Vendite B2B');
+        expect(find.text('Vendite B2B'), findsOneWidget);
+        expect(find.text('Vendite'), findsNothing);
+        expect(find.text('Categoria rinominata.'), findsOneWidget);
+      },
+    );
   });
 }

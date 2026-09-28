@@ -2,6 +2,7 @@
  * Atlas billing return page — finite UX only.
  * Does not call backends. Does not claim payment success.
  * Does not fetch or decide plan access.
+ * Custom-scheme launch is navigation UX only (never grants Premium).
  */
 (function () {
   "use strict";
@@ -10,7 +11,8 @@
   var BODY =
     "Puoi tornare ad Atlas. Il piano verrà aggiornato appena Atlas riceve la conferma del pagamento.";
   var HINT =
-    "Se la scheda di Atlas è ancora aperta, torna a quella finestra.";
+    "Se la scheda di Atlas è ancora aperta, torna a quella finestra. Se Atlas non si apre automaticamente, torna manualmente all'app.";
+  var ATLAS_BILLING_RETURN_URI = "projectatlas://billing/return";
 
   function tryFocusOpener() {
     try {
@@ -32,11 +34,21 @@
     }
   }
 
+  function tryOpenAtlasApp() {
+    try {
+      window.location.assign(ATLAS_BILLING_RETURN_URI);
+    } catch (_) {
+      /* scheme blocked or unavailable — manual return remains valid */
+    }
+  }
+
   function onReturnClick() {
     var focused = tryFocusOpener();
     if (focused) {
       tryCloseSelf();
+      return;
     }
+    tryOpenAtlasApp();
   }
 
   function init() {

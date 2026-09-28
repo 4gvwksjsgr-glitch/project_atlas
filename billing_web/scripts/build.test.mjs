@@ -315,6 +315,11 @@ test("return page wording is finite and non-authoritative", () => {
   assert.match(js, /Puoi tornare ad Atlas/);
   assert.match(js, /riceve la conferma del pagamento/);
   assert.match(js, /return-to-atlas/);
+  assert.match(js, /projectatlas:\/\/billing\/return/);
+  assert.match(
+    js,
+    /Se Atlas non si apre automaticamente, torna manualmente all'app/,
+  );
   assert.doesNotMatch(js, /Stiamo verificando il pagamento/);
   assert.doesNotMatch(js, /Attendere/);
   assert.doesNotMatch(js, /indefinit/i);
@@ -324,12 +329,19 @@ test("return page wording is finite and non-authoritative", () => {
   assert.doesNotMatch(js, /abbonamento attivo/i);
   assert.doesNotMatch(js, /acquisto completato/i);
   assert.doesNotMatch(js, /pagamento confermato/i);
-  assert.doesNotMatch(js, /location\.(href|assign|replace)/);
+  // Only the Atlas custom-scheme fallback may navigate; no HTTP redirects.
+  assert.doesNotMatch(js, /location\.(href|replace)\s*=/);
+  assert.match(js, /location\.assign\(ATLAS_BILLING_RETURN_URI\)/);
+  assert.doesNotMatch(js, /https?:\/\//);
   assert.doesNotMatch(js, /window\.open\s*\(/);
 
   assert.match(html, /Pagamento inviato/);
   assert.match(html, /Puoi tornare ad Atlas/);
   assert.match(html, /id="return-to-atlas"/);
+  assert.match(
+    html,
+    /Se Atlas non si apre automaticamente, torna manualmente all'app/,
+  );
   assert.doesNotMatch(html, /Stiamo verificando il pagamento/);
   assert.doesNotMatch(html, /Elaborazione/);
 });

@@ -26,6 +26,10 @@ double _documentsDialogWidth(BuildContext context) {
   return math.min(420.0, math.max(0.0, screenWidth - 48.0));
 }
 
+/// Clears [FloatingActionButton.extended] + [kFloatingActionButtonMargin]
+/// so the last list rows remain reachable above the FAB.
+const double _documentsFabClearance = 96;
+
 class DocumentsScreen extends ConsumerWidget {
   const DocumentsScreen({super.key});
 
@@ -97,9 +101,20 @@ class DocumentsScreen extends ConsumerWidget {
                 );
               },
               child: ListView.separated(
-                itemCount: documents.length,
-                separatorBuilder: (_, _) => const Divider(height: 1),
+                itemCount: documents.length + (canManage ? 1 : 0),
+                separatorBuilder: (context, index) {
+                  if (canManage && index == documents.length - 1) {
+                    return const SizedBox.shrink();
+                  }
+                  return const Divider(height: 1);
+                },
                 itemBuilder: (context, index) {
+                  if (canManage && index == documents.length) {
+                    return const SizedBox(
+                      key: Key('documents-fab-clearance'),
+                      height: _documentsFabClearance,
+                    );
+                  }
                   final document = documents[index];
                   return _DocumentListTile(
                     document: document,

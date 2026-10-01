@@ -4,23 +4,23 @@ import '../../../../core/config/env.dart';
 import '../models/auth_user_model.dart';
 
 class AuthRemoteDataSource {
-  AuthRemoteDataSource(
-    this._client, {
-    this.passwordResetRedirectTo,
-  });
+  AuthRemoteDataSource(this._client, {this.authEmailRedirectTo});
 
   final SupabaseClient _client;
 
   /// When null, falls back to [Env.appUrl] (Web).
-  final String Function()? passwordResetRedirectTo;
+  /// Used for signup confirmation (`emailRedirectTo`) and password reset.
+  final String Function()? authEmailRedirectTo;
 
   Future<SignUpResultModel> signUp({
     required String email,
     required String password,
   }) async {
+    final redirectTo = (authEmailRedirectTo ?? () => Env.appUrl)();
     final response = await _client.auth.signUp(
       email: email,
       password: password,
+      emailRedirectTo: redirectTo,
     );
 
     return SignUpResultModel.fromAuthResponse(response);
@@ -48,7 +48,7 @@ class AuthRemoteDataSource {
   }
 
   Future<void> resetPasswordForEmail({required String email}) async {
-    final redirectTo = (passwordResetRedirectTo ?? () => Env.appUrl)();
+    final redirectTo = (authEmailRedirectTo ?? () => Env.appUrl)();
     await _client.auth.resetPasswordForEmail(email, redirectTo: redirectTo);
   }
 

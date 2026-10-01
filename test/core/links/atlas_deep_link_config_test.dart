@@ -69,24 +69,56 @@ void main() {
     });
   });
 
-  group('resolvePasswordResetRedirectTo', () {
+  group('resolveAuthEmailRedirectTo', () {
     test('web uses app URL', () {
       expect(
-        resolvePasswordResetRedirectTo(
+        resolveAuthEmailRedirectTo(
           isWeb: true,
-          webAppUrl: 'https://app.example',
+          webAppUrl: 'http://localhost:8080',
         ),
-        'https://app.example',
+        'http://localhost:8080',
       );
     });
 
     test('native uses projectatlas auth callback', () {
       expect(
+        resolveAuthEmailRedirectTo(
+          isWeb: false,
+          webAppUrl: 'http://localhost:8080',
+        ),
+        'projectatlas://auth/callback',
+      );
+      expect(
+        resolveAuthEmailRedirectTo(
+          isWeb: false,
+          webAppUrl: 'http://localhost:8080',
+        ),
+        AtlasDeepLinkConfig.authCallbackUri,
+      );
+    });
+  });
+
+  group('resolvePasswordResetRedirectTo compatibility', () {
+    test('matches resolveAuthEmailRedirectTo for web and native', () {
+      expect(
+        resolvePasswordResetRedirectTo(
+          isWeb: true,
+          webAppUrl: 'https://app.example',
+        ),
+        resolveAuthEmailRedirectTo(
+          isWeb: true,
+          webAppUrl: 'https://app.example',
+        ),
+      );
+      expect(
         resolvePasswordResetRedirectTo(
           isWeb: false,
           webAppUrl: 'https://app.example',
         ),
-        AtlasDeepLinkConfig.authCallbackUri,
+        resolveAuthEmailRedirectTo(
+          isWeb: false,
+          webAppUrl: 'https://app.example',
+        ),
       );
     });
   });

@@ -23,18 +23,16 @@ import '../../domain/usecases/sign_out.dart';
 import '../../domain/usecases/sign_up.dart';
 import '../../domain/usecases/update_password.dart';
 
-/// Injectable password-reset redirect (Web → APP_URL, native → custom scheme).
-final passwordResetRedirectToProvider = Provider<String Function()>((ref) {
-  return () => resolvePasswordResetRedirectTo(
-    isWeb: kIsWeb,
-    webAppUrl: Env.appUrl,
-  );
+/// Injectable Auth email redirect (Web → APP_URL, native → custom scheme).
+/// Shared by signup confirmation and password reset.
+final authEmailRedirectToProvider = Provider<String Function()>((ref) {
+  return () => resolveAuthEmailRedirectTo(isWeb: kIsWeb, webAppUrl: Env.appUrl);
 });
 
 final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
   return AuthRemoteDataSource(
     ref.watch(supabaseClientProvider),
-    passwordResetRedirectTo: ref.watch(passwordResetRedirectToProvider),
+    authEmailRedirectTo: ref.watch(authEmailRedirectToProvider),
   );
 });
 

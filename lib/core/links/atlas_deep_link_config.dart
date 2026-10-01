@@ -101,9 +101,10 @@ abstract final class AtlasDeepLinkParser {
   }
 }
 
-/// Resolves password-reset `redirectTo` for Web vs native without reading
-/// host OS at call sites that need injectable behavior in tests.
-String resolvePasswordResetRedirectTo({
+/// Resolves Auth email redirect targets (signup confirmation, password reset)
+/// for Web vs native without reading host OS at call sites that need
+/// injectable behavior in tests.
+String resolveAuthEmailRedirectTo({
   required bool isWeb,
   required String webAppUrl,
 }) {
@@ -112,3 +113,9 @@ String resolvePasswordResetRedirectTo({
   }
   return AtlasDeepLinkConfig.authCallbackUri;
 }
+
+/// Compatibility alias for password-reset call sites/tests.
+String resolvePasswordResetRedirectTo({
+  required bool isWeb,
+  required String webAppUrl,
+}) => resolveAuthEmailRedirectTo(isWeb: isWeb, webAppUrl: webAppUrl);

@@ -181,7 +181,13 @@ Future<void> _pumpDocumentsScreen(
   required ActiveCompanyContext context,
   required DocumentRepository repository,
   DocumentUrlLauncher? launcher,
+  Size surfaceSize = const Size(900, 1600),
 }) async {
+  tester.view.physicalSize = surfaceSize;
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -419,5 +425,57 @@ void main() {
     expect(find.text('Ripristina'), findsOneWidget);
     expect(find.text('Archivia'), findsNothing);
     expect(find.text('Elimina definitivamente'), findsOneWidget);
+  });
+
+  testWidgets('lista ha spazio sotto il FAB per l ultima riga', (tester) async {
+    final repo = _FakeDocumentRepository(
+      listResult: Success([
+        for (var i = 0; i < 12; i++)
+          _doc(id: 'd$i', title: 'Documento riga $i'),
+      ]),
+    );
+    await _pumpDocumentsScreen(
+      tester,
+      context: _context(),
+      repository: repo,
+      surfaceSize: const Size(390, 844),
+    );
+
+    expect(find.byKey(const Key('documents-upload-fab')), findsOneWidget);
+    expect(find.text('Documento riga 0'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('Documento riga 11'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('documents-fab-clearance'), skipOffstage: false),
+      findsOneWidget,
+    );
+    expect(find.text('Documento riga 11'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('employee read-only senza clearance FAB', (tester) async {
+    final repo = _FakeDocumentRepository(
+      listResult: Success([
+        for (var i = 0; i < 8; i++)
+          _doc(id: 'd$i', title: 'Doc employee $i'),
+      ]),
+    );
+    await _pumpDocumentsScreen(
+      tester,
+      context: _context(role: CompanyRole.employee),
+      repository: repo,
+      surfaceSize: const Size(390, 844),
+    );
+
+    expect(find.byKey(const Key('documents-upload-fab')), findsNothing);
+    expect(find.byKey(const Key('documents-fab-clearance')), findsNothing);
+    expect(find.text('Doc employee 0'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

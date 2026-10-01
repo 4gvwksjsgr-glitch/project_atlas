@@ -9,6 +9,10 @@ import '../../../companies/presentation/controllers/active_company_controller.da
 import '../providers/customer_providers.dart';
 import '../widgets/customer_list_tile.dart';
 
+/// Clears [FloatingActionButton.extended] + [kFloatingActionButtonMargin]
+/// so the last list rows remain reachable above the FAB.
+const double _customersFabClearance = 96;
+
 class CustomersScreen extends ConsumerWidget {
   const CustomersScreen({super.key});
 
@@ -126,9 +130,20 @@ class CustomersListBody extends ConsumerWidget {
                   }
 
                   return ListView.separated(
-                    itemCount: customers.length,
-                    separatorBuilder: (_, _) => const Divider(height: 1),
+                    itemCount: customers.length + (canManage ? 1 : 0),
+                    separatorBuilder: (context, index) {
+                      if (canManage && index == customers.length - 1) {
+                        return const SizedBox.shrink();
+                      }
+                      return const Divider(height: 1);
+                    },
                     itemBuilder: (context, index) {
+                      if (canManage && index == customers.length) {
+                        return const SizedBox(
+                          key: Key('customers-fab-clearance'),
+                          height: _customersFabClearance,
+                        );
+                      }
                       final customer = customers[index];
                       return CustomerListTile(
                         customer: customer,

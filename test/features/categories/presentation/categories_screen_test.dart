@@ -204,8 +204,9 @@ Future<(ProviderContainer, GoRouter)> _pumpCategories({
   required CategoryRepository repository,
   String initialCompanyId = 'c1',
   String initialLocation = RoutePaths.settingsCategories,
+  Size surfaceSize = const Size(900, 1600),
 }) async {
-  tester.view.physicalSize = const Size(900, 1600);
+  tester.view.physicalSize = surfaceSize;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
@@ -662,5 +663,94 @@ void main() {
         expect(find.text('Categoria rinominata.'), findsOneWidget);
       },
     );
+
+    testWidgets('lista ha spazio sotto il FAB per l ultima sezione', (
+      tester,
+    ) async {
+      final repository = _CategoriesRepo({
+        'c1': [
+          for (var i = 0; i < 6; i++)
+            _category(
+              id: 'i$i',
+              companyId: 'c1',
+              name: 'Entrata $i',
+              kind: TransactionKind.income,
+            ),
+          for (var i = 0; i < 8; i++)
+            _category(
+              id: 'e$i',
+              companyId: 'c1',
+              name: 'Uscita finale $i',
+              kind: TransactionKind.expense,
+            ),
+        ],
+      });
+      final (container, _) = await _pumpCategories(
+        tester: tester,
+        memberships: [_membership(companyId: 'c1', name: 'Acme')],
+        repository: repository,
+        surfaceSize: const Size(390, 844),
+      );
+      addTearDown(container.dispose);
+
+      expect(find.text('Nuova categoria'), findsOneWidget);
+      expect(find.text('Uscite'), findsOneWidget);
+
+      await tester.scrollUntilVisible(
+        find.text('Uscita finale 7'),
+        300,
+        scrollable: find
+            .descendant(
+              of: find.byType(CategoriesBody),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('categories-fab-clearance'), skipOffstage: false),
+        findsOneWidget,
+      );
+      expect(find.text('Uscita finale 7'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('employee read-only senza clearance FAB', (tester) async {
+      final repository = _CategoriesRepo({
+        'c1': [
+          _category(
+            id: 'i1',
+            companyId: 'c1',
+            name: 'Vendite',
+            kind: TransactionKind.income,
+          ),
+          _category(
+            id: 'e1',
+            companyId: 'c1',
+            name: 'Software',
+            kind: TransactionKind.expense,
+          ),
+        ],
+      });
+      final (container, _) = await _pumpCategories(
+        tester: tester,
+        memberships: [
+          _membership(
+            companyId: 'c1',
+            name: 'Acme',
+            role: CompanyRole.employee,
+          ),
+        ],
+        repository: repository,
+        surfaceSize: const Size(390, 844),
+      );
+      addTearDown(container.dispose);
+
+      expect(find.text('Nuova categoria'), findsNothing);
+      expect(find.byKey(const Key('categories-fab-clearance')), findsNothing);
+      expect(find.text('Software'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
   });
 }

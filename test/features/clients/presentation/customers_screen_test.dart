@@ -164,7 +164,13 @@ Future<(ProviderContainer, GoRouter)> _pumpClients({
   required CustomerRepository repository,
   String initialCompanyId = 'c1',
   String initialLocation = RoutePaths.clients,
+  Size surfaceSize = const Size(900, 1600),
 }) async {
+  tester.view.physicalSize = surfaceSize;
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
   await ActiveCompanyLocalDataSource(
     appSharedPreferences!,
   ).persistActiveCompanyId(userId: 'user-1', companyId: initialCompanyId);
@@ -436,6 +442,81 @@ void main() {
 
       expect(find.text('Nuovo Cliente'), findsOneWidget);
       expect(repository.createCount, 1);
+    });
+
+    testWidgets('lista ha spazio sotto il FAB per l ultima riga', (
+      tester,
+    ) async {
+      final repository = _CustomersRepo({
+        'c1': [
+          for (var i = 0; i < 12; i++)
+            _customer(
+              id: 'cust-$i',
+              companyId: 'c1',
+              name: 'Cliente riga $i',
+            ),
+        ],
+      });
+      final (container, _) = await _pumpClients(
+        tester: tester,
+        memberships: [_membership(companyId: 'c1', name: 'Acme')],
+        repository: repository,
+        surfaceSize: const Size(390, 844),
+      );
+      addTearDown(container.dispose);
+
+      expect(find.text('Nuovo cliente'), findsOneWidget);
+      expect(find.text('Cliente riga 0'), findsOneWidget);
+
+      await tester.scrollUntilVisible(
+        find.text('Cliente riga 11'),
+        300,
+        scrollable: find
+            .descendant(
+              of: find.byType(CustomersListBody),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('customers-fab-clearance'), skipOffstage: false),
+        findsOneWidget,
+      );
+      expect(find.text('Cliente riga 11'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('employee read-only senza clearance FAB', (tester) async {
+      final repository = _CustomersRepo({
+        'c1': [
+          for (var i = 0; i < 8; i++)
+            _customer(
+              id: 'cust-$i',
+              companyId: 'c1',
+              name: 'Cliente employee $i',
+            ),
+        ],
+      });
+      final (container, _) = await _pumpClients(
+        tester: tester,
+        memberships: [
+          _membership(
+            companyId: 'c1',
+            name: 'Acme',
+            role: CompanyRole.employee,
+          ),
+        ],
+        repository: repository,
+        surfaceSize: const Size(390, 844),
+      );
+      addTearDown(container.dispose);
+
+      expect(find.text('Nuovo cliente'), findsNothing);
+      expect(find.byKey(const Key('customers-fab-clearance')), findsNothing);
+      expect(find.text('Cliente employee 0'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
   });
 }

@@ -18,6 +18,10 @@ double _categoriesDialogWidth(BuildContext context) {
   return math.min(420.0, math.max(0.0, screenWidth - 48.0));
 }
 
+/// Clears [FloatingActionButton.extended] + [kFloatingActionButtonMargin]
+/// so the last list rows remain reachable above the FAB.
+const double _categoriesFabClearance = 96;
+
 class CategoriesScreen extends ConsumerWidget {
   const CategoriesScreen({super.key});
 
@@ -185,6 +189,11 @@ class CategoriesBody extends ConsumerWidget {
                         canManage: canManage,
                         companyId: companyId,
                       ),
+                      if (canManage)
+                        const SizedBox(
+                          key: Key('categories-fab-clearance'),
+                          height: _categoriesFabClearance,
+                        ),
                     ],
                   );
                 },

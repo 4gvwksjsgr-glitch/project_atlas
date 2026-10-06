@@ -370,5 +370,77 @@ void main() {
         RoutePaths.login,
       );
     });
+
+    test('utente non autenticato su accept invite va al login', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.acceptInvite,
+          isAuthenticated: false,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesEmpty(),
+        ),
+        RoutePaths.login,
+      );
+    });
+
+    test('autenticato Empty può aprire accept invite', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.acceptInvite,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesEmpty(),
+        ),
+        isNull,
+      );
+    });
+
+    test('autenticato Loading può aprire accept invite', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.acceptInvite,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesLoading(),
+        ),
+        isNull,
+      );
+    });
+
+    test('autenticato Ready può aprire accept invite', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.acceptInvite,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesReady(),
+        ),
+        isNull,
+      );
+    });
+
+    test('autenticato NeedsSelection può aprire accept invite', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.acceptInvite,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesNeedsSelection(),
+        ),
+        isNull,
+      );
+    });
+
+    test('autenticato Error può aprire accept invite', () {
+      expect(
+        resolveAuthRedirect(
+          location: RoutePaths.acceptInvite,
+          isAuthenticated: true,
+          isPasswordRecoveryActive: false,
+          companiesState: const UserCompaniesError('Errore di rete'),
+        ),
+        isNull,
+      );
+    });
   });
 }

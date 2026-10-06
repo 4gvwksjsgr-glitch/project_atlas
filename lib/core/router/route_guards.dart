@@ -33,6 +33,12 @@ String? resolveAuthRedirect({
     return null;
   }
 
+  // Invite acceptance stays available for any authenticated membership state.
+  // Post-accept navigation is owned by AcceptInviteScreen after a real success.
+  if (location == RoutePaths.acceptInvite) {
+    return null;
+  }
+
   return switch (companiesState) {
     UserCompaniesLoading() => null,
     UserCompaniesEmpty() => _redirectWithoutCompanies(location),

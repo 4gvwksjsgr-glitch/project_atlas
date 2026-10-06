@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/result.dart';
+import '../controllers/active_company_controller.dart';
 import '../controllers/company_onboarding_controller.dart';
 import '../providers/company_providers.dart';
 
@@ -51,11 +52,17 @@ class AcceptInviteController
 
     switch (result) {
       case Success():
+        // Mark resolving before refresh so zero→one company does not briefly
+        // surface NeedsSelection before auto single-company resolution.
+        if (ref.read(activeCompanyProvider) == null) {
+          ref.read(activeCompanyControllerProvider.notifier).markResolving();
+        }
+        ref.invalidate(userCompaniesProvider);
+        // Expose success only after membership refresh has been triggered.
         state = state.copyWith(
           actionStatus: CompanyActionStatus.success,
           clearError: true,
         );
-        ref.invalidate(userCompaniesProvider);
       case Error(:final failure):
         state = state.copyWith(
           actionStatus: CompanyActionStatus.error,

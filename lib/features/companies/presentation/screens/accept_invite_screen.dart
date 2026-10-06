@@ -40,12 +40,20 @@ class _AcceptInviteScreenState extends ConsumerState<AcceptInviteScreen> {
   ) {
     if (next.actionStatus == CompanyActionStatus.success &&
         previous?.actionStatus != CompanyActionStatus.success) {
+      if (!mounted) {
+        return;
+      }
       final l10n = AppLocalizations.of(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.acceptInviteSuccess)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.acceptInviteSuccess)));
       ref.read(acceptInviteControllerProvider.notifier).clearFeedback();
       _tokenController.clear();
+      if (!mounted) {
+        return;
+      }
+      // Post-accept navigation only after a real successful accept action.
+      context.go(RoutePaths.dashboard);
     }
   }
 

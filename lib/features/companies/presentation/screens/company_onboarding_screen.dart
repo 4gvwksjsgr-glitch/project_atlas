@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/route_paths.dart';
 import '../../../../core/router/user_companies_route_state.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/constants/app_ui_constants.dart';
@@ -233,6 +235,14 @@ class _CompanyOnboardingScreenState
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : Text(l10n.createCompanyButton),
+                  ),
+                  const SizedBox(height: AppUiConstants.spacingMedium),
+                  OutlinedButton(
+                    key: const Key('onboarding-accept-invite'),
+                    onPressed: isLoading
+                        ? null
+                        : () => context.push(RoutePaths.acceptInvite),
+                    child: Text(l10n.acceptInviteTitle),
                   ),
                   const SizedBox(height: AppUiConstants.spacingMedium),
                   OutlinedButton.icon(

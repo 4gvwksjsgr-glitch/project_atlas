@@ -204,6 +204,11 @@ Future<void> _pumpOnboardingScreen(
                 builder: (context, state) => const CompanyOnboardingScreen(),
               ),
               GoRoute(
+                path: RoutePaths.acceptInvite,
+                builder: (context, state) =>
+                    const Scaffold(body: Text('Accept Invite')),
+              ),
+              GoRoute(
                 path: RoutePaths.dashboard,
                 builder: (context, state) =>
                     const Scaffold(body: Text('Dashboard')),
@@ -369,6 +374,41 @@ void main() {
         expect(repository.callCount, 1);
         expect(find.text(refreshErrorMessage), findsOneWidget);
         expect(find.byType(CircularProgressIndicator), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'accept invite CTA is visible and navigates without creating company',
+      (tester) async {
+        final repository = _SuccessCreateCompanyRepository();
+
+        await _pumpOnboardingScreen(
+          tester,
+          overrides: [
+            createCompanyUseCaseProvider.overrideWithValue(
+              CreateCompany(repository),
+            ),
+            authSessionProvider.overrideWithValue(null),
+            isAuthenticatedProvider.overrideWithValue(true),
+            isPasswordRecoveryActiveProvider.overrideWithValue(false),
+            userCompaniesProvider.overrideWith((ref) async => []),
+            userCompaniesRouteStateProvider.overrideWithValue(
+              const UserCompaniesEmpty(),
+            ),
+          ],
+        );
+
+        expect(
+          find.byKey(const Key('onboarding-accept-invite')),
+          findsOneWidget,
+        );
+        expect(find.text('Accetta invito'), findsOneWidget);
+
+        await tester.tap(find.byKey(const Key('onboarding-accept-invite')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Accept Invite'), findsOneWidget);
+        expect(repository.callCount, 0);
       },
     );
   });

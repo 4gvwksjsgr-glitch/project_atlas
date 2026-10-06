@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/route_paths.dart';
+import '../../../../core/router/user_companies_route_state.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/constants/app_ui_constants.dart';
 import '../controllers/accept_invite_controller.dart';
 import '../controllers/company_onboarding_controller.dart';
+import '../providers/company_providers.dart';
 
 class AcceptInviteScreen extends ConsumerStatefulWidget {
   const AcceptInviteScreen({super.key});
@@ -18,6 +20,10 @@ class AcceptInviteScreen extends ConsumerStatefulWidget {
 class _AcceptInviteScreenState extends ConsumerState<AcceptInviteScreen> {
   final _formKey = GlobalKey<FormState>();
   final _tokenController = TextEditingController();
+
+  /// Set only after a real accept success; gates post-accept navigation.
+  var _awaitingPostAcceptResolution = false;
+  var _didNavigateAfterAccept = false;
 
   @override
   void dispose() {
@@ -34,7 +40,7 @@ class _AcceptInviteScreenState extends ConsumerState<AcceptInviteScreen> {
         .accept(_tokenController.text);
   }
 
-  void _handleState(
+  void _handleAcceptControllerState(
     AcceptInviteControllerState? previous,
     AcceptInviteControllerState next,
   ) {
@@ -47,14 +53,41 @@ class _AcceptInviteScreenState extends ConsumerState<AcceptInviteScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.acceptInviteSuccess)));
-      ref.read(acceptInviteControllerProvider.notifier).clearFeedback();
       _tokenController.clear();
-      if (!mounted) {
-        return;
-      }
-      // Post-accept navigation only after a real successful accept action.
-      context.go(RoutePaths.dashboard);
+      ref.read(acceptInviteControllerProvider.notifier).clearFeedback();
+
+      // Wait for company route state to become terminal before navigating.
+      _awaitingPostAcceptResolution = true;
+      // Evaluate current state immediately — it may already be terminal.
+      _tryNavigateAfterAccept(ref.read(userCompaniesRouteStateProvider));
     }
+  }
+
+  void _tryNavigateAfterAccept(UserCompaniesRouteState routeState) {
+    if (!_awaitingPostAcceptResolution || _didNavigateAfterAccept || !mounted) {
+      return;
+    }
+
+    switch (routeState) {
+      case UserCompaniesReady():
+        _navigateAfterAccept(RoutePaths.dashboard);
+      case UserCompaniesNeedsSelection():
+        _navigateAfterAccept(RoutePaths.selectCompany);
+      case UserCompaniesLoading():
+      case UserCompaniesEmpty():
+      case UserCompaniesError():
+        // Intermediate / fail-closed: stay on AcceptInviteScreen.
+        break;
+    }
+  }
+
+  void _navigateAfterAccept(String location) {
+    if (_didNavigateAfterAccept || !mounted) {
+      return;
+    }
+    _didNavigateAfterAccept = true;
+    _awaitingPostAcceptResolution = false;
+    context.go(location);
   }
 
   @override
@@ -63,7 +96,12 @@ class _AcceptInviteScreenState extends ConsumerState<AcceptInviteScreen> {
     final theme = Theme.of(context);
     final state = ref.watch(acceptInviteControllerProvider);
 
-    ref.listen(acceptInviteControllerProvider, _handleState);
+    ref.listen(acceptInviteControllerProvider, _handleAcceptControllerState);
+    ref.listen(userCompaniesRouteStateProvider, (previous, next) {
+      if (_awaitingPostAcceptResolution) {
+        _tryNavigateAfterAccept(next);
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(

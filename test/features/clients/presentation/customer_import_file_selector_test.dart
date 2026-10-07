@@ -1,5 +1,4 @@
-import 'dart:typed_data';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,15 +21,21 @@ class _FakePicker implements AppFilePicker {
 
   AppFilePickResult result;
   var customerCalls = 0;
+  TabularImportFileFormat? lastCustomerFormat;
 
   @override
-  Future<AppFilePickResult> pickCustomerImportFile() async {
+  Future<AppFilePickResult> pickCustomerImportFile({
+    TabularImportFileFormat? format,
+  }) async {
     customerCalls += 1;
+    lastCustomerFormat = format;
     return result;
   }
 
   @override
-  Future<AppFilePickResult> pickTransactionImportFile() async {
+  Future<AppFilePickResult> pickTransactionImportFile({
+    TabularImportFileFormat? format,
+  }) async {
     return const AppFilePickCancelled();
   }
 
@@ -81,116 +86,203 @@ ActiveCompanyContext _owner() {
   );
 }
 
+Future<void> _pumpImportScreen(
+  WidgetTester tester, {
+  required _FakePicker picker,
+  required _FakeParser parser,
+}) async {
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        activeCompanyProvider.overrideWithValue(_owner()),
+        customerImportFileParserProvider.overrideWithValue(parser),
+        appFilePickerProvider.overrideWithValue(picker),
+      ],
+      child: const MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: CustomerImportScreen(),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+Future<void> _withPlatform(
+  TargetPlatform platform,
+  Future<void> Function() body,
+) async {
+  debugDefaultTargetPlatformOverride = platform;
+  try {
+    await body();
+  } finally {
+    debugDefaultTargetPlatformOverride = null;
+  }
+}
+
 void main() {
   testWidgets('import clienti: CSV selezionato passa bytes al parser', (
     tester,
   ) async {
-    final bytes = Uint8List.fromList('Nome,Email\nAda,a@b.c'.codeUnits);
-    final picker = _FakePicker(
-      AppFilePickSuccess(
-        SelectedAppFile(
-          name: 'clienti.csv',
-          extension: 'csv',
-          mimeType: 'text/csv',
-          size: bytes.length,
-          bytes: bytes,
+    await _withPlatform(TargetPlatform.iOS, () async {
+      final bytes = Uint8List.fromList('Nome,Email\nAda,a@b.c'.codeUnits);
+      final picker = _FakePicker(
+        AppFilePickSuccess(
+          SelectedAppFile(
+            name: 'clienti.csv',
+            extension: 'csv',
+            mimeType: 'text/csv',
+            size: bytes.length,
+            bytes: bytes,
+          ),
         ),
-      ),
-    );
-    final parser = _FakeParser();
+      );
+      final parser = _FakeParser();
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          activeCompanyProvider.overrideWithValue(_owner()),
-          customerImportFileParserProvider.overrideWithValue(parser),
-          appFilePickerProvider.overrideWithValue(picker),
-        ],
-        child: const MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: CustomerImportScreen(),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      await _pumpImportScreen(tester, picker: picker, parser: parser);
 
-    await tester.tap(find.text('Seleziona file CSV o XLSX'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Seleziona file CSV o XLSX'));
+      await tester.pumpAndSettle();
 
-    expect(picker.customerCalls, 1);
-    expect(parser.lastFileName, 'clienti.csv');
-    expect(parser.lastBytes, bytes);
+      expect(picker.customerCalls, 1);
+      expect(picker.lastCustomerFormat, isNull);
+      expect(parser.lastFileName, 'clienti.csv');
+      expect(parser.lastBytes, bytes);
+    });
   });
 
   testWidgets('import clienti: XLSX selezionato passa bytes al parser', (
     tester,
   ) async {
-    final bytes = Uint8List.fromList([0x50, 0x4B, 0x03, 0x04]);
-    final picker = _FakePicker(
-      AppFilePickSuccess(
-        SelectedAppFile(
-          name: 'clienti.xlsx',
-          extension: 'xlsx',
-          mimeType:
-              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          size: bytes.length,
-          bytes: bytes,
+    await _withPlatform(TargetPlatform.iOS, () async {
+      final bytes = Uint8List.fromList([0x50, 0x4B, 0x03, 0x04]);
+      final picker = _FakePicker(
+        AppFilePickSuccess(
+          SelectedAppFile(
+            name: 'clienti.xlsx',
+            extension: 'xlsx',
+            mimeType:
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            size: bytes.length,
+            bytes: bytes,
+          ),
         ),
-      ),
-    );
-    final parser = _FakeParser();
+      );
+      final parser = _FakeParser();
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          activeCompanyProvider.overrideWithValue(_owner()),
-          customerImportFileParserProvider.overrideWithValue(parser),
-          appFilePickerProvider.overrideWithValue(picker),
-        ],
-        child: const MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: CustomerImportScreen(),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      await _pumpImportScreen(tester, picker: picker, parser: parser);
 
-    await tester.tap(find.text('Seleziona file CSV o XLSX'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Seleziona file CSV o XLSX'));
+      await tester.pumpAndSettle();
 
-    expect(parser.lastFileName, 'clienti.xlsx');
-    expect(parser.lastBytes, bytes);
+      expect(parser.lastFileName, 'clienti.xlsx');
+      expect(parser.lastBytes, bytes);
+    });
   });
 
   testWidgets('import clienti: selezione annullata non mostra errore', (
     tester,
   ) async {
-    final picker = _FakePicker(const AppFilePickCancelled());
-    final parser = _FakeParser();
+    await _withPlatform(TargetPlatform.iOS, () async {
+      final picker = _FakePicker(const AppFilePickCancelled());
+      final parser = _FakeParser();
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          activeCompanyProvider.overrideWithValue(_owner()),
-          customerImportFileParserProvider.overrideWithValue(parser),
-          appFilePickerProvider.overrideWithValue(picker),
-        ],
-        child: const MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: CustomerImportScreen(),
+      await _pumpImportScreen(tester, picker: picker, parser: parser);
+
+      await tester.tap(find.text('Seleziona file CSV o XLSX'));
+      await tester.pumpAndSettle();
+
+      expect(parser.lastBytes, isNull);
+      expect(find.byType(SnackBar), findsNothing);
+      expect(find.text('Seleziona file CSV o XLSX'), findsOneWidget);
+    });
+  });
+
+  testWidgets('Android: tap pick shows format choice before calling picker', (
+    tester,
+  ) async {
+    await _withPlatform(TargetPlatform.android, () async {
+      final picker = _FakePicker(const AppFilePickCancelled());
+      final parser = _FakeParser();
+
+      await _pumpImportScreen(tester, picker: picker, parser: parser);
+
+      await tester.tap(find.text('Seleziona file CSV o XLSX'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('CSV'), findsOneWidget);
+      expect(find.text('Excel (.xlsx)'), findsOneWidget);
+      expect(picker.customerCalls, 0);
+    });
+  });
+
+  testWidgets('Android: choosing CSV passes format csv', (tester) async {
+    await _withPlatform(TargetPlatform.android, () async {
+      final bytes = Uint8List.fromList('Nome,Email\nAda,a@b.c'.codeUnits);
+      final picker = _FakePicker(
+        AppFilePickSuccess(
+          SelectedAppFile(
+            name: 'clienti.csv',
+            extension: 'csv',
+            mimeType: 'text/csv',
+            size: bytes.length,
+            bytes: bytes,
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      final parser = _FakeParser();
 
-    await tester.tap(find.text('Seleziona file CSV o XLSX'));
-    await tester.pumpAndSettle();
+      await _pumpImportScreen(tester, picker: picker, parser: parser);
 
-    expect(parser.lastBytes, isNull);
-    expect(find.byType(SnackBar), findsNothing);
-    expect(find.text('Seleziona file CSV o XLSX'), findsOneWidget);
+      await tester.tap(find.text('Seleziona file CSV o XLSX'));
+      await tester.pumpAndSettle();
+      expect(picker.customerCalls, 0);
+
+      await tester.tap(find.text('CSV'));
+      await tester.pumpAndSettle();
+
+      expect(picker.customerCalls, 1);
+      expect(picker.lastCustomerFormat, TabularImportFileFormat.csv);
+      expect(parser.lastBytes, bytes);
+    });
+  });
+
+  testWidgets('Android: choosing Excel passes format xlsx', (tester) async {
+    await _withPlatform(TargetPlatform.android, () async {
+      final picker = _FakePicker(const AppFilePickCancelled());
+      final parser = _FakeParser();
+
+      await _pumpImportScreen(tester, picker: picker, parser: parser);
+
+      await tester.tap(find.text('Seleziona file CSV o XLSX'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Excel (.xlsx)'));
+      await tester.pumpAndSettle();
+
+      expect(picker.customerCalls, 1);
+      expect(picker.lastCustomerFormat, TabularImportFileFormat.xlsx);
+    });
+  });
+
+  testWidgets('Android: dismissing format choice does not call picker', (
+    tester,
+  ) async {
+    await _withPlatform(TargetPlatform.android, () async {
+      final picker = _FakePicker(const AppFilePickCancelled());
+      final parser = _FakeParser();
+
+      await _pumpImportScreen(tester, picker: picker, parser: parser);
+
+      await tester.tap(find.text('Seleziona file CSV o XLSX'));
+      await tester.pumpAndSettle();
+      expect(picker.customerCalls, 0);
+
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
+
+      expect(picker.customerCalls, 0);
+      expect(find.text('CSV'), findsNothing);
+    });
   });
 }

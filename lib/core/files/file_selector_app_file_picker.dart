@@ -1,6 +1,5 @@
-import 'dart:typed_data';
-
 import 'package:file_selector/file_selector.dart';
+import 'package:flutter/foundation.dart';
 
 import 'app_file_pick_result.dart';
 import 'app_file_picker.dart';
@@ -29,6 +28,8 @@ class FileSelectorAppFilePicker implements AppFilePicker {
   /// Allineato a `DocumentFileRules.maxSizeBytes`.
   static const documentUploadMaxBytes = 6291456;
 
+  static const _androidNullFormatMessage = 'Seleziona prima CSV o Excel.';
+
   static Future<PickedFileHandle?> _defaultOpenPickedFile({
     required List<XTypeGroup> acceptedTypeGroups,
   }) async {
@@ -39,6 +40,7 @@ class FileSelectorAppFilePicker implements AppFilePicker {
     return _XFilePickedFileHandle(file);
   }
 
+  /// Precise CSV/XLSX filters for non-Android platforms.
   static final customerImportTypeGroups = <XTypeGroup>[
     XTypeGroup(
       label: 'CSV o Excel',
@@ -57,6 +59,21 @@ class FileSelectorAppFilePicker implements AppFilePicker {
 
   /// Stessi tipi dell'import clienti: entrambi accettano CSV/XLSX.
   static final transactionImportTypeGroups = customerImportTypeGroups;
+
+  /// Android CSV: single MIME family, no extensions (plugin MIME expansion).
+  static final androidCsvImportTypeGroups = <XTypeGroup>[
+    XTypeGroup(label: 'CSV', mimeTypes: const <String>['text/*']),
+  ];
+
+  /// Android XLSX: single exact MIME, no extensions.
+  static final androidXlsxImportTypeGroups = <XTypeGroup>[
+    XTypeGroup(
+      label: 'Excel (.xlsx)',
+      mimeTypes: const <String>[
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      ],
+    ),
+  ];
 
   static final documentUploadTypeGroups = <XTypeGroup>[
     XTypeGroup(
@@ -80,20 +97,57 @@ class FileSelectorAppFilePicker implements AppFilePicker {
     ),
   ];
 
+  static bool get _useAndroidTabularCompat =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
+  /// Resolves tabular type groups. Returns `null` when Android format is missing
+  /// (fail-closed; do not open the broken multi-MIME picker).
+  static List<XTypeGroup>? tabularImportTypeGroupsFor({
+    TabularImportFileFormat? format,
+  }) {
+    if (!_useAndroidTabularCompat) {
+      return customerImportTypeGroups;
+    }
+    return switch (format) {
+      TabularImportFileFormat.csv => androidCsvImportTypeGroups,
+      TabularImportFileFormat.xlsx => androidXlsxImportTypeGroups,
+      null => null,
+    };
+  }
+
   @override
-  Future<AppFilePickResult> pickCustomerImportFile() {
-    return _pickSingle(
-      acceptedTypeGroups: customerImportTypeGroups,
+  Future<AppFilePickResult> pickCustomerImportFile({
+    TabularImportFileFormat? format,
+  }) {
+    return _pickTabularImport(
+      format: format,
       maxBytesBeforeRead: customerImportMaxBytes,
-      tooLargeMessage: 'Il file supera il limite di 2 MB.',
     );
   }
 
   @override
-  Future<AppFilePickResult> pickTransactionImportFile() {
-    return _pickSingle(
-      acceptedTypeGroups: transactionImportTypeGroups,
+  Future<AppFilePickResult> pickTransactionImportFile({
+    TabularImportFileFormat? format,
+  }) {
+    return _pickTabularImport(
+      format: format,
       maxBytesBeforeRead: transactionImportMaxBytes,
+    );
+  }
+
+  Future<AppFilePickResult> _pickTabularImport({
+    required TabularImportFileFormat? format,
+    required int maxBytesBeforeRead,
+  }) {
+    final groups = tabularImportTypeGroupsFor(format: format);
+    if (groups == null) {
+      return Future<AppFilePickResult>.value(
+        const AppFilePickFailure(_androidNullFormatMessage),
+      );
+    }
+    return _pickSingle(
+      acceptedTypeGroups: groups,
+      maxBytesBeforeRead: maxBytesBeforeRead,
       tooLargeMessage: 'Il file supera il limite di 2 MB.',
     );
   }

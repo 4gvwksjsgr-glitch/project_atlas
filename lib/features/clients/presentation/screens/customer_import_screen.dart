@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/di/providers.dart';
 import '../../../../core/files/app_file_pick_result.dart';
+import '../../../../core/files/app_file_picker.dart';
 import '../../../../core/router/route_paths.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/constants/app_ui_constants.dart';
+import '../../../../shared/widgets/tabular_import_format_choice.dart';
 import '../../../companies/presentation/controllers/active_company_controller.dart';
 import '../../domain/value_objects/customer_import_field.dart';
 import '../controllers/customer_import_controller.dart';
@@ -147,9 +149,19 @@ class _InfoStep extends ConsumerWidget {
           onPressed: state.isBusy
               ? null
               : () async {
+                  TabularImportFileFormat? format;
+                  if (needsTabularImportFormatChoice) {
+                    format = await showTabularImportFormatChoice(context);
+                    if (format == null) {
+                      return;
+                    }
+                    if (!context.mounted) {
+                      return;
+                    }
+                  }
                   final pickResult = await ref
                       .read(appFilePickerProvider)
-                      .pickCustomerImportFile();
+                      .pickCustomerImportFile(format: format);
                   switch (pickResult) {
                     case AppFilePickCancelled():
                       return;

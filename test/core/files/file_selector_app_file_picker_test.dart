@@ -1,7 +1,8 @@
-import 'dart:typed_data';
-
+import 'package:file_selector/file_selector.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:project_atlas/core/files/app_file_pick_result.dart';
+import 'package:project_atlas/core/files/app_file_picker.dart';
 import 'package:project_atlas/core/files/file_selector_app_file_picker.dart';
 import 'package:project_atlas/core/files/picked_file_handle.dart';
 
@@ -48,7 +49,45 @@ class _FakeHandle implements PickedFileHandle {
   }
 }
 
+void _expectAndroidCsvGroup(XTypeGroup group) {
+  expect(group.mimeTypes, equals(const <String>['text/*']));
+  expect(group.extensions ?? const <String>[], isEmpty);
+  expect(group.mimeTypes, isNot(contains('*/*')));
+}
+
+void _expectAndroidXlsxGroup(XTypeGroup group) {
+  expect(
+    group.mimeTypes,
+    equals(const <String>[
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ]),
+  );
+  expect(group.extensions ?? const <String>[], isEmpty);
+  expect(group.mimeTypes, isNot(contains('*/*')));
+}
+
+void _expectPreciseTabularGroup(XTypeGroup group) {
+  expect(group.extensions, containsAll(<String>['csv', 'xlsx']));
+  expect(
+    group.mimeTypes,
+    containsAll(<String>[
+      'text/csv',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ]),
+  );
+  expect(group.mimeTypes, isNot(contains('*/*')));
+}
+
 void main() {
+  // flutter_test defaults to Android; keep non-Android for null-format paths.
+  setUp(() {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+  });
+
+  tearDown(() {
+    debugDefaultTargetPlatformOverride = null;
+  });
+
   group('FileSelectorAppFilePicker', () {
     test('annullamento → AppFilePickCancelled', () async {
       final picker = FileSelectorAppFilePicker(
@@ -241,5 +280,193 @@ void main() {
         ]),
       );
     });
+
+    test('Android customer csv uses text/* group without extensions', () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      List<XTypeGroup>? captured;
+
+      final picker = FileSelectorAppFilePicker(
+        openPickedFile: ({required acceptedTypeGroups}) async {
+          captured = acceptedTypeGroups;
+          return null;
+        },
+      );
+
+      await picker.pickCustomerImportFile(format: TabularImportFileFormat.csv);
+
+      expect(captured, isNotNull);
+      expect(captured, hasLength(1));
+      _expectAndroidCsvGroup(captured!.single);
+    });
+
+    test(
+      'Android customer xlsx uses exact XLSX MIME without extensions',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.android;
+        List<XTypeGroup>? captured;
+
+        final picker = FileSelectorAppFilePicker(
+          openPickedFile: ({required acceptedTypeGroups}) async {
+            captured = acceptedTypeGroups;
+            return null;
+          },
+        );
+
+        await picker.pickCustomerImportFile(
+          format: TabularImportFileFormat.xlsx,
+        );
+
+        expect(captured, isNotNull);
+        expect(captured, hasLength(1));
+        _expectAndroidXlsxGroup(captured!.single);
+      },
+    );
+
+    test(
+      'Android transaction csv uses text/* group without extensions',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.android;
+        List<XTypeGroup>? captured;
+
+        final picker = FileSelectorAppFilePicker(
+          openPickedFile: ({required acceptedTypeGroups}) async {
+            captured = acceptedTypeGroups;
+            return null;
+          },
+        );
+
+        await picker.pickTransactionImportFile(
+          format: TabularImportFileFormat.csv,
+        );
+
+        expect(captured, isNotNull);
+        expect(captured, hasLength(1));
+        _expectAndroidCsvGroup(captured!.single);
+      },
+    );
+
+    test(
+      'Android transaction xlsx uses exact XLSX MIME without extensions',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.android;
+        List<XTypeGroup>? captured;
+
+        final picker = FileSelectorAppFilePicker(
+          openPickedFile: ({required acceptedTypeGroups}) async {
+            captured = acceptedTypeGroups;
+            return null;
+          },
+        );
+
+        await picker.pickTransactionImportFile(
+          format: TabularImportFileFormat.xlsx,
+        );
+
+        expect(captured, isNotNull);
+        expect(captured, hasLength(1));
+        _expectAndroidXlsxGroup(captured!.single);
+      },
+    );
+
+    test('Android null format fails closed without opening picker', () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      var openCalls = 0;
+
+      final picker = FileSelectorAppFilePicker(
+        openPickedFile: ({required acceptedTypeGroups}) async {
+          openCalls += 1;
+          return null;
+        },
+      );
+
+      final result = await picker.pickCustomerImportFile();
+      expect(result, isA<AppFilePickFailure>());
+      expect(
+        (result as AppFilePickFailure).message,
+        'Seleziona prima CSV o Excel.',
+      );
+      expect(openCalls, 0);
+
+      final txResult = await picker.pickTransactionImportFile();
+      expect(txResult, isA<AppFilePickFailure>());
+      expect(openCalls, 0);
+    });
+
+    test(
+      'non-Android customer import with null format preserves precise group',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        List<XTypeGroup>? captured;
+
+        final picker = FileSelectorAppFilePicker(
+          openPickedFile: ({required acceptedTypeGroups}) async {
+            captured = acceptedTypeGroups;
+            return null;
+          },
+        );
+
+        await picker.pickCustomerImportFile();
+
+        expect(captured, isNotNull);
+        expect(captured, hasLength(1));
+        _expectPreciseTabularGroup(captured!.single);
+      },
+    );
+
+    test(
+      'non-Android transaction import with null format preserves precise group',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+        List<XTypeGroup>? captured;
+
+        final picker = FileSelectorAppFilePicker(
+          openPickedFile: ({required acceptedTypeGroups}) async {
+            captured = acceptedTypeGroups;
+            return null;
+          },
+        );
+
+        await picker.pickTransactionImportFile();
+
+        expect(captured, isNotNull);
+        expect(captured, hasLength(1));
+        _expectPreciseTabularGroup(captured!.single);
+      },
+    );
+
+    test(
+      'Android document upload keeps precise pdf/image group, not */*',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.android;
+        List<XTypeGroup>? captured;
+
+        final picker = FileSelectorAppFilePicker(
+          openPickedFile: ({required acceptedTypeGroups}) async {
+            captured = acceptedTypeGroups;
+            return null;
+          },
+        );
+
+        await picker.pickDocumentUploadFile();
+
+        expect(captured, isNotNull);
+        expect(captured, hasLength(1));
+        final group = captured!.single;
+        expect(
+          group.extensions,
+          containsAll(<String>['pdf', 'jpg', 'jpeg', 'png', 'webp']),
+        );
+        expect(
+          group.mimeTypes,
+          containsAll(<String>[
+            'application/pdf',
+            'image/jpeg',
+            'image/png',
+            'image/webp',
+          ]),
+        );
+        expect(group.mimeTypes, isNot(contains('*/*')));
+      },
+    );
   });
 }

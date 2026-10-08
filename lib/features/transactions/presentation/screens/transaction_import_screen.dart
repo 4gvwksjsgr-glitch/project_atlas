@@ -5,9 +5,11 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/di/providers.dart';
 import '../../../../core/files/app_file_pick_result.dart';
+import '../../../../core/files/app_file_picker.dart';
 import '../../../../core/router/route_paths.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/constants/app_ui_constants.dart';
+import '../../../../shared/widgets/tabular_import_format_choice.dart';
 import '../../../companies/presentation/controllers/active_company_controller.dart';
 import '../../domain/entities/cash_transaction.dart';
 import '../../domain/entities/transaction_import_row.dart';
@@ -181,9 +183,19 @@ class _InfoStep extends ConsumerWidget {
           onPressed: state.isBusy
               ? null
               : () async {
+                  TabularImportFileFormat? format;
+                  if (needsTabularImportFormatChoice) {
+                    format = await showTabularImportFormatChoice(context);
+                    if (format == null) {
+                      return;
+                    }
+                    if (!context.mounted) {
+                      return;
+                    }
+                  }
                   final pickResult = await ref
                       .read(appFilePickerProvider)
-                      .pickTransactionImportFile();
+                      .pickTransactionImportFile(format: format);
                   switch (pickResult) {
                     case AppFilePickCancelled():
                       return;
@@ -428,8 +440,7 @@ class _FormatStep extends ConsumerWidget {
         OutlinedButton(
           onPressed: state.isBusy
               ? null
-              : () =>
-                    controller.goToStep(TransactionImportWizardStep.mapping),
+              : () => controller.goToStep(TransactionImportWizardStep.mapping),
           child: Text(l10n.transactionsImportBack),
         ),
       ],

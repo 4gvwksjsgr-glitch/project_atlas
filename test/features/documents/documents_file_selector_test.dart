@@ -96,12 +96,16 @@ class _FakePicker implements AppFilePicker {
   AppFilePickResult result;
 
   @override
-  Future<AppFilePickResult> pickCustomerImportFile() async {
+  Future<AppFilePickResult> pickCustomerImportFile({
+    TabularImportFileFormat? format,
+  }) async {
     return const AppFilePickCancelled();
   }
 
   @override
-  Future<AppFilePickResult> pickTransactionImportFile() async {
+  Future<AppFilePickResult> pickTransactionImportFile({
+    TabularImportFileFormat? format,
+  }) async {
     return const AppFilePickCancelled();
   }
 
